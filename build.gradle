@@ -21,6 +21,9 @@ repositories {
 dependencies {
     compile "org.apache.kafka:kafka-clients:0.11.0.0"
     compile "org.apache.httpcomponents:httpclient:4.5.5"
+    compile "com.googlecode.json-simple:json-simple:1.1.1"
+    compile "org.msgpack:msgpack-core:0.8.16"
+    compile "org.msgpack:msgpack:0.6.12"
 }
 
 test {
