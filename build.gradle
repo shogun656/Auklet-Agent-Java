@@ -24,6 +24,7 @@ dependencies {
     compile "com.googlecode.json-simple:json-simple:1.1.1"
     compile "org.msgpack:msgpack-core:0.8.16"
     compile "org.msgpack:msgpack:0.6.12"
+    compile "org.msgpack:jackson-dataformat-msgpack:0.8.16"
 }
 
 test {

@@ -1,8 +1,6 @@
 package io.auklet.agent;
 
-import org.apache.commons.codec.binary.Hex;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -12,27 +10,22 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import java.io.*;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-
-import java.security.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 
 public class Device {
 
-    private static String filename;
+    private static String filename = "./AukletAuth";
     private static String client_id;
     private static String client_username;
     private static String client_password;
     private static String organization;
 
-    public static void register_device(String deviceId){
+    public static void register_device(){
 
         JSONParser parser = new JSONParser();
 
         try {
-
             Object obj = parser.parse(new FileReader(filename));
             JSONObject jsonObject = (JSONObject) obj;
             getCreds(jsonObject);
@@ -55,21 +48,29 @@ public class Device {
 
         try {
             JSONObject obj = new JSONObject();
-            obj.put("mac_address_has", getMacAddress());
+            obj.put("mac_address_hash", util.getMacAddressHash());
             obj.put("application", Auklet.AppId);
-            HttpPost request = new HttpPost(Auklet.baseUrl + "/devices/");
-            //StringEntity params =new StringEntity("details={\"name\":\"myname\",\"age\":\"20\"} ");
+            HttpPost request = new HttpPost(Auklet.baseUrl + "/private/devices/");
             StringEntity params = new StringEntity(obj.toJSONString());
-            //request.addHeader("content-type", "application/json");
-            request.addHeader("Authorization", "JWT"+Auklet.ApiKey);
+            request.addHeader("content-type", "application/json");
+            request.addHeader("Authorization", "JWT "+Auklet.ApiKey);
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
-            if(response.getStatusLine().getStatusCode() != 200){
+            System.out.println(response.getEntity().getContent());
+
+            String text = null;
+            try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
+                text = scanner.useDelimiter("\\A").next();
+            }
+
+            System.out.println("content is: " + text);
+            if(response.getStatusLine().getStatusCode() != 201){
                 System.out.println("could not create a device and status code is: " + response.getStatusLine().getStatusCode());
                 throw new Exception();
             }
             JSONParser parser = new JSONParser();
-            JSONObject myResponse = (JSONObject) parser.parse(response.toString());
+            JSONObject myResponse = (JSONObject) parser.parse(text);
+            System.out.println(myResponse.toJSONString());
             return myResponse;
 
             //handle response here...
@@ -81,41 +82,6 @@ public class Device {
         return null;
     }
 
-    private static String getMacAddress() {
-        InetAddress ip;
-        String machash = "";
-        try {
-
-            ip = InetAddress.getLocalHost();
-            System.out.println("Current IP address : " + ip.getHostAddress());
-
-            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-
-            byte[] mac = network.getHardwareAddress();
-
-            System.out.print("Current MAC address : ");
-
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < mac.length; i++) {
-                sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
-            }
-            System.out.println(sb.toString());
-
-            byte[] macBytes = String.valueOf(sb).getBytes("UTF-8");
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] macHashByte = md.digest(macBytes);
-            machash = Hex.encodeHexString(macHashByte);
-
-
-        } catch (UnknownHostException | SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
-
-            e.printStackTrace();
-
-        }
-        return machash;
-
-    }
-
     private static void getCreds(JSONObject jsonObject) {
 
         System.out.println(jsonObject);
@@ -123,7 +89,7 @@ public class Device {
         client_password = (String) jsonObject.get("client_password");
         System.out.println(client_password);
 
-        client_username = (String) jsonObject.get("id");
+        client_username = (String) jsonObject.get("client_username");
         System.out.println(client_username);
 
         client_id = (String) jsonObject.get("client_id");
@@ -131,10 +97,6 @@ public class Device {
 
         organization = (String) jsonObject.get("organization");
         System.out.println(organization);
-
-        //if (pass.equals("") | id.equals("") | client_id.equals("") | organization.equals("")){
-        //    JSONObject newObject = create_device();
-        //}
     }
 
     private static void writeCreds(String filename){
