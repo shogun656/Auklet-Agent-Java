@@ -1,5 +1,9 @@
 package io.auklet.agent;
 
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +48,20 @@ public class AukletUnhandledException implements Thread.UncaughtExceptionHandler
                 System.out.println(list);
             }
             setStackTrace(list, thrown.getMessage());
-            Messages.createMessagePack();
+
+            try {
+                MqttClient client = MQTT.testMqtt();
+                byte[] bytesToSend = Messages.createMessagePack();
+                MqttMessage message = new MqttMessage(bytesToSend);
+                message.setQos(2);
+                client.publish("java/events/" + Device.getOrganization() + "/" + Device.getClient_id(), message);
+                System.out.println("Message published");
+                Thread.sleep(1000);
+
+            } catch (MqttException | InterruptedException | NullPointerException e) {
+                e.printStackTrace();
+                System.out.println(e.getMessage());
+            }
         }
 
 

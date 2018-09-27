@@ -1,16 +1,23 @@
 package io.auklet.agent;
 
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.openssl.PEMParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import java.io.*;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Scanner;
 
 public class Device {
@@ -28,11 +35,11 @@ public class Device {
         try {
             Object obj = parser.parse(new FileReader(filename));
             JSONObject jsonObject = (JSONObject) obj;
-            getCreds(jsonObject);
+            setCreds(jsonObject);
 
         } catch (FileNotFoundException e) {
             JSONObject newObject = create_device();
-            getCreds(newObject);
+            setCreds(newObject);
             writeCreds(filename);
 
         } catch (IOException e) {
@@ -82,7 +89,7 @@ public class Device {
         return null;
     }
 
-    private static void getCreds(JSONObject jsonObject) {
+    private static void setCreds(JSONObject jsonObject) {
 
         System.out.println(jsonObject);
 
@@ -115,6 +122,121 @@ public class Device {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+    }
+
+    public static String getClient_username(){
+        return client_username;
+    }
+
+    public static String getClient_password(){
+        return client_password;
+    }
+
+    public static String getClient_id(){
+        return client_id;
+    }
+
+    public static String getOrganization(){
+        return organization;
+    }
+
+    // get_certs is under work in progress and not very clean
+    public static void get_certs() {
+
+
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            URL newUrl = new URL(Auklet.baseUrl + "private/devices/certificates/");
+            HttpURLConnection con = (HttpURLConnection) newUrl.openConnection();
+
+            con.setRequestProperty("Authorization", "JWT " + Auklet.ApiKey);;
+            con.setDoInput(true);
+            con.setRequestMethod("GET");
+            con.setInstanceFollowRedirects(true);
+
+            System.out.println("redirect url: " + con.getURL());
+
+            boolean redirect = true;
+
+            if (redirect) {
+                System.out.println("redirect url after setting redirect: " + con.getURL().toURI());
+                HttpGet request = new HttpGet(con.getURL().toURI());
+                HttpResponse response = httpClient.execute(request);
+                InputStream ca = response.getEntity().getContent();
+                System.out.println(ca.available());
+                System.out.println(ca);
+                String text = null;
+                try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
+                    text = scanner.useDelimiter("\\A").next();
+                }
+                System.out.println("ca content is: " + text);
+                File file = new File("./testCA.pem");
+                //Create the file
+                if (file.createNewFile())
+                {
+                    System.out.println("File is created!");
+                } else {
+                    System.out.println("File already exists.");
+                }
+                System.out.println(ca);
+                MQTT.getSocketFactory1(ca);
+
+                X509Certificate caCert = null;
+                CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                caCert = (X509Certificate) cf.generateCertificate(ca);
+                System.out.println(caCert.toString());
+
+                BufferedWriter writer = new BufferedWriter(new FileWriter("./testCA"));
+                writer.write(text);
+                writer.close();
+
+                X509Certificate cert = null;
+                StringReader reader = new StringReader(text);
+                PEMParser pr = new PEMParser(reader);
+                cert = (X509Certificate)pr.readObject();
+                System.out.println(cert);
+                pr.close();
+                StringWriter stringWriter = new StringWriter();
+                JcaPEMWriter pemwriter = new JcaPEMWriter(stringWriter);
+                pemwriter.writeObject(cert);
+                pemwriter.close();
+
+                JcaPEMWriter pemwriter1 = new JcaPEMWriter(new FileWriter("./test1CA.pem"));
+                pemwriter1.writeObject(cert);
+                pemwriter1.close();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+
+
+        /*
+        HttpClient httpClient = HttpClientBuilder.create().build();
+
+        try {
+            JSONObject obj = new JSONObject();
+            HttpGet request = new HttpGet("http://api-staging.auklet.io/" + "private/devices/certificates/");
+            request.addHeader("content-type", "application/json");
+            request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
+            HttpResponse response = httpClient.execute(request);
+            System.out.println(response.getStatusLine());
+
+            System.out.println(response.getEntity().getContent());
+            String text = null;
+            try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
+                text = scanner.useDelimiter("\\A").next();
+            }
+
+            System.out.println("ca content is: " + text);
+            JSONParser parser = new JSONParser();
+        }catch(Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+        */
 
     }
 }

@@ -9,6 +9,7 @@ public class Auklet {
     public static void init(String appId, String apiKey){
         ApiKey = apiKey;
         AppId = appId;
+        Device.get_certs();
         Device.register_device();
         AukletUnhandledException.setup();
     }
