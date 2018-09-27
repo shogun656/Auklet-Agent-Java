@@ -1,6 +1,13 @@
 version: 2
 
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+        context: public-vars
 jobs:
+    build:
     build:
         environment:
             TZ: "/usr/share/zoneinfo/America/Detroit"
