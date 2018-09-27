@@ -5,7 +5,7 @@ workflows:
   build:
     jobs:
       - build:
-        context: public-vars
+          context: public-vars
 jobs:
     build:
     build:
