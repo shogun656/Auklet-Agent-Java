@@ -29,7 +29,7 @@ public class MQTT {
         JSONObject brokerJSON = getbroker();
 
         String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
-        String caFilePath = "./testCA.pem";
+        String caFilePath = "./ca.pem";
         String mqttUserName = Device.getClient_username();
         String mqttPassword = Device.getClient_password();
 
