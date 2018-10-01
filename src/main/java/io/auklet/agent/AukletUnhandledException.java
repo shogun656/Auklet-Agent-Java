@@ -85,7 +85,7 @@ public class AukletUnhandledException implements Thread.UncaughtExceptionHandler
     private void setStackTrace(List<Object> stackTrace, String exceptionMessage){
         this.stackTrace = stackTrace;
         Messages.map.put("stackTrace", stackTrace);
-        Messages.map.put("timestamp", Instant.now().getEpochSecond());
+        Messages.map.put("timestamp", System.currentTimeMillis());
         Messages.map.put("excType", exceptionMessage);
 
     }

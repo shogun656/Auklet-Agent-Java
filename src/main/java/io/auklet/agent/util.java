@@ -9,6 +9,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class util {
 
@@ -57,5 +59,22 @@ public class util {
 
         }
         return ipAddr;
+    }
+
+    public static Map<String, Object> getSystemMetrics(){
+        try {
+            Map<String, Object> obj = new HashMap<>();
+            obj.put("outboundNetwork", 0);
+            obj.put("inboundNetwork", 0);
+            obj.put("memoryUsage", 0);
+            obj.put("cpuUsage", 0.0);
+
+            return obj;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+        return null;
     }
 }
