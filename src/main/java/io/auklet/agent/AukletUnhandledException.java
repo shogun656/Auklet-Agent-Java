@@ -54,10 +54,11 @@ public class AukletUnhandledException implements Thread.UncaughtExceptionHandler
                 byte[] bytesToSend = Messages.createMessagePack();
                 MqttMessage message = new MqttMessage(bytesToSend);
                 message.setQos(2);
-                //client.publish("java/events/" + Device.getOrganization() + "/" + Device.getClient_id(), message);
-                client.publish("test/events", message);
+                client.publish("java/events/" + Device.getOrganization() + "/" + Device.getClient_id(), message);
+                //client.publish("test/events", message);
                 System.out.println("Message published");
                 Thread.sleep(1000);
+                client.disconnect();
 
             } catch (MqttException | InterruptedException | NullPointerException e) {
                 e.printStackTrace();

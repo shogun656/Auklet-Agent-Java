@@ -16,7 +16,6 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
@@ -29,7 +28,7 @@ public class MQTT {
         JSONObject brokerJSON = getbroker();
 
         String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
-        String caFilePath = "./ca.pem";
+        String caFilePath = "./CA";
         String mqttUserName = Device.getClient_username();
         String mqttPassword = Device.getClient_password();
 
@@ -53,9 +52,6 @@ public class MQTT {
             System.out.println("connected!");
 
             return client;
-
-            //client.disconnect();
-            //System.out.println("disconnected!");
 
 
         } catch (MqttException e) {
@@ -135,41 +131,4 @@ public class MQTT {
         return null;
     }
 
-    // This is a test function and will be removed soon
-    protected static SSLSocketFactory getSocketFactory1 (InputStream CAInput){
-
-        try {
-            X509Certificate caCert = null;
-
-            //FileInputStream fis = new FileInputStream(caFilePath);
-            BufferedInputStream bis = new BufferedInputStream(CAInput);
-            System.out.println(bis.available());
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-
-            while (bis.available() > 0) {
-                caCert = (X509Certificate) cf.generateCertificate(bis);
-                System.out.println(caCert.toString());
-            }
-
-            KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
-            caKs.load(null, null);
-            caKs.setCertificateEntry("ca-certificate", caCert);
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-            tmf.init(caKs);
-
-            SSLContext context = SSLContext.getInstance("TLSv1.2");
-            context.init(null, tmf.getTrustManagers(), null);
-
-            return context.getSocketFactory();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
-        }
-
-        System.out.println("something went wrong while setting up socket factory");
-
-        return null;
-
-    }
 }
