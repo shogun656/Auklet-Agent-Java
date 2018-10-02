@@ -96,7 +96,7 @@ public class Device {
         client_password = (String) jsonObject.get("client_password");
         System.out.println(client_password);
 
-        client_username = (String) jsonObject.get("client_username");
+        client_username = (String) jsonObject.get("id");
         System.out.println(client_username);
 
         client_id = (String) jsonObject.get("client_id");
