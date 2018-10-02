@@ -21,8 +21,8 @@ public class Messages {
             map.put("macAddressHash", util.getMacAddressHash());
             map.put("publicIP", util.getIpAddress());
             map.put("systemMetrics", util.getSystemMetrics());
-            map.put("agentVersion", 0.0);
-            map.put("device_id", Device.getClient_id());
+            map.put("agentVersion", "0.0");
+            map.put("device", Device.getClient_username());
 
             System.out.println("message pack: " + map);
 

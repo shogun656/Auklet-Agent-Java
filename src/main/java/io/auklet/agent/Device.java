@@ -110,7 +110,7 @@ public class Device {
 
         JSONObject obj = new JSONObject();
         obj.put("client_password", client_password);
-        obj.put("client_username", client_username);
+        obj.put("id", client_username);
         obj.put("client_id", client_id);
         obj.put("organization", organization);
 
