@@ -22,8 +22,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Scanner;
 
-public class MQTT {
-    public static MqttClient testMqtt(String folderPath){
+public final class MQTT {
+    protected static MqttClient connectMqtt(String folderPath){
 
         JSONObject brokerJSON = getbroker();
 
@@ -102,7 +102,7 @@ public class MQTT {
 
     }
 
-    public static JSONObject getbroker(){
+    private static JSONObject getbroker(){
 
         HttpClient httpClient = HttpClientBuilder.create().build();
 

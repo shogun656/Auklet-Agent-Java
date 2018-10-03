@@ -16,7 +16,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-public class Device {
+public final class Device {
 
     private static String filename = "/AukletAuth";
     private static String client_id;

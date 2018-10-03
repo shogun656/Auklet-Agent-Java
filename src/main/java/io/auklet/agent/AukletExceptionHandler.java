@@ -8,12 +8,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AukletUnhandledException implements Thread.UncaughtExceptionHandler {
+public final class AukletExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     private Thread.UncaughtExceptionHandler defaultExceptionHandler;
     private List<Object> stackTrace;
 
-    public AukletUnhandledException(Thread.UncaughtExceptionHandler defaultExceptionHandler) {
+    private AukletExceptionHandler(Thread.UncaughtExceptionHandler defaultExceptionHandler) {
         this.defaultExceptionHandler = defaultExceptionHandler;
     }
 
@@ -65,7 +65,7 @@ public class AukletUnhandledException implements Thread.UncaughtExceptionHandler
 
     }
 
-    public static AukletUnhandledException setup() {
+    protected static AukletExceptionHandler setup() {
 
         System.out.println("Configuring uncaught exception handler.");
         Thread.UncaughtExceptionHandler currentHandler = Thread.getDefaultUncaughtExceptionHandler();
@@ -73,7 +73,7 @@ public class AukletUnhandledException implements Thread.UncaughtExceptionHandler
             System.out.println("default UncaughtExceptionHandler class='" + currentHandler.getClass().getName() + "'");
         }
 
-        AukletUnhandledException handler = new AukletUnhandledException(currentHandler);
+        AukletExceptionHandler handler = new AukletExceptionHandler(currentHandler);
         Thread.setDefaultUncaughtExceptionHandler(handler);
         return handler;
     }

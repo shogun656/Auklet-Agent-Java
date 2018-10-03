@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class util {
+public final class util {
 
     protected static String getMacAddressHash() {
         InetAddress ip;
@@ -62,7 +62,7 @@ public class util {
         return ipAddr;
     }
 
-    public static Map<String, Object> getSystemMetrics(){
+    protected static Map<String, Object> getSystemMetrics(){
         try {
             Map<String, Object> obj = new HashMap<>();
             obj.put("outboundNetwork", 0);

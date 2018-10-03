@@ -15,7 +15,7 @@ public class Auklet {
         String folderPath = util.createCustomFolder();
         Device.get_certs(folderPath);
         Device.register_device(folderPath);
-        client = MQTT.testMqtt(folderPath);
-        AukletUnhandledException.setup();
+        client = MQTT.connectMqtt(folderPath);
+        AukletExceptionHandler.setup();
     }
 }

@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class Messages {
+public final class Messages {
 
     public static Map<String, Object> map = new HashMap<>();
 
-    public static byte[] createMessagePack(){
+    protected static byte[] createMessagePack(){
         byte[] bytes = new byte[]{};
         try {
             map.put("id", UUID.randomUUID());
