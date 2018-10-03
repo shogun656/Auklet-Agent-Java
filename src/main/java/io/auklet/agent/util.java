@@ -79,19 +79,17 @@ public final class util {
         return null;
     }
 
-    protected static String createCustomFolder() {
+    protected static String createCustomFolder(String sysProperty) {
 
-        String path = System.getProperty("user.home") + File.separator + "aukletFiles";
+        String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
         File newfile = new File(path);
         if (newfile.exists()){
             System.out.println("folder already exists");
         } else if (newfile.mkdir()){
             System.out.println("folder created");
         } else {
-            System.out.println("folder was not created");
-            path = System.getProperty("java.io.tmpdir") + File.separator + "aukletFiles";
-            newfile = new File(path);
-            newfile.mkdir();
+            System.out.println("folder was not created for " + sysProperty);
+            return null;
         }
 
         return path;

@@ -12,7 +12,15 @@ public class Auklet {
     public static void init(String appId, String apiKey){
         ApiKey = apiKey;
         AppId = appId;
-        String folderPath = util.createCustomFolder();
+
+        String folderPath = util.createCustomFolder("user.dir");
+        if (folderPath == null){
+           folderPath = util.createCustomFolder("user.home");
+        }
+        if (folderPath == null){
+            folderPath = util.createCustomFolder("java.io.tmpdir");
+        }
+        System.out.println("Directory to store creds: " + folderPath);
         Device.get_certs(folderPath);
         Device.register_device(folderPath);
         client = MQTT.connectMqtt(folderPath);
