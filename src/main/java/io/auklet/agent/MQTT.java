@@ -77,7 +77,6 @@ public final class MQTT {
 
             while (bis.available() > 0) {
                 caCert = (X509Certificate) cf.generateCertificate(bis);
-                System.out.println(caCert.toString());
             }
 
             KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -112,16 +111,14 @@ public final class MQTT {
             request.addHeader("content-type", "application/json");
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);
-            System.out.println(response.getEntity().getContent());
+
             String text = null;
             try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                 text = scanner.useDelimiter("\\A").next();
             }
 
-            System.out.println("broker content is: " + text);
             JSONParser parser = new JSONParser();
             JSONObject brokers = (JSONObject) parser.parse(text);
-            System.out.println(brokers.toJSONString());
             return brokers;
 
         }catch(Exception e) {

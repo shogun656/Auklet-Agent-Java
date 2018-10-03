@@ -59,21 +59,18 @@ public final class Device {
             request.addHeader("Authorization", "JWT "+Auklet.ApiKey);
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
-            System.out.println(response.getEntity().getContent());
 
             String text = null;
             try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                 text = scanner.useDelimiter("\\A").next();
             }
 
-            System.out.println("content is: " + text);
             if(response.getStatusLine().getStatusCode() != 201){
                 System.out.println("could not create a device and status code is: " + response.getStatusLine().getStatusCode());
                 throw new Exception();
             }
             JSONParser parser = new JSONParser();
             JSONObject myResponse = (JSONObject) parser.parse(text);
-            System.out.println(myResponse.toJSONString());
             return myResponse;
 
             //handle response here...
@@ -87,19 +84,13 @@ public final class Device {
 
     private static void setCreds(JSONObject jsonObject) {
 
-        System.out.println(jsonObject);
-
         client_password = (String) jsonObject.get("client_password");
-        System.out.println(client_password);
 
         client_username = (String) jsonObject.get("id");
-        System.out.println(client_username);
 
         client_id = (String) jsonObject.get("client_id");
-        System.out.println(client_id);
 
         organization = (String) jsonObject.get("organization");
-        System.out.println(organization);
     }
 
     private static void writeCreds(String filename){
@@ -150,11 +141,8 @@ public final class Device {
             con.setRequestMethod("GET");
             con.setInstanceFollowRedirects(true);
 
-            System.out.println("redirect url: " + con.getURL().toURI());
             con.getResponseCode();
 
-
-            System.out.println("redirect url after redirect: " + con.getURL().toURI());
             HttpGet request = new HttpGet(con.getURL().toURI());
             HttpResponse response = httpClient.execute(request);
             InputStream ca = response.getEntity().getContent();
@@ -162,17 +150,17 @@ public final class Device {
             try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
                 text = scanner.useDelimiter("\\A").next();
             }
-            System.out.println("ca content is: " + text);
+
             File file = new File(folderPath + "/CA");
             if (file.createNewFile())
             {
-                System.out.println("File is created!");
                 BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
                 writer.write(text);
                 writer.close();
+                System.out.println("CA File is created!");
 
             } else {
-                System.out.println("File already exists.");
+                System.out.println("CA File already exists.");
             }
 
         } catch (Exception e) {

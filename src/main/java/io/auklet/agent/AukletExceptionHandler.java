@@ -23,7 +23,6 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
         if (defaultExceptionHandler != null) {
             // call the original handler
             defaultExceptionHandler.uncaughtException(thread, thrown);
-            System.out.println("We are here");
         }
 
         else if (!(thrown instanceof ThreadDeath)) {
@@ -33,8 +32,8 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
             System.err.print("Exception in thread \"" + thread.getName() + "\" ");
             thrown.printStackTrace(System.err);
 
-            System.out.println("library Uncaught Exception caught from app  " + thrown.getMessage());
-            System.out.println("Uncaught Exception stacktrace is ");
+            System.out.println("Uncaught Exception message from app  " + thrown.getMessage());
+
             for (StackTraceElement se : thrown.getStackTrace()) {
                 Map<String, Object> map = new HashMap<>();
                 map.put("functionName", se.getMethodName());
@@ -42,7 +41,6 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
                 map.put("filePath", se.getFileName());
                 map.put("lineNumber", se.getLineNumber());
                 list.add(map);
-                System.out.println(list);
             }
             setStackTrace(list, thrown.getMessage());
 
@@ -51,7 +49,6 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
                 MqttMessage message = new MqttMessage(bytesToSend);
                 message.setQos(2);
                 Auklet.client.publish("java/events/" + Device.getOrganization() + "/" + Device.getClient_username(), message);
-                //client.publish("test/events", message);
                 System.out.println("Message published");
                 Thread.sleep(1000);
                 Auklet.client.disconnect();

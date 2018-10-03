@@ -24,8 +24,6 @@ public final class Messages {
             map.put("agentVersion", "0.0");
             map.put("device", Device.getClient_username());
 
-            System.out.println("message pack: " + map);
-
             ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
             bytes = objectMapper.writeValueAsBytes(map);
 
