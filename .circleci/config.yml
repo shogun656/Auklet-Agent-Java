@@ -33,6 +33,7 @@ jobs:
                 command: |
                   bash .devops/calculate-app-version.sh
                   cp ~/.version VERSION
+
             ##
             # RESTORE CACHES
             ##
