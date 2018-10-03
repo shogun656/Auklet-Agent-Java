@@ -112,15 +112,15 @@ public final class Device {
 
     }
 
-    public static String getClient_username(){
+    public static String getClient_Username(){
         return client_username;
     }
 
-    public static String getClient_password(){
+    public static String getClient_Password(){
         return client_password;
     }
 
-    public static String getClient_id(){
+    public static String getClient_Id(){
         return client_id;
     }
 
@@ -128,7 +128,7 @@ public final class Device {
         return organization;
     }
 
-    public static void get_certs(String folderPath) {
+    public static void get_Certs(String folderPath) {
 
 
         try {

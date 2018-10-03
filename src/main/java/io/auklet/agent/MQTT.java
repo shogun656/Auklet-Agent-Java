@@ -29,12 +29,12 @@ public final class MQTT {
 
         String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
         String caFilePath = folderPath + "/CA";
-        String mqttUserName = Device.getClient_username();
-        String mqttPassword = Device.getClient_password();
+        String mqttUserName = Device.getClient_Username();
+        String mqttPassword = Device.getClient_Password();
 
         MqttClient client;
         try {
-            client = new MqttClient(serverUrl, Device.getClient_id(), new MemoryPersistence());
+            client = new MqttClient(serverUrl, Device.getClient_Id(), new MemoryPersistence());
             MqttConnectOptions options = new MqttConnectOptions();
             options.setUserName(mqttUserName);
             options.setPassword(mqttPassword.toCharArray());

@@ -22,7 +22,7 @@ public final class Messages {
             map.put("publicIP", util.getIpAddress());
             map.put("systemMetrics", util.getSystemMetrics());
             map.put("agentVersion", "0.0");
-            map.put("device", Device.getClient_username());
+            map.put("device", Device.getClient_Username());
 
             ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
             bytes = objectMapper.writeValueAsBytes(map);
