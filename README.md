@@ -7,14 +7,14 @@ testing on other currently active JVMs.
 
 # Features 
 
-1. Automatic report of unhandled exceptions.
-2. Location, and system metrics identification for all issues.
+* Automatic report of unhandled exceptions.
+* Location, and system metrics identification for all issues.
 
 
 # Quickstart
 
-1. Download the agent jar file and import it in the java application.
-2. Initialize the auklet agent at the very beginning of `main` using app_id and api_key as following:
+* Download the agent jar file and import it in the java application.
+* Initialize the auklet agent at the very beginning of `main` using app_id and api_key as following:
 ```
 import io.auklet.agent.Auklet;
    
@@ -23,7 +23,7 @@ public class demo {
    public static void main(String []arg) {
        Auklet.init(<App_Id>, <Api_key>);
        ...
-       }
+   }
 }
 ```
 
