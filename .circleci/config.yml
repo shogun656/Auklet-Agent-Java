@@ -1,12 +1,9 @@
 version: 2
+
 jobs:
-    build:
     build:
         environment:
             TZ: "/usr/share/zoneinfo/America/Detroit"
-            BOT_GIT_EMAIL: "mecha@auklet.io"
-            BOT_GIT_NAME: "MechaAuklet"
-            BOT_GIT_USERNAME: "mechaauklet"
         working_directory: ~/app
         docker:
             - image: circleci/node:9-stretch
@@ -27,12 +24,6 @@ jobs:
             - add_ssh_keys
             - checkout
             - run:
-                name: Validate PR
-                command: |
-                  if [[ ! -f ~/.localCircleBuild && ! -f ~/.prCircleBuild ]]; then
-                    bash .devops/validate-pr.sh
-                  fi
-            - run:
                 name: Install jq
                 command: |
                   sudo curl -sSL -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
@@ -40,14 +31,8 @@ jobs:
             - run:
                 name: Calculate codebase version
                 command: |
-                  if [[ ! -f ~/.prCircleBuild ]]; then
-                    git config --global user.email "$BOT_GIT_EMAIL" && git config --global user.name "$BOT_GIT_NAME"
-                    bash .devops/calculate-app-version.sh
-                  else
-                    echo '0.1.0-a.local.circleci.build' > ~/.version
-                  fi
+                  bash .devops/calculate-app-version.sh
                   cp ~/.version VERSION
-
             ##
             # RESTORE CACHES
             ##
