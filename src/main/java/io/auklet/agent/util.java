@@ -2,6 +2,7 @@ package io.auklet.agent;
 
 import org.apache.commons.codec.binary.Hex;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -76,5 +77,23 @@ public class util {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+
+    protected static String createCustomFolder() {
+
+        String path = System.getProperty("user.home") + File.separator + "aukletFiles";
+        File newfile = new File(path);
+        if (newfile.exists()){
+            System.out.println("folder already exists");
+        } else if (newfile.mkdir()){
+            System.out.println("folder created");
+        } else {
+            System.out.println("folder was not created");
+            path = System.getProperty("java.io.tmpdir") + File.separator + "aukletFiles";
+            newfile = new File(path);
+            newfile.mkdir();
+        }
+
+        return path;
     }
 }

@@ -23,12 +23,12 @@ import java.security.cert.X509Certificate;
 import java.util.Scanner;
 
 public class MQTT {
-    public static MqttClient testMqtt(){
+    public static MqttClient testMqtt(String folderPath){
 
         JSONObject brokerJSON = getbroker();
 
         String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
-        String caFilePath = "./CA";
+        String caFilePath = folderPath + "/CA";
         String mqttUserName = Device.getClient_username();
         String mqttPassword = Device.getClient_password();
 

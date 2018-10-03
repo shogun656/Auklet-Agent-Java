@@ -6,8 +6,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-import org.bouncycastle.openssl.PEMParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -16,31 +14,29 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.Scanner;
 
 public class Device {
 
-    private static String filename = "./AukletAuth";
+    private static String filename = "/AukletAuth";
     private static String client_id;
     private static String client_username;
     private static String client_password;
     private static String organization;
 
-    public static void register_device(){
+    public static void register_device(String folderPath){
 
         JSONParser parser = new JSONParser();
 
         try {
-            Object obj = parser.parse(new FileReader(filename));
+            Object obj = parser.parse(new FileReader(folderPath + filename));
             JSONObject jsonObject = (JSONObject) obj;
             setCreds(jsonObject);
 
         } catch (FileNotFoundException e) {
             JSONObject newObject = create_device();
             setCreds(newObject);
-            writeCreds(filename);
+            writeCreds(folderPath + filename);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -141,7 +137,7 @@ public class Device {
         return organization;
     }
 
-    public static void get_certs() {
+    public static void get_certs(String folderPath) {
 
 
         try {
@@ -167,11 +163,11 @@ public class Device {
                 text = scanner.useDelimiter("\\A").next();
             }
             System.out.println("ca content is: " + text);
-            File file = new File("./CA");
+            File file = new File(folderPath + "/CA");
             if (file.createNewFile())
             {
                 System.out.println("File is created!");
-                BufferedWriter writer = new BufferedWriter(new FileWriter("./CA"));
+                BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
                 writer.write(text);
                 writer.close();
 
