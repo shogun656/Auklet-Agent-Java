@@ -50,10 +50,8 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
                 message.setQos(2);
                 Auklet.client.publish("java/events/" + Device.getOrganization() + "/" + Device.getClient_username(), message);
                 System.out.println("Message published");
-                Thread.sleep(1000);
-                Auklet.client.disconnect();
 
-            } catch (MqttException | InterruptedException | NullPointerException e) {
+            } catch (MqttException | NullPointerException e) {
                 e.printStackTrace();
                 System.out.println(e.getMessage());
             }
