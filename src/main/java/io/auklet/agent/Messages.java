@@ -18,9 +18,9 @@ public final class Messages {
         try {
             map.put("id", UUID.randomUUID());
             map.put("application", Auklet.AppId);
-            map.put("macAddressHash", util.getMacAddressHash());
-            map.put("publicIP", util.getIpAddress());
-            map.put("systemMetrics", util.getSystemMetrics());
+            map.put("macAddressHash", Util.getMacAddressHash());
+            map.put("publicIP", Util.getIpAddress());
+            map.put("systemMetrics", Util.getSystemMetrics());
             map.put("agentVersion", "0.0");
             map.put("device", Device.getClient_Username());
 

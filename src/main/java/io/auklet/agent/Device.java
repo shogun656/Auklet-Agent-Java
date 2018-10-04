@@ -51,7 +51,7 @@ public final class Device {
 
         try {
             JSONObject obj = new JSONObject();
-            obj.put("mac_address_hash", util.getMacAddressHash());
+            obj.put("mac_address_hash", Util.getMacAddressHash());
             obj.put("application", Auklet.AppId);
             HttpPost request = new HttpPost(Auklet.baseUrl + "/private/devices/");
             StringEntity params = new StringEntity(obj.toJSONString());

@@ -2,7 +2,7 @@ package io.auklet.agent;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 
-public class Auklet {
+public final class Auklet {
 
     static protected String AppId;
     static protected String ApiKey;
@@ -13,12 +13,12 @@ public class Auklet {
         ApiKey = apiKey;
         AppId = appId;
 
-        String folderPath = util.createCustomFolder("user.dir");
+        String folderPath = Util.createCustomFolder("user.dir");
         if (folderPath == null){
-           folderPath = util.createCustomFolder("user.home");
+           folderPath = Util.createCustomFolder("user.home");
         }
         if (folderPath == null){
-            folderPath = util.createCustomFolder("java.io.tmpdir");
+            folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
         System.out.println("Directory to store creds: " + folderPath);
         Device.get_Certs(folderPath);

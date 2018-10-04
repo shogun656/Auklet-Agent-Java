@@ -10,6 +10,10 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.1'
     id 'java'
 }
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
 apply plugin: 'whitesource'
 
 group "${theGroup}"

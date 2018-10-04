@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class util {
+public final class Util {
 
     protected static String getMacAddressHash() {
         InetAddress ip;
