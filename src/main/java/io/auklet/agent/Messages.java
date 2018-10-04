@@ -11,7 +11,9 @@ import java.util.UUID;
 
 public final class Messages {
 
-    public static Map<String, Object> map = new HashMap<>();
+    private Messages(){ }
+
+    protected static Map<String, Object> map = new HashMap<>();
 
     protected static byte[] createMessagePack(){
         byte[] bytes = new byte[]{};

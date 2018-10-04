@@ -18,6 +18,8 @@ import java.util.Scanner;
 
 public final class Device {
 
+    private Device(){ }
+
     private static String filename = "/AukletAuth";
     private static String client_id;
     private static String client_username;

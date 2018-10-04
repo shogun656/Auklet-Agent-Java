@@ -23,6 +23,9 @@ import java.security.cert.X509Certificate;
 import java.util.Scanner;
 
 public final class MQTT {
+
+    private MQTT(){ }
+
     protected static MqttClient connectMqtt(String folderPath){
 
         JSONObject brokerJSON = getbroker();

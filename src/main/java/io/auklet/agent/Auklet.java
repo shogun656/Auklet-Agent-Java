@@ -9,6 +9,8 @@ public final class Auklet {
     static protected String baseUrl = "https://api-staging.auklet.io/";
     static protected MqttClient client;
 
+    private Auklet(){ }
+
     public static void init(String appId, String apiKey){
         ApiKey = apiKey;
         AppId = appId;

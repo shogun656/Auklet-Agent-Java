@@ -12,8 +12,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.PrimitiveIterator;
 
 public final class Util {
+
+    private Util(){ }
 
     protected static String getMacAddressHash() {
         InetAddress ip;
