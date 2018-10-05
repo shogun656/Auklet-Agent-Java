@@ -51,11 +51,11 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 jar {
     manifest {
         attributes(
-                'Built-By': 'CircleCI',
-                'Built-Date': new Date(),
-                'Built-JDK': System.getProperty('java.version'),
-                'Implementation-Version': version,
-                'Implementation-Title': project.name,
+            'Built-By': 'CircleCI',
+            'Built-Date': new Date(),
+            'Built-JDK': System.getProperty('java.version'),
+            'Implementation-Version': version,
+            'Implementation-Title': project.name,
         )
     }
 }
