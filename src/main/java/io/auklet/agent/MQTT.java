@@ -4,9 +4,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -44,6 +42,7 @@ public final class MQTT {
 
             options.setConnectionTimeout(60);
             options.setKeepAliveInterval(60);
+            options.setCleanSession(true);
             options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
 
 

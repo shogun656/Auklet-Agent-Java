@@ -2,17 +2,12 @@ package io.auklet.agent;
 
 import org.apache.commons.codec.binary.Hex;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.io.*;
+import java.net.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.PrimitiveIterator;
 
 public final class Util {
 
@@ -52,11 +47,14 @@ public final class Util {
     protected static String getIpAddress(){
         String ipAddr = "";
         try {
-            InetAddress ip = InetAddress.getLocalHost();
-            System.out.println("Current IP address : " + ip.getHostAddress());
-            ipAddr = ip.getHostAddress();
+            URL whatismyip = new URL("http://checkip.amazonaws.com");
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                    whatismyip.openStream()));
 
-        } catch (UnknownHostException e) {
+            ipAddr = in.readLine(); //you get the IP as a String
+            System.out.println("Current IP Address: " + ipAddr);
+
+        } catch (IOException e) {
             e.printStackTrace();
 
         }
