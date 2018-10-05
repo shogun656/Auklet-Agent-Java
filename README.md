@@ -28,7 +28,7 @@ public class demo {
 
 // or if you have your own implementation of JVM shutdown hook we recommend the following 
 
-public class demo {
+public class Demo {
    
    public static void main(String []arg) {
        Auklet.init(<App_Id>, <Api_key>, false);
