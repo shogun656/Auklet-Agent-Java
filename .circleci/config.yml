@@ -32,7 +32,6 @@ jobs:
                 name: Calculate codebase version
                 command: |
                   bash .devops/calculate-app-version.sh
-                  cp ~/.version VERSION
             - run:
                 name: Prep for Whitesource
                 command: |

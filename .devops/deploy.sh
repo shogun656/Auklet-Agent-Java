@@ -9,4 +9,5 @@ VERSION="$(cat VERSION)"
 VERSION_SIMPLE=$(cat VERSION | xargs | cut -f1 -d"+")
 export TIMESTAMP="$(date --rfc-3339=seconds | sed 's/ /T/')"
 
+sed -i -e "s/theVersion=.*/theVersion=$VERSION_SIMPLE/" gradle.properties
 gradle bintrayUpload
