@@ -19,12 +19,13 @@ import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Scanner;
+import java.util.concurrent.ScheduledExecutorService;
 
 public final class MQTT {
 
     private MQTT(){ }
 
-    protected static MqttClient connectMqtt(String folderPath){
+    protected static MqttClient connectMqtt(String folderPath, ScheduledExecutorService executorService){
 
         JSONObject brokerJSON = getbroker();
 
@@ -35,7 +36,7 @@ public final class MQTT {
 
         MqttClient client;
         try {
-            client = new MqttClient(serverUrl, Device.getClient_Id(), new MemoryPersistence());
+            client = new MqttClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(), executorService);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setUserName(mqttUserName);
             options.setPassword(mqttPassword.toCharArray());

@@ -25,8 +25,22 @@ public class demo {
        ...
    }
 }
-```
 
+// or if you have your own implementation of JVM shutdown hook we recommend the following 
+
+public class demo {
+   
+   public static void main(String []arg) {
+       Auklet.init(<App_Id>, <Api_key>, false);
+       ...
+       Auklet.shutdown()
+   }
+}
+// Be Careful while calling `Auklet.init(<App_Id>, <Api_key>, false)` as 
+// Auklet mqtt client may not disconnect cleanly and you may have problems 
+// reconnecting in the future. It is important that you call `Auklet.shutdown()`
+// where you think the program might exit or inside your own shutdown hook.
+```
 # Authorization
 
 To authorize your application you need to provide both an API key and app ID. 
