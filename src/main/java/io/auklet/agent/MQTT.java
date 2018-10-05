@@ -110,7 +110,7 @@ public final class MQTT {
 
         try {
             JSONObject obj = new JSONObject();
-            HttpGet request = new HttpGet(Auklet.baseUrl + "private/devices/config/");
+            HttpGet request = new HttpGet(Auklet.getBaseUrl() + "/private/devices/config/");
             request.addHeader("content-type", "application/json");
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);

@@ -55,7 +55,7 @@ public final class Device {
             JSONObject obj = new JSONObject();
             obj.put("mac_address_hash", Util.getMacAddressHash());
             obj.put("application", Auklet.AppId);
-            HttpPost request = new HttpPost(Auklet.baseUrl + "/private/devices/");
+            HttpPost request = new HttpPost(Auklet.getBaseUrl() + "/private/devices/");
             StringEntity params = new StringEntity(obj.toJSONString());
             request.addHeader("content-type", "application/json");
             request.addHeader("Authorization", "JWT "+Auklet.ApiKey);
@@ -135,7 +135,7 @@ public final class Device {
 
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
-            URL newUrl = new URL(Auklet.baseUrl + "private/devices/certificates/");
+            URL newUrl = new URL(Auklet.getBaseUrl() + "/private/devices/certificates/");
             HttpURLConnection con = (HttpURLConnection) newUrl.openConnection();
 
             con.setRequestProperty("Authorization", "JWT " + Auklet.ApiKey);;

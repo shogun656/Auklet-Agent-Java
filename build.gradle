@@ -1,27 +1,33 @@
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath group: 'org.whitesource', name: 'whitesource-gradle-plugin', version: '0.8'
     }
 }
-plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
-    id 'java'
-}
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
+    id 'maven'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.8.4'
+}
 
 apply plugin: 'whitesource'
 
 group "${theGroup}"
 version "${theVersion}"
+description = 'Official Auklet SDK for Java and other JVM languages.'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
+
 dependencies {
     compile "org.apache.httpcomponents:httpclient:4.5.5"
     compile "com.googlecode.json-simple:json-simple:1.1.1"
@@ -33,14 +39,75 @@ test {
     testLogging.showStandardStreams = true
 }
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
 jar {
     manifest {
         attributes(
-                'Built-By': 'CircleCI',
-                'Built-Date': new Date(),
-                'Built-JDK': System.getProperty('java.version'),
-                'Implementation-Version': version,
-                'Implementation-Title': project.name,
+            'Built-By': 'CircleCI',
+            'Built-Date': new Date(),
+            'Built-JDK': System.getProperty('java.version'),
+            'Implementation-Version': version,
+            'Implementation-Title': project.name,
         )
+    }
+}
+
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    scm {
+       url "https://github.com/aukletio/Auklet-Agent-Java"
+    }
+}
+
+publishing {
+    publications {
+        AukletJavaAgent(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            groupId "${theGroup}"
+            artifactId "${theName}"
+            version "${theVersion}"
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', "${description}")
+                root.appendNode('name', 'Auklet Java Agent')
+                root.appendNode('url', 'https://auklet.io')
+                root.children().last() + pomConfig
+            }
+        }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_API_KEY')
+    publications = ['AukletJavaAgent']
+    publish = true
+    pkg {
+        userOrg = 'aukletio'
+        repo = 'agent-java'
+        name = "${theName}"
+        desc = "${description}"
+        websiteUrl = 'https://github.com/aukletio/Auklet-Agent-Java'
+        issueTrackerUrl = 'https://github.com/aukletio/Auklet-Agent-Java/issues'
+        vcsUrl = 'https://github.com/aukletio/Auklet-Agent-Java.git'
+        licenses = ['Apache-2.0']
+        publicDownloadNumbers = true
     }
 }
