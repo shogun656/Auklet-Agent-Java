@@ -19,6 +19,7 @@ apply plugin: 'whitesource'
 
 group "${theGroup}"
 version "${theVersion}"
+description = 'Official Auklet SDK for Java and other JVM languages.'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -91,7 +92,7 @@ publishing {
             version "${theVersion}"
             pom.withXml {
                 def root = asNode()
-                root.appendNode('description', 'Official Auklet SDK for Java and other JVM languages.')
+                root.appendNode('description', "${description}")
                 root.appendNode('name', 'Auklet Java Agent')
                 root.appendNode('url', 'https://auklet.io')
                 root.children().last() + pomConfig
@@ -105,4 +106,14 @@ bintray {
     key = System.getenv('BINTRAY_API_KEY')
     publications = ['AukletJavaAgent']
     dryRun = true
+    pkg {
+        repo = 'agent-java'
+        name = "${theName}"
+        desc = "${description}"
+        websiteUrl = 'https://github.com/aukletio/Auklet-Agent-Java'
+        issueTrackerUrl = 'https://github.com/aukletio/Auklet-Agent-Java/issues'
+        vcsUrl = 'https://github.com/aukletio/Auklet-Agent-Java.git'
+        licenses = ['Apache-2.0']
+        publicDownloadNumbers = true
+    }
 }
