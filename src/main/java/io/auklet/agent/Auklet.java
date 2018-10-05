@@ -93,7 +93,7 @@ public final class Auklet {
     }
 
     public static String getBaseUrl() {
-      String fromEnv = System.getenv('AUKLET_BASEURL');
+      String fromEnv = System.getenv("AUKLET_BASEURL");
       return fromEnv != null ? fromEnv : "https://api.auklet.io";
     }
 
