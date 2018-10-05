@@ -33,14 +33,38 @@ jobs:
                 command: |
                   bash .devops/calculate-app-version.sh
                   cp ~/.version VERSION
+            - run:
+                name: Prep for Whitesource
+                command: |
+                  if [[ ! -f ~/.localCircleBuild ]]; then
+                    bash .devops/prep-for-whitesource.sh
+                  fi
 
             ##
             # RESTORE CACHES
             ##
+            - restore_cache:
+                key: v1-dependency-cache-{{ checksum "build.gradle" }}
+            - restore_cache:
+                key: v1-wrapper-cache-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
 
             ##
-            # TESTS
+            # GRADLE
             ##
+            - run:
+                name: Install Gradle dependencies
+                command: |
+                  TERM=dumb ./gradlew dependencies
+            - run:
+                name: Run Gradle Tests
+                command: |
+                  TERM=dumb ./gradlew clean test --info
+            - run:
+                name: Run Whitesource
+                command: |
+                  if [[ ! -f ~/.localCircleBuild ]]; then
+                    TERM=dumb ./gradlew updatewhitesource
+                  fi
             - run:
                 name: Test deployment to Bintray
                 command: |
@@ -50,6 +74,14 @@ jobs:
             ##
             # SAVE CACHES
             ##
+            - save_cache:
+                key: v1-dependency-cache-{{ checksum "build.gradle" }}
+                paths:
+                    - /home/circleci/.gradle/caches
+            - save_cache:
+                key: v1-wrapper-cache-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+                paths:
+                    - /home/circleci/.gradle/wrapper
 
             ##
             # DEPLOYMENT
