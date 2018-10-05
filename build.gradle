@@ -1,27 +1,32 @@
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath group: 'org.whitesource', name: 'whitesource-gradle-plugin', version: '0.8'
     }
 }
-plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
-    id 'java'
-}
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
+    id 'maven'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.8.4'
+}
 
 apply plugin: 'whitesource'
 
 group "${theGroup}"
 version "${theVersion}"
 
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
 repositories {
-    mavenCentral()
+    jcenter()
 }
+
 dependencies {
     compile "org.apache.httpcomponents:httpclient:4.5.5"
     compile "com.googlecode.json-simple:json-simple:1.1.1"
@@ -43,4 +48,50 @@ jar {
                 'Implementation-Title': project.name,
         )
     }
+}
+
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            id "aukletio"
+            name "auklet.io"
+            email "hello@auklet.io"
+        }
+    }
+    scm {
+       url "https://github.com/aukletio/Auklet-Agent-Java"
+    }
+}
+
+publishing {
+    publications {
+        AukletJavaAgent(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            groupId "${theGroup}"
+            artifactId "${theName}"
+            version "${theVersion}"
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', 'Official Auklet SDK for Java and other JVM languages.')
+                root.appendNode('name', 'Auklet Java Agent')
+                root.appendNode('url', 'https://auklet.io')
+                root.children().last() + pomConfig
+            }
+        }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_API_KEY')
+    publications = ['AukletJavaAgent']
 }

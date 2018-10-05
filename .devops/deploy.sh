@@ -8,3 +8,5 @@ ENVDIR=$1
 VERSION="$(cat VERSION)"
 VERSION_SIMPLE=$(cat VERSION | xargs | cut -f1 -d"+")
 export TIMESTAMP="$(date --rfc-3339=seconds | sed 's/ /T/')"
+
+gradle bintrayUpload
