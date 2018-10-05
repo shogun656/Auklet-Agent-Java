@@ -69,13 +69,6 @@ def pomConfig = {
             distribution "repo"
         }
     }
-    developers {
-        developer {
-            id "aukletio"
-            name "auklet.io"
-            email "hello@auklet.io"
-        }
-    }
     scm {
        url "https://github.com/aukletio/Auklet-Agent-Java"
     }
