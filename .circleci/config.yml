@@ -68,7 +68,7 @@ jobs:
                 name: Test deployment to Bintray
                 command: |
                   set -ou pipefail
-                  ./gradlew bintrayUpload
+                  bash .devops/deploy.sh beta
 
             ##
             # SAVE CACHES
