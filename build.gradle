@@ -107,6 +107,7 @@ bintray {
     publications = ['AukletJavaAgent']
     dryRun = true
     pkg {
+        userOrg = 'aukletio'
         repo = 'agent-java'
         name = "${theName}"
         desc = "${description}"
