@@ -64,11 +64,6 @@ jobs:
                   if [[ ! -f ~/.localCircleBuild ]]; then
                     TERM=dumb ./gradlew updatewhitesource
                   fi
-            - run:
-                name: Test deployment to Bintray
-                command: |
-                  set -ou pipefail
-                  bash .devops/deploy.sh beta
 
             ##
             # SAVE CACHES
