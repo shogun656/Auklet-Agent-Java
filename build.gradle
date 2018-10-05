@@ -1,0 +1,46 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.whitesource', name: 'whitesource-gradle-plugin', version: '0.8'
+    }
+}
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
+    id 'java'
+}
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+apply plugin: 'whitesource'
+
+group "${theGroup}"
+version "${theVersion}"
+
+repositories {
+    mavenCentral()
+}
+dependencies {
+    compile "org.apache.httpcomponents:httpclient:4.5.5"
+    compile "com.googlecode.json-simple:json-simple:1.1.1"
+    compile "org.msgpack:jackson-dataformat-msgpack:0.8.16"
+    compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
+}
+
+test {
+    testLogging.showStandardStreams = true
+}
+
+jar {
+    manifest {
+        attributes(
+                'Built-By': 'CircleCI',
+                'Built-Date': new Date(),
+                'Built-JDK': System.getProperty('java.version'),
+                'Implementation-Version': version,
+                'Implementation-Title': project.name,
+        )
+    }
+}
