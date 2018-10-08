@@ -3,7 +3,6 @@ version: 2
 jobs:
     build:
         environment:
-            ACTIVE_BUILD_FILE: "/home/circleci/.activeBuild"
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
         docker:
@@ -19,16 +18,10 @@ jobs:
                 name: Flag local/PR builds
                 command: |
                   bash .devops/flagBuilds.sh
-            - restore_cache:
-                key: build-status-{{ .Revision }}
             - run:
                 name: Duplicate build check
                 command: |
                   bash .devops/duplicateBuildCheck.sh
-            - save_cache:
-                key: build-status-{{ .Revision }}
-                paths:
-                    - /home/circleci/.activeBuild
             - run:
                 name: Install jq
                 command: |
@@ -86,19 +79,15 @@ jobs:
             ##
             # DEPLOYMENT
             ##
-            - restore_cache:
-                key: build-status-{{ .Revision }}
-            - run:
-                name: Duplicate build check
-                command: |
-                  bash .devops/duplicateBuildCheck.sh
             - run:
                 name: Deploy Beta (master)
                 command: |
                   set -ou pipefail
                   if [[ ! -f ~/.localCircleBuild ]]; then
                     if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                      bash .devops/duplicateBuildCheck.sh
                       bash .devops/deploy.sh beta
+                      bash .devops/duplicateBuildCheck.sh done
                     fi
                   fi
             - run:
@@ -107,11 +96,13 @@ jobs:
                   set -ou pipefail
                   if [[ ! -f ~/.localCircleBuild ]]; then
                     if [ "${CIRCLE_BRANCH}" == "rc" ]; then
+                      bash .devops/duplicateBuildCheck.sh
                       bash .devops/deploy.sh rc
                       bash .devops/post-release.sh
                       # Need to checkout rc again so we can run more scripts.
                       git checkout rc
                       bash .devops/updateProdReleasePr.sh
+                      bash .devops/duplicateBuildCheck.sh done
                     fi
                   fi
             - run:
@@ -120,7 +111,11 @@ jobs:
                   set -ou pipefail
                   if [[ ! -f ~/.localCircleBuild ]]; then
                     if [ "${CIRCLE_BRANCH}" == "release" ]; then
+                      bash .devops/duplicateBuildCheck.sh
                       bash .devops/deploy.sh release
                       bash .devops/post-release.sh
+                      # Need to checkout release again so we can run more scripts.
+                      git checkout release
+                      bash .devops/duplicateBuildCheck.sh done
                     fi
                   fi
