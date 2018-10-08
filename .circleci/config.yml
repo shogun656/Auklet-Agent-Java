@@ -13,6 +13,8 @@ jobs:
             ##
             # SETUP
             ##
+            - add_ssh_keys
+            - checkout
             - run:
                 name: Flag local/PR builds
                 command: |
@@ -27,8 +29,6 @@ jobs:
                 key: build-status-{{ .Revision }}
                 paths:
                     - /home/circleci/.activeBuild
-            - add_ssh_keys
-            - checkout
             - run:
                 name: Install jq
                 command: |
