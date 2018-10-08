@@ -8,23 +8,34 @@ if [[ ! -f ~/.localCircleBuild && ! -f ~/.prCircleBuild ]]; then
     echo 'Installing AWS CLI...'
     sudo apt -y install awscli > /dev/null 2>&1
   fi
+  ACTIVE_BUILD_FILE='/home/circleci/.activeBuild'
   BUILD_STATUS_PATH="s3://$BUILD_STATUS_BUCKET/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_SHA1"
-  if [[ "$1" == 'done' ]]; then
-    echo 'DONE' | aws s3 cp - $BUILD_STATUS_PATH
+  if [[ -f ~/.buildIsDone ]]; then
+    echo 'Flagging build as complete...'
+    echo 'DONE' > $ACTIVE_BUILD_FILE
+    aws s3 cp $ACTIVE_BUILD_FILE $BUILD_STATUS_PATH
   else
     set +e
-    ACTIVE_BUILD_NUM=$(aws s3 cp $BUILD_STATUS_PATH - 2>/dev/null)
+    aws s3 cp $BUILD_STATUS_PATH $ACTIVE_BUILD_FILE >/dev/null 2>&1
     set -e
+    touch $ACTIVE_BUILD_FILE
+    ACTIVE_BUILD_NUM=$(cat $ACTIVE_BUILD_FILE)
     if [[ "$ACTIVE_BUILD_NUM" == '' ]]; then
-      echo $CIRCLE_BUILD_NUM | aws s3 cp - $BUILD_STATUS_PATH
+      echo 'This is the first build for this VCS revision.'
+      echo $CIRCLE_BUILD_NUM > $ACTIVE_BUILD_FILE
+      aws s3 cp $ACTIVE_BUILD_FILE $BUILD_STATUS_PATH
     elif [[ "$ACTIVE_BUILD_NUM" == 'DONE' ]]; then
-      echo 'WARNING: a CircleCI build has already completed for this commit hash. This build will now abort.'
-      exit 1
+      echo 'INFO: a CircleCI build has already completed for this commit hash. This build will finish immediately.'
+      circleci step halt
+      exit
     elif (( $CIRCLE_BUILD_NUM < $ACTIVE_BUILD_NUM )); then
-      echo 'WARNING: there is a newer CircleCI build for this commit hash. This build will now abort.'
-      exit 1
+      echo 'INFO: there is a newer CircleCI build for this commit hash. This build will finish immediately.'
+      circleci step halt
+      exit
     else
-      echo $CIRCLE_BUILD_NUM | aws s3 cp - $BUILD_STATUS_PATH
+      echo 'This is the newest build for this VCS revision.'
+      echo $CIRCLE_BUILD_NUM > $ACTIVE_BUILD_FILE
+      aws s3 cp $ACTIVE_BUILD_FILE $BUILD_STATUS_PATH
     fi
   fi
 else
