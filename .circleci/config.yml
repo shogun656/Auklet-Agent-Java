@@ -3,6 +3,7 @@ version: 2
 jobs:
     build:
         environment:
+            ACTIVE_BUILD_FILE: "/home/circleci/.activeBuild"
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
         docker:
@@ -12,17 +13,22 @@ jobs:
             ##
             # SETUP
             ##
+            - add_ssh_keys
+            - checkout
             - run:
                 name: Flag local/PR builds
                 command: |
-                  if [[ "$CIRCLE_BUILD_NUM" == '' ]]; then
-                    touch ~/.localCircleBuild
-                  fi
-                  if [[ "$CIRCLE_PR_USERNAME" != '' || "$CIRCLE_PULL_REQUEST" != '' ]]; then
-                    touch ~/.prCircleBuild
-                  fi
-            - add_ssh_keys
-            - checkout
+                  bash .devops/flagBuilds.sh
+            - restore_cache:
+                key: build-status-{{ .Revision }}
+            - run:
+                name: Duplicate build check
+                command: |
+                  bash .devops/duplicateBuildCheck.sh
+            - save_cache:
+                key: build-status-{{ .Revision }}
+                paths:
+                    - /home/circleci/.activeBuild
             - run:
                 name: Install jq
                 command: |
@@ -80,6 +86,12 @@ jobs:
             ##
             # DEPLOYMENT
             ##
+            - restore_cache:
+                key: build-status-{{ .Revision }}
+            - run:
+                name: Duplicate build check
+                command: |
+                  bash .devops/duplicateBuildCheck.sh
             - run:
                 name: Deploy Beta (master)
                 command: |
