@@ -3,6 +3,7 @@ package io.auklet.agent;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
+import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -14,6 +15,7 @@ public final class Auklet {
     static protected String ApiKey;
     static protected String baseUrl = "https://api-staging.auklet.io/";
     static protected MqttClient client;
+    static private Timer timer = new Timer(true);
 
     /*
     Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
@@ -45,6 +47,9 @@ public final class Auklet {
                 }
             });
         }
+
+        SystemMetrics.initSystemMetrics();
+        SystemMetrics.updateSystemMetric(timer);
 
         String folderPath = Util.createCustomFolder("user.dir");
         if (folderPath == null){
