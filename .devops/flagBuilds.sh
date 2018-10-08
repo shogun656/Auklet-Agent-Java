@@ -9,5 +9,6 @@ elif [[ "$CIRCLE_PR_NUMBER" != '' ]]; then
 elif [[ "$CIRCLE_BRANCH" != 'master' && "$CIRCLE_BRANCH" != 'rc' && "$CIRCLE_BRANCH" != 'release' ]]; then
   echo 'This is a PR build.'
   touch ~/.prCircleBuild
+else
+  echo 'This is a main branch build.'
 fi
-echo 'This is a main branch build.'
