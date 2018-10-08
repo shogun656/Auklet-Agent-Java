@@ -10,7 +10,7 @@ if [[ ! -f ~/.localCircleBuild && ! -f ~/.prCircleBuild ]]; then
   fi
   ACTIVE_BUILD_FILE='/home/circleci/.activeBuild'
   BUILD_STATUS_PATH="s3://$BUILD_STATUS_BUCKET/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_SHA1"
-  if [[ "$DONE" != '' ]]; then
+  if [[ -f ~/.buildIsDone ]]; then
     echo 'Flagging build as complete...'
     echo 'DONE' > $ACTIVE_BUILD_FILE
     aws s3 cp $ACTIVE_BUILD_FILE $BUILD_STATUS_PATH
