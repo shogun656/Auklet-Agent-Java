@@ -98,6 +98,7 @@ jobs:
                     if [ "${CIRCLE_BRANCH}" == "rc" ]; then
                       bash .devops/duplicateBuildCheck.sh
                       bash .devops/deploy.sh rc
+                      bash .devops/duplicateBuildCheck.sh
                       bash .devops/post-release.sh
                       # Need to checkout rc again so we can run more scripts.
                       git checkout rc
@@ -113,6 +114,7 @@ jobs:
                     if [ "${CIRCLE_BRANCH}" == "release" ]; then
                       bash .devops/duplicateBuildCheck.sh
                       bash .devops/deploy.sh release
+                      bash .devops/duplicateBuildCheck.sh
                       bash .devops/post-release.sh
                       # Need to checkout release again so we can run more scripts.
                       git checkout release
