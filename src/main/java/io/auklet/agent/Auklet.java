@@ -13,7 +13,6 @@ public final class Auklet {
 
     static protected String AppId;
     static protected String ApiKey;
-    static protected String baseUrl = "https://api-staging.auklet.io/";
     static protected MqttClient client;
     static private Timer timer = new Timer(true);
 
@@ -96,6 +95,11 @@ public final class Auklet {
             } catch (InterruptedException e2) {
             }
         }
+    }
+
+    public static String getBaseUrl() {
+      String fromEnv = System.getenv("AUKLET_BASEURL");
+      return fromEnv != null ? fromEnv : "https://api.auklet.io";
     }
 
 }
