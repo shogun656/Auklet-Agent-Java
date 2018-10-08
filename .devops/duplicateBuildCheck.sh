@@ -12,7 +12,9 @@ if [[ ! -f ~/.localCircleBuild && ! -f ~/.prCircleBuild ]]; then
   if [[ "$1" == 'done' ]]; then
     echo 'DONE' | aws s3 cp - $BUILD_STATUS_PATH
   else
+    set +e
     ACTIVE_BUILD_NUM=$(aws s3 cp $BUILD_STATUS_PATH - 2>/dev/null)
+    set -e
     if [[ "$ACTIVE_BUILD_NUM" == '' ]]; then
       echo $CIRCLE_BUILD_NUM | aws s3 cp - $BUILD_STATUS_PATH
     elif [[ "$ACTIVE_BUILD_NUM" == 'DONE' ]]; then
