@@ -31,8 +31,6 @@ public class SystemMetrics {
 
     protected static void initSystemMetrics(){
         operatingSystemMXBean.getSystemCpuLoad();
-        operatingSystemMXBean.getFreePhysicalMemorySize();
-        operatingSystemMXBean.getTotalPhysicalMemorySize();
 
         if (SystemUtils.IS_OS_UNIX){
             networks = new MacNetworks();
