@@ -47,7 +47,6 @@ public final class Device {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
             String decrypted = new String(cipher.doFinal(data));
-            System.out.println(decrypted);
             JSONObject jsonObject = (JSONObject) parser.parse(decrypted);
             setCreds(jsonObject);
 
@@ -122,7 +121,6 @@ public final class Device {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, aesKey);
             byte[] encrypted = cipher.doFinal(obj.toJSONString().getBytes());
-            System.out.println(new String(encrypted));
 
             file.write(encrypted);
             file.flush();
