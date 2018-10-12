@@ -6,8 +6,7 @@ import java.io.*;
 import java.net.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public final class Util {
 
@@ -16,12 +15,22 @@ public final class Util {
     protected static String getMacAddressHash() {
         InetAddress ip;
         String machash = "";
+        NetworkInterface networkinterface = null;
         try {
 
-            ip = InetAddress.getLocalHost();
-            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+            System.out.println("Host addr: " + InetAddress.getLocalHost().getHostAddress());  // often returns "127.0.0.1"
+            Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+            for (; n.hasMoreElements();)
+            {
+                NetworkInterface e = n.nextElement();
+                System.out.println("Interface: " + e.getName());
+                if (!e.isLoopback()) {
+                    networkinterface = e;
+                }
+                break;
+            }
 
-            byte[] mac = network.getHardwareAddress();
+            byte[] mac = networkinterface.getHardwareAddress();
 
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < mac.length; i++) {
