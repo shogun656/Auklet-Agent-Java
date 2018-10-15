@@ -14,7 +14,6 @@ public final class Auklet {
     static protected String AppId;
     static protected String ApiKey;
     static protected MqttClient client;
-    static private Timer timer = new Timer(true);
 
     /*
     Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
@@ -48,7 +47,6 @@ public final class Auklet {
         }
 
         SystemMetrics.initSystemMetrics();
-        SystemMetrics.updateSystemMetric(timer);
 
         String folderPath = Util.createCustomFolder("user.dir");
         if (folderPath == null){
