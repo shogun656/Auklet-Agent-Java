@@ -92,7 +92,8 @@ public final class Device {
 
         }catch (Exception ex) {
 
-            //handle exception here
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
         }
         return null;
     }
