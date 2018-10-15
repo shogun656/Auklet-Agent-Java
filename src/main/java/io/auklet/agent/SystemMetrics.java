@@ -37,6 +37,8 @@ public class SystemMetrics {
     protected static Map<String, Object> getSystemMetrics(){
         try {
             Map<String, Object> obj = new HashMap<>();
+            obj.put("outboundNetwork", 0);
+            obj.put("inboundNetwork", 0);
             obj.put("memoryUsage",
                     100*(1-((double)globalMemory.getAvailable()/(double)globalMemory.getTotal())));
             obj.put("cpuUsage", operatingSystemMXBean.getSystemCpuLoad()*100);
