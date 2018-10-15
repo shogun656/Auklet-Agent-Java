@@ -6,6 +6,7 @@ import java.io.*;
 import java.net.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 public final class Util {
 
@@ -14,18 +15,26 @@ public final class Util {
     protected static String getMacAddressHash() {
         InetAddress ip;
         String machash = "";
+        NetworkInterface networkinterface = null;
         try {
+            Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+            for (; n.hasMoreElements();)
+            {
+                NetworkInterface e = n.nextElement();
+                if (!e.isLoopback()) { // Check against network interface "127.0.0.1"
+                    networkinterface = e;
+                }
+                if(e.getHardwareAddress() != null) {
+                    break;
+                }
+            }
 
-            ip = InetAddress.getLocalHost();
-            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-
-            byte[] mac = network.getHardwareAddress();
+            byte[] mac = networkinterface.getHardwareAddress();
 
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < mac.length; i++) {
                 sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
             }
-            System.out.println("Current MAC address : " + sb.toString());
 
             byte[] macBytes = String.valueOf(sb).getBytes("UTF-8");
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -33,7 +42,7 @@ public final class Util {
             machash = Hex.encodeHexString(macHashByte);
 
 
-        } catch (UnknownHostException | SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
+        } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
 
             e.printStackTrace();
 

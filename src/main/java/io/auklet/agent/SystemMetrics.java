@@ -32,7 +32,7 @@ public class SystemMetrics {
     protected static void initSystemMetrics(){
         operatingSystemMXBean.getSystemCpuLoad();
 
-        if (SystemUtils.IS_OS_UNIX){
+        if (SystemUtils.IS_OS_MAC){
             networks = new MacNetworks();
             globalMemory = new MacGlobalMemory();
         }
