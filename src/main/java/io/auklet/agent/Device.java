@@ -8,19 +8,30 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.Key;
 import java.util.Scanner;
+import java.nio.file.Files;
 
 public final class Device {
 
     private Device(){ }
 
-    private static String filename = "/AukletAuth";
+    private static String filename = "/.AukletAuth";
+
+    // AppId is 22 bytes but AES is a 128-bit block cipher supporting keys of 128, 192, and 256 bits.
+    private static final Key aesKey = new SecretKeySpec(Auklet.AppId.substring(0,16).getBytes(), "AES");
+
     private static String client_id;
     private static String client_username;
     private static String client_password;
@@ -31,18 +42,20 @@ public final class Device {
         JSONParser parser = new JSONParser();
 
         try {
-            Object obj = parser.parse(new FileReader(folderPath + filename));
-            JSONObject jsonObject = (JSONObject) obj;
+            Path fileLocation = Paths.get(folderPath + filename);
+            byte[] data = Files.readAllBytes(fileLocation);
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, aesKey);
+            String decrypted = new String(cipher.doFinal(data));
+            JSONObject jsonObject = (JSONObject) parser.parse(decrypted);
             setCreds(jsonObject);
 
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException | NoSuchFileException e) {
             JSONObject newObject = create_device();
             setCreds(newObject);
             writeCreds(folderPath + filename);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -79,7 +92,8 @@ public final class Device {
 
         }catch (Exception ex) {
 
-            //handle exception here
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
         }
         return null;
     }
@@ -103,12 +117,16 @@ public final class Device {
         obj.put("client_id", client_id);
         obj.put("organization", organization);
 
-        try (FileWriter file = new FileWriter(filename)) {
+        try (FileOutputStream file = new FileOutputStream(filename)) {
 
-            file.write(obj.toJSONString());
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+            byte[] encrypted = cipher.doFinal(obj.toJSONString().getBytes());
+
+            file.write(encrypted);
             file.flush();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

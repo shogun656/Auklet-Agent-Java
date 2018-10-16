@@ -3,6 +3,7 @@ package io.auklet.agent;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
+import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -44,6 +45,8 @@ public final class Auklet {
                 }
             });
         }
+
+        SystemMetrics.initSystemMetrics();
 
         String folderPath = Util.createCustomFolder("user.dir");
         if (folderPath == null){
