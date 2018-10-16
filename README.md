@@ -1,5 +1,20 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Implemented enhancements:**
+
+- APM-1484: Store Encrypted Auklet Auth file on the device [#16](https://github.com/aukletio/Auklet-Agent-Java/pull/16) ([npalaska](https://github.com/npalaska))
+- APM-1079: Add System Metrics event data to MessagePack [#5](https://github.com/aukletio/Auklet-Agent-Java/pull/5) ([npalaska](https://github.com/npalaska))
+
+**Fixed bugs:**
+
+- Do not fetch loopback network interface to calculate mac address hash  [#18](https://github.com/aukletio/Auklet-Agent-Java/pull/18) ([npalaska](https://github.com/npalaska))
+
+**DevOps changes:**
+
+- Downgrade to CircleCI 2.0 [#19](https://github.com/aukletio/Auklet-Agent-Java/pull/19) ([rjenkinsjr](https://github.com/rjenkinsjr))
+
 ## [0.1.0](https://github.com/aukletio/Auklet-Agent-Java/tree/0.1.0)
 
 **Implemented enhancements:**
