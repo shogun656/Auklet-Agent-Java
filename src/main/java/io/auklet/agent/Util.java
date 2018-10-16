@@ -68,23 +68,6 @@ public final class Util {
         return ipAddr;
     }
 
-    protected static Map<String, Object> getSystemMetrics(){
-        try {
-            Map<String, Object> obj = new HashMap<>();
-            obj.put("outboundNetwork", 0);
-            obj.put("inboundNetwork", 0);
-            obj.put("memoryUsage", 0);
-            obj.put("cpuUsage", 0.0);
-
-            return obj;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
-        }
-        return null;
-    }
-
     protected static String createCustomFolder(String sysProperty) {
 
         String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";

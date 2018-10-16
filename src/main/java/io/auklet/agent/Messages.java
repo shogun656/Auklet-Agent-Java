@@ -22,7 +22,7 @@ public final class Messages {
             map.put("application", Auklet.AppId);
             map.put("macAddressHash", Util.getMacAddressHash());
             map.put("publicIP", Util.getIpAddress());
-            map.put("systemMetrics", Util.getSystemMetrics());
+            map.put("systemMetrics", SystemMetrics.getSystemMetrics());
             map.put("agentVersion", "0.0");
             map.put("device", Device.getClient_Username());
 
