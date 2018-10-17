@@ -1,5 +1,11 @@
 # Changelog
 
+### [0.2.0-rc.2](https://github.com/aukletio/Auklet-Agent-Java/tree/0.2.0-rc.2)
+
+**Fixed bugs:**
+
+- Remove dependency on Oshi-core package for getting system memory  [#21](https://github.com/aukletio/Auklet-Agent-Java/pull/21) ([npalaska](https://github.com/npalaska))
+
 ### [0.2.0-rc.1](https://github.com/aukletio/Auklet-Agent-Java/tree/0.2.0-rc.1)
 
 **Implemented enhancements:**

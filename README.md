@@ -9,6 +9,7 @@
 
 **Fixed bugs:**
 
+- Remove dependency on Oshi-core package for getting system memory  [#21](https://github.com/aukletio/Auklet-Agent-Java/pull/21) ([npalaska](https://github.com/npalaska))
 - Do not fetch loopback network interface to calculate mac address hash  [#18](https://github.com/aukletio/Auklet-Agent-Java/pull/18) ([npalaska](https://github.com/npalaska))
 
 **DevOps changes:**
