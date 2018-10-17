@@ -18,11 +18,13 @@ public class SystemMetrics {
     protected static Map<String, Object> getSystemMetrics(){
         double memUsage;
         try{
-            com.sun.management.OperatingSystemMXBean mxBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+            com.sun.management.OperatingSystemMXBean mxBean =
+                    (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
             memUsage = 100*(1-((double)mxBean.getFreePhysicalMemorySize()/(double)mxBean.getTotalPhysicalMemorySize()));
 
         }catch (Exception e) {
-            // If Exception occurs, it mean we can not use com.sun.management package and we fall back without recording mem usage
+            // If Exception occurs, it mean we can not use com.sun.management package and
+            // we fall back without recording mem usage
             memUsage = 0;
         }
         try {
@@ -30,7 +32,8 @@ public class SystemMetrics {
             Map<String, Object> obj = new HashMap<>();
             obj.put("outboundNetwork", 0);
             obj.put("inboundNetwork", 0);
-            obj.put("cpuUsage", 100*(operatingSystemMXBean.getSystemLoadAverage()/operatingSystemMXBean.getAvailableProcessors()));
+            obj.put("cpuUsage",
+                    100*(operatingSystemMXBean.getSystemLoadAverage()/operatingSystemMXBean.getAvailableProcessors()));
             obj.put("memoryUsage", memUsage);
             return obj;
 
