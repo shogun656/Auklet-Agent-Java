@@ -81,7 +81,8 @@ public final class Device {
             }
 
             if(response.getStatusLine().getStatusCode() != 201){
-                System.out.println("could not create a device and status code is: " + response.getStatusLine().getStatusCode());
+                System.out.println("could not create a device and status code is: " +
+                        response.getStatusLine().getStatusCode());
                 throw new Exception();
             }
             JSONParser parser = new JSONParser();
