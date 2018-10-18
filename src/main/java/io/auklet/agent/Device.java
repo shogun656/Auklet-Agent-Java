@@ -37,7 +37,7 @@ public final class Device {
     private static String client_password;
     private static String organization;
 
-    public static void register_device(String folderPath){
+    public static boolean register_device(String folderPath){
 
         JSONParser parser = new JSONParser();
 
@@ -52,13 +52,17 @@ public final class Device {
 
         } catch (FileNotFoundException | NoSuchFileException e) {
             JSONObject newObject = create_device();
-            setCreds(newObject);
-            writeCreds(folderPath + filename);
+            if (newObject != null) {
+                setCreds(newObject);
+                writeCreds(folderPath + filename);
+            }
+            else return false;
 
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
-
+        return true;
     }
 
     private static JSONObject create_device(){
@@ -75,23 +79,22 @@ public final class Device {
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
 
-            String text = null;
-            try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
-                text = scanner.useDelimiter("\\A").next();
+            if(response.getStatusLine().getStatusCode() == 201) {
+                String text = null;
+                try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
+                    text = scanner.useDelimiter("\\A").next();
+                }
+                JSONParser parser = new JSONParser();
+                JSONObject myResponse = (JSONObject) parser.parse(text);
+                return myResponse;
             }
 
-            if(response.getStatusLine().getStatusCode() != 201){
+            else {
                 System.out.println("could not create a device and status code is: " +
                         response.getStatusLine().getStatusCode());
-                throw new Exception();
             }
-            JSONParser parser = new JSONParser();
-            JSONObject myResponse = (JSONObject) parser.parse(text);
-            return myResponse;
 
-            //handle response here...
-
-        }catch (Exception ex) {
+        } catch (Exception ex) {
 
             System.out.println(ex.getMessage());
             ex.printStackTrace();
@@ -149,45 +152,54 @@ public final class Device {
         return organization;
     }
 
-    public static void get_Certs(String folderPath) {
-
+    public static boolean get_Certs(String folderPath) {
 
         try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            URL newUrl = new URL(Auklet.getBaseUrl() + "/private/devices/certificates/");
-            HttpURLConnection con = (HttpURLConnection) newUrl.openConnection();
+            File file = new File(folderPath + "/CA");
+            if (file.createNewFile()) {
+                HttpClient httpClient = HttpClientBuilder.create().build();
+                URL newUrl = new URL(Auklet.getBaseUrl() + "/private/devices/certificates/");
+                HttpURLConnection con = (HttpURLConnection) newUrl.openConnection();
 
-            con.setRequestProperty("Authorization", "JWT " + Auklet.ApiKey);;
-            con.setDoInput(true);
-            con.setRequestMethod("GET");
-            con.setInstanceFollowRedirects(true);
+                con.setRequestProperty("Authorization", "JWT " + Auklet.ApiKey);
+                con.setDoInput(true);
+                con.setRequestMethod("GET");
+                con.setInstanceFollowRedirects(true);
 
-            con.getResponseCode();
+                con.getResponseCode();
 
-            HttpGet request = new HttpGet(con.getURL().toURI());
-            HttpResponse response = httpClient.execute(request);
-            InputStream ca = response.getEntity().getContent();
-            String text = null;
-            try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
-                text = scanner.useDelimiter("\\A").next();
+                HttpGet request = new HttpGet(con.getURL().toURI());
+                HttpResponse response = httpClient.execute(request);
+                if (response.getStatusLine().getStatusCode() == 200) {
+                    InputStream ca = response.getEntity().getContent();
+                    String text = null;
+                    try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
+                        text = scanner.useDelimiter("\\A").next();
+                    }
+
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
+                    writer.write(text);
+                    writer.close();
+                    System.out.println("CA File is created!");
+                }
+                else{
+                    System.out.println("Get cert response code: " + response.getStatusLine().getStatusCode());
+                    if(file.delete()){
+                        System.out.println("CA file deleted");
+                        return false;
+                    }
+                }
             }
 
-            File file = new File(folderPath + "/CA");
-            if (file.createNewFile())
-            {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
-                writer.write(text);
-                writer.close();
-                System.out.println("CA File is created!");
-
-            } else {
+            else {
                 System.out.println("CA File already exists.");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
+            return false;
         }
-
+        return true;
     }
 }

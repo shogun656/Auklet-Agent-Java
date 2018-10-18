@@ -56,10 +56,13 @@ public final class Auklet {
             folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
         System.out.println("Directory to store creds: " + folderPath);
-        Device.get_Certs(folderPath);
-        Device.register_device(folderPath);
-        client = MQTT.connectMqtt(folderPath, mqttThreadPool);
-        AukletExceptionHandler.setup();
+
+        if(Device.get_Certs(folderPath) && Device.register_device(folderPath)) {
+            client = MQTT.connectMqtt(folderPath, mqttThreadPool);
+            if (client != null) {
+                AukletExceptionHandler.setup();
+            }
+        }
     }
 
     public static void init(String appId, String apiKey){
