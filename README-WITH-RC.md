@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.2.0](https://github.com/aukletio/Auklet-Agent-Java/tree/0.2.0)
+
 ### [0.2.0-rc.2](https://github.com/aukletio/Auklet-Agent-Java/tree/0.2.0-rc.2)
 
 **Fixed bugs:**
