@@ -83,6 +83,9 @@ public final class Device {
                 String text = null;
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
+                } catch (Exception e) {
+                    System.out.println("Exception during reading contents of create device: " + e.getMessage());
+                    return null;
                 }
                 JSONParser parser = new JSONParser();
                 JSONObject myResponse = (JSONObject) parser.parse(text);

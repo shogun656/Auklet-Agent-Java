@@ -121,8 +121,10 @@ public final class MQTT {
                 String text = null;
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
+                } catch (Exception e) {
+                    System.out.println("Exception occurred during reading brokers info: " + e.getMessage());
+                    return null;
                 }
-
                 JSONParser parser = new JSONParser();
                 JSONObject brokers = (JSONObject) parser.parse(text);
                 return brokers;
