@@ -1,5 +1,11 @@
 # Changelog
 
+### [0.2.1-rc.1](https://github.com/aukletio/Auklet-Agent-Java/tree/0.2.1-rc.1)
+
+**Fixed bugs:**
+
+- Add more error handling [#23](https://github.com/aukletio/Auklet-Agent-Java/pull/23) ([npalaska](https://github.com/npalaska))
+
 ## [0.2.0](https://github.com/aukletio/Auklet-Agent-Java/tree/0.2.0)
 
 ### [0.2.0-rc.2](https://github.com/aukletio/Auklet-Agent-Java/tree/0.2.0-rc.2)
