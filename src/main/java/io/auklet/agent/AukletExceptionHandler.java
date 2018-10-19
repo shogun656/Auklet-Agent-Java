@@ -42,7 +42,7 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
         return handler;
     }
 
-    protected static void sendEvent(Throwable thrown) {
+    protected static synchronized void sendEvent(Throwable thrown) {
         List<Object> list = new ArrayList<>();
         System.err.print("Exception in thread \"" + Thread.currentThread().getName() + "\" ");
         thrown.printStackTrace(System.err);
