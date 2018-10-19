@@ -73,6 +73,10 @@ public final class Auklet {
         setup(appId, apiKey, handleShutDown);
     }
 
+    public static void exception(Throwable thrown){
+        AukletExceptionHandler.sendEvent(thrown);
+    }
+
     public static void shutdown(){
         if (client.isConnected()) {
             try {
