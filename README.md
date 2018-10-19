@@ -1,6 +1,6 @@
 # Auklet for Java
 
-This is the official Java agent for Auklet. It officially supports Java 9+.
+This is the official Java agent for Auklet. It officially supports Java 8+.
 It is currently tested on Oracle java Hotspot JVM. We plan on doing more 
 testing on other currently active JVMs.
 
@@ -21,7 +21,7 @@ import io.auklet.agent.Auklet;
 public class demo {
    
    public static void main(String []arg) {
-       Auklet.init(<App_Id>, <Api_key>);
+       Auklet.init("<App_Id>", "<Api_key>");
        ...
    }
 }
@@ -31,7 +31,7 @@ public class demo {
 public class Demo {
    
    public static void main(String []arg) {
-       Auklet.init(<App_Id>, <Api_key>, false);
+       Auklet.init("<App_Id>", "<Api_key>", false);
        ...
        Auklet.shutdown()
    }

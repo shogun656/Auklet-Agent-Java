@@ -59,7 +59,6 @@ public final class Util {
                     whatismyip.openStream()));
 
             ipAddr = in.readLine(); //you get the IP as a String
-            System.out.println("Current IP Address: " + ipAddr);
 
         } catch (IOException e) {
             e.printStackTrace();
