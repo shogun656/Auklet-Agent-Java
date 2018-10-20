@@ -29,40 +29,42 @@ public final class MQTT {
 
         JSONObject brokerJSON = getbroker();
 
-        String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
-        String caFilePath = folderPath + "/CA";
-        String mqttUserName = Device.getClient_Username();
-        String mqttPassword = Device.getClient_Password();
+        if(brokerJSON != null) {
+            String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
+            String caFilePath = folderPath + "/CA";
+            String mqttUserName = Device.getClient_Username();
+            String mqttPassword = Device.getClient_Password();
 
-        MqttClient client;
-        try {
-            client = new MqttClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(), executorService);
-            MqttConnectOptions options = new MqttConnectOptions();
-            options.setUserName(mqttUserName);
-            options.setPassword(mqttPassword.toCharArray());
+            MqttClient client;
+            try {
+                client = new MqttClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(), executorService);
+                MqttConnectOptions options = new MqttConnectOptions();
+                options.setUserName(mqttUserName);
+                options.setPassword(mqttPassword.toCharArray());
 
-            options.setConnectionTimeout(60);
-            options.setKeepAliveInterval(60);
-            options.setCleanSession(true);
-            options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
-
-
-            SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
-            options.setSocketFactory(socketFactory);
-
-            System.out.println("starting connect the server...");
-            client.connect(options);
-            System.out.println("connected!");
-
-            return client;
+                options.setConnectionTimeout(60);
+                options.setKeepAliveInterval(60);
+                options.setCleanSession(true);
+                options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
 
 
-        } catch (MqttException e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+                SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
+                options.setSocketFactory(socketFactory);
+
+                System.out.println("starting connect the server...");
+                client.connect(options);
+                System.out.println("connected!");
+
+                return client;
+
+
+            } catch (MqttException e) {
+                e.printStackTrace();
+                System.out.println(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println(e.getMessage());
+            }
         }
 
         return null;
@@ -115,14 +117,21 @@ public final class MQTT {
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);
 
-            String text = null;
-            try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
-                text = scanner.useDelimiter("\\A").next();
+            if (response.getStatusLine().getStatusCode() == 200) {
+                String text = null;
+                try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
+                    text = scanner.useDelimiter("\\A").next();
+                } catch (Exception e) {
+                    System.out.println("Exception occurred during reading brokers info: " + e.getMessage());
+                    return null;
+                }
+                JSONParser parser = new JSONParser();
+                JSONObject brokers = (JSONObject) parser.parse(text);
+                return brokers;
             }
-
-            JSONParser parser = new JSONParser();
-            JSONObject brokers = (JSONObject) parser.parse(text);
-            return brokers;
+            else {
+                System.out.println("Get broker response code: " + response.getStatusLine().getStatusCode());
+            }
 
         }catch(Exception e) {
             e.printStackTrace();

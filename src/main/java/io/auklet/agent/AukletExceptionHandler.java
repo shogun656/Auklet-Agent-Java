@@ -27,8 +27,6 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
 
         else if (!(thrown instanceof ThreadDeath)) {
             List<Object> list = new ArrayList<>();
-            //MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-            // CHECKSTYLE.OFF: RegexpSinglelineJava
             System.err.print("Exception in thread \"" + thread.getName() + "\" ");
             thrown.printStackTrace(System.err);
 
