@@ -1,5 +1,13 @@
 # Changelog
 
+## Merged But Unreleased
+
+**Implemented enhancements:**
+
+- APM-1645: Add custom logging of handled exception events  [#25](https://github.com/aukletio/Auklet-Agent-Java/pull/25) ([npalaska](https://github.com/npalaska))
+
+## [0.2.1](https://github.com/aukletio/Auklet-Agent-Java/tree/0.2.1)
+
 ### [0.2.1-rc.1](https://github.com/aukletio/Auklet-Agent-Java/tree/0.2.1-rc.1)
 
 **Fixed bugs:**
