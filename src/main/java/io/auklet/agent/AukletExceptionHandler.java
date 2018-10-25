@@ -57,7 +57,7 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
             map.put("lineNumber", se.getLineNumber());
             list.add(map);
         }
-        setStackTrace(list, thrown.getMessage());
+        setStackTrace(list, thrown.toString());
 
         try {
             byte[] bytesToSend = Messages.createMessagePack();
