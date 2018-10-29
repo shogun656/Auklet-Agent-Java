@@ -3,17 +3,20 @@ package io.auklet.agent;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Auklet {
 
     static protected String AppId;
     static protected String ApiKey;
     static protected MqttClient client;
+    static protected Logger logger = LoggerFactory.getLogger("Auklet");
 
     /*
     Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
@@ -37,10 +40,10 @@ public final class Auklet {
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
                     try {
-                        System.out.println("Auklet agent shutting down");
+                        logger.info("Auklet agent shutting down");
                         Auklet.shutdown();
                     } catch (Exception e) {
-                        System.out.println(e.getMessage());
+                        logger.error("error while shutting down Auklet agent " + e.getMessage());
                     }
                 }
             });
@@ -55,7 +58,7 @@ public final class Auklet {
         if (folderPath == null){
             folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
-        System.out.println("Directory to store creds: " + folderPath);
+        logger.info("Directory to store creds: " + folderPath);
 
         if(Device.get_Certs(folderPath) && Device.register_device(folderPath)) {
             client = MQTT.connectMqtt(folderPath, mqttThreadPool);
@@ -82,7 +85,7 @@ public final class Auklet {
             try {
                 client.disconnect();
             } catch (MqttException e) {
-                System.out.println(e.getMessage());
+                logger.error("Error while disconnecting mqtt client" + e.getMessage());
                 try {
                     client.disconnectForcibly();
                 } catch (MqttException e2) {
@@ -92,7 +95,7 @@ public final class Auklet {
         try {
             client.close();
         } catch (MqttException e) {
-            System.out.println(e.getMessage());
+            logger.error("Error while closing mqtt client" + e.getMessage());
         } finally {
             mqttThreadPool.shutdown();
             try {

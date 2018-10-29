@@ -30,7 +30,7 @@ public final class Messages {
             bytes = objectMapper.writeValueAsBytes(map);
 
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            Auklet.logger.error("Exception while processing json in creating messagePack: " + e.getMessage());
         }
         return bytes;
     }

@@ -8,6 +8,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -44,6 +45,8 @@ public final class Device {
         try {
             Path fileLocation = Paths.get(folderPath + filename);
             byte[] data = Files.readAllBytes(fileLocation);
+            Auklet.logger.info("AukletAuth file content length: " + data.length);
+
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
             String decrypted = new String(cipher.doFinal(data));
@@ -51,6 +54,7 @@ public final class Device {
             setCreds(jsonObject);
 
         } catch (FileNotFoundException | NoSuchFileException e) {
+            Auklet.logger.info("Creating a new AukletAuth file");
             JSONObject newObject = create_device();
             if (newObject != null) {
                 setCreds(newObject);
@@ -59,7 +63,7 @@ public final class Device {
             else return false;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Auklet.logger.error("Exception while device registration: " + e.getMessage());
             return false;
         }
         return true;
@@ -84,7 +88,7 @@ public final class Device {
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
                 } catch (Exception e) {
-                    System.out.println("Exception during reading contents of create device: " + e.getMessage());
+                    Auklet.logger.error("Exception during reading contents of create device endpoint: " + e.getMessage());
                     return null;
                 }
                 JSONParser parser = new JSONParser();
@@ -93,14 +97,13 @@ public final class Device {
             }
 
             else {
-                System.out.println("could not create a device and status code is: " +
+                Auklet.logger.error("could not create a device and status code is: " +
                         response.getStatusLine().getStatusCode());
             }
 
-        } catch (Exception ex) {
+        } catch (Exception e) {
 
-            System.out.println(ex.getMessage());
-            ex.printStackTrace();
+            Auklet.logger.error("Error while posting device info: " + e.getMessage());
         }
         return null;
     }
@@ -134,7 +137,7 @@ public final class Device {
             file.flush();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Auklet.logger.error("Error while writing Auklet Auth creds: " + e.getMessage());
         }
 
     }
@@ -183,24 +186,23 @@ public final class Device {
                     BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
                     writer.write(text);
                     writer.close();
-                    System.out.println("CA File is created!");
+                    Auklet.logger.info("CA File is created!");
                 }
                 else{
-                    System.out.println("Get cert response code: " + response.getStatusLine().getStatusCode());
+                    Auklet.logger.info("Get cert response code: " + response.getStatusLine().getStatusCode());
                     if(file.delete()){
-                        System.out.println("CA file deleted");
+                        Auklet.logger.info("CA file deleted");
                         return false;
                     }
                 }
             }
 
             else {
-                System.out.println("CA File already exists.");
+                Auklet.logger.info("CA File already exists.");
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            Auklet.logger.error("Exception while getting CA cert" + e.getMessage());
             return false;
         }
         return true;

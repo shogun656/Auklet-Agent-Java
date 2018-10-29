@@ -25,6 +25,7 @@ public class SystemMetrics {
         }catch (Exception e) {
             // If Exception occurs, it mean we can not use com.sun.management package and
             // we fall back without recording mem usage
+            Auklet.logger.warn("Underlying JVM does not support sun framework implementation");
             memUsage = 0;
         }
         try {
@@ -38,8 +39,7 @@ public class SystemMetrics {
             return obj;
 
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            Auklet.logger.error("Error while getting system metrics: " + e.getMessage());
         }
         return null;
     }

@@ -31,7 +31,9 @@ public final class MQTT {
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
+            Auklet.logger.info("Auklet mqtt connection url: " + serverUrl);
             String caFilePath = folderPath + "/CA";
+            Auklet.logger.info("Auklet mqtt connection looking for CA files at: " + caFilePath);
             String mqttUserName = Device.getClient_Username();
             String mqttPassword = Device.getClient_Password();
 
@@ -51,19 +53,17 @@ public final class MQTT {
                 SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
                 options.setSocketFactory(socketFactory);
 
-                System.out.println("starting connect the server...");
+                Auklet.logger.info("Auklet starting connect the mqtt server...");
                 client.connect(options);
-                System.out.println("connected!");
+                Auklet.logger.info("Auklet mqtt client connected!");
 
                 return client;
 
 
             } catch (MqttException e) {
-                e.printStackTrace();
-                System.out.println(e.getMessage());
+                Auklet.logger.error("Auklet Mqtt exception: " + e.getMessage());
             } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println(e.getMessage());
+                Auklet.logger.error("Error while connecting to mqtt: " + e.getMessage());
             }
         }
 
@@ -96,11 +96,10 @@ public final class MQTT {
             return context.getSocketFactory();
 
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            Auklet.logger.error("Error while setting up socket factory: " + e.getMessage());
         }
 
-        System.out.println("something went wrong while setting up socket factory");
+        Auklet.logger.error("Auklet MQTT Socket factory is null");
 
         return null;
 
@@ -122,7 +121,7 @@ public final class MQTT {
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
                 } catch (Exception e) {
-                    System.out.println("Exception occurred during reading brokers info: " + e.getMessage());
+                    Auklet.logger.error("Exception occurred during reading brokers info: " + e.getMessage());
                     return null;
                 }
                 JSONParser parser = new JSONParser();
@@ -130,12 +129,11 @@ public final class MQTT {
                 return brokers;
             }
             else {
-                System.out.println("Get broker response code: " + response.getStatusLine().getStatusCode());
+                Auklet.logger.info("get broker response code: "+ response.getStatusLine().getStatusCode());
             }
 
         }catch(Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            Auklet.logger.error("Error while getting the brokers: " + e.getMessage());
         }
         return null;
     }

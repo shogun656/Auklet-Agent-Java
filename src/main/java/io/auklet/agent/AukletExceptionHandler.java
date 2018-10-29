@@ -31,10 +31,10 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
 
     protected static AukletExceptionHandler setup() {
 
-        System.out.println("Configuring uncaught exception handler.");
+        Auklet.logger.info("Auklet Configuring uncaught exception handler.");
         Thread.UncaughtExceptionHandler currentHandler = Thread.getDefaultUncaughtExceptionHandler();
         if (currentHandler != null) {
-            System.out.println("default UncaughtExceptionHandler class='" + currentHandler.getClass().getName() + "'");
+            Auklet.logger.info("Default UncaughtExceptionHandler class='" + currentHandler.getClass().getName() + "'");
         }
 
         AukletExceptionHandler handler = new AukletExceptionHandler(currentHandler);
@@ -44,10 +44,9 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
 
     protected static synchronized void sendEvent(Throwable thrown) {
         List<Object> list = new ArrayList<>();
-        System.err.print("Exception in thread \"" + Thread.currentThread().getName() + "\" ");
-        thrown.printStackTrace(System.err);
+        Auklet.logger.info("Exception in application thread \"" + Thread.currentThread().getName() + "\" ");
 
-        System.out.println("Exception message from app  " + thrown.getMessage());
+        Auklet.logger.info("Exception message from application: " + thrown.getMessage());
 
         for (StackTraceElement se : thrown.getStackTrace()) {
             Map<String, Object> map = new HashMap<>();
@@ -65,11 +64,10 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
             message.setQos(2);
             Auklet.client.publish("java/events/" + Device.getOrganization() + "/" +
                     Device.getClient_Username(), message);
-            System.out.println("Message published");
+            Auklet.logger.info("Message published");
 
         } catch (MqttException | NullPointerException e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            Auklet.logger.error("Error while publishing the mqtt message: " + e.getMessage());
         }
     }
 

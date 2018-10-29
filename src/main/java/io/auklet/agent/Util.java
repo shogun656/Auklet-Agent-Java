@@ -28,6 +28,7 @@ public final class Util {
                     break;
                 }
             }
+            Auklet.logger.info("Network Interface: " + networkinterface);
 
             byte[] mac = networkinterface.getHardwareAddress();
 
@@ -44,7 +45,7 @@ public final class Util {
 
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
 
-            e.printStackTrace();
+            Auklet.logger.error("Error while computing the mac address hash: " + e.getMessage());
 
         }
         return machash;
@@ -61,7 +62,7 @@ public final class Util {
             ipAddr = in.readLine(); //you get the IP as a String
 
         } catch (IOException e) {
-            e.printStackTrace();
+            Auklet.logger.error("Error while fetching the ip address: " + e.getMessage());
 
         }
         return ipAddr;
@@ -72,11 +73,11 @@ public final class Util {
         String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
         File newfile = new File(path);
         if (newfile.exists()){
-            System.out.println("folder already exists");
+            Auklet.logger.info("Folder already exists");
         } else if (newfile.mkdir()){
-            System.out.println("folder created");
+            Auklet.logger.info("Folder created");
         } else {
-            System.out.println("folder was not created for " + sysProperty);
+            Auklet.logger.info("Folder was not created for " + sysProperty);
             return null;
         }
 
