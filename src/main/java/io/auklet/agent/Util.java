@@ -10,7 +10,7 @@ import java.util.*;
 
 public final class Util {
 
-    private Util(){ }
+    private Util() { }
 
     protected static String getMacAddressHash() {
         InetAddress ip;
@@ -18,8 +18,7 @@ public final class Util {
         NetworkInterface networkinterface = null;
         try {
             Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
-            for (; n.hasMoreElements();)
-            {
+            for (; n.hasMoreElements();) {
                 NetworkInterface e = n.nextElement();
                 if (!e.isLoopback()) { // Check against network interface "127.0.0.1"
                     networkinterface = e;
@@ -41,17 +40,13 @@ public final class Util {
             byte[] macHashByte = md.digest(macBytes);
             machash = Hex.encodeHexString(macHashByte);
 
-
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
-
             e.printStackTrace();
-
         }
         return machash;
-
     }
 
-    protected static String getIpAddress(){
+    protected static String getIpAddress() {
         String ipAddr = "";
         try {
             URL whatismyip = new URL("http://checkip.amazonaws.com");
@@ -59,16 +54,13 @@ public final class Util {
                     whatismyip.openStream()));
 
             ipAddr = in.readLine(); //you get the IP as a String
-
         } catch (IOException e) {
             e.printStackTrace();
-
         }
         return ipAddr;
     }
 
     protected static String createCustomFolder(String sysProperty) {
-
         String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
         File newfile = new File(path);
         if (newfile.exists()){

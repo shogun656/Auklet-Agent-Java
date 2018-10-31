@@ -6,16 +6,16 @@ import java.util.*;
 
 public class SystemMetrics {
 
-    private SystemMetrics(){ }
+    private SystemMetrics() { }
 
     private static OperatingSystemMXBean operatingSystemMXBean;
 
-    protected static void initSystemMetrics(){
+    protected static void initSystemMetrics() {
         operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
         operatingSystemMXBean.getSystemLoadAverage();
     }
 
-    protected static Map<String, Object> getSystemMetrics(){
+    protected static Map<String, Object> getSystemMetrics() {
         double memUsage;
         try{
             com.sun.management.OperatingSystemMXBean mxBean =
@@ -28,7 +28,6 @@ public class SystemMetrics {
             memUsage = 0;
         }
         try {
-
             Map<String, Object> obj = new HashMap<>();
             obj.put("outboundNetwork", 0);
             obj.put("inboundNetwork", 0);

@@ -25,8 +25,7 @@ public final class MQTT {
 
     private MQTT(){ }
 
-    protected static MqttClient connectMqtt(String folderPath, ScheduledExecutorService executorService){
-
+    protected static MqttClient connectMqtt(String folderPath, ScheduledExecutorService executorService) {
         JSONObject brokerJSON = getbroker();
 
         if(brokerJSON != null) {
@@ -47,7 +46,6 @@ public final class MQTT {
                 options.setCleanSession(true);
                 options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
 
-
                 SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
                 options.setSocketFactory(socketFactory);
 
@@ -56,23 +54,15 @@ public final class MQTT {
                 System.out.println("connected!");
 
                 return client;
-
-
-            } catch (MqttException e) {
-                e.printStackTrace();
-                System.out.println(e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println(e.getMessage());
             }
         }
-
         return null;
-
     }
 
-    private static SSLSocketFactory getSocketFactory (String caFilePath){
-
+    private static SSLSocketFactory getSocketFactory (String caFilePath) {
         try {
             X509Certificate caCert = null;
 
@@ -94,7 +84,6 @@ public final class MQTT {
             context.init(null, tmf.getTrustManagers(), null);
 
             return context.getSocketFactory();
-
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
@@ -103,11 +92,9 @@ public final class MQTT {
         System.out.println("something went wrong while setting up socket factory");
 
         return null;
-
     }
 
-    private static JSONObject getbroker(){
-
+    private static JSONObject getbroker() {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
