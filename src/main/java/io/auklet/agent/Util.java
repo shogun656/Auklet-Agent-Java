@@ -13,7 +13,6 @@ public final class Util {
     private Util() { }
 
     protected static String getMacAddressHash() {
-        InetAddress ip;
         String machash = "";
         NetworkInterface networkinterface = null;
         try {
@@ -23,7 +22,7 @@ public final class Util {
                 if (!e.isLoopback()) { // Check against network interface "127.0.0.1"
                     networkinterface = e;
                 }
-                if(e.getHardwareAddress() != null) {
+                if (e.getHardwareAddress() != null) {
                     break;
                 }
             }
@@ -63,9 +62,9 @@ public final class Util {
     protected static String createCustomFolder(String sysProperty) {
         String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
         File newfile = new File(path);
-        if (newfile.exists()){
+        if (newfile.exists()) {
             System.out.println("folder already exists");
-        } else if (newfile.mkdir()){
+        } else if (newfile.mkdir()) {
             System.out.println("folder created");
         } else {
             System.out.println("folder was not created for " + sysProperty);

@@ -6,8 +6,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.JSONObject;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -29,7 +28,7 @@ public final class MQTT {
         JSONObject brokerJSON = getbroker();
 
         if(brokerJSON != null) {
-            String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
+            String serverUrl = "ssl://" + brokerJSON.getString("brokers") + ":" + brokerJSON.getString("port");
             String caFilePath = folderPath + "/CA";
             String mqttUserName = Device.getClient_Username();
             String mqttPassword = Device.getClient_Password();
@@ -98,23 +97,20 @@ public final class MQTT {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
-            JSONObject obj = new JSONObject();
             HttpGet request = new HttpGet(Auklet.getBaseUrl() + "/private/devices/config/");
             request.addHeader("content-type", "application/json");
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);
 
             if (response.getStatusLine().getStatusCode() == 200) {
-                String text = null;
+                String text;
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
                 } catch (Exception e) {
                     System.out.println("Exception occurred during reading brokers info: " + e.getMessage());
                     return null;
                 }
-                JSONParser parser = new JSONParser();
-                JSONObject brokers = (JSONObject) parser.parse(text);
-                return brokers;
+                return new JSONObject(text);
             }
             else {
                 System.out.println("Get broker response code: " + response.getStatusLine().getStatusCode());

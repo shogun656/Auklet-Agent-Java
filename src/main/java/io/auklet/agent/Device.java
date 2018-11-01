@@ -6,8 +6,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.JSONObject;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -37,7 +36,6 @@ public final class Device {
 
     public static boolean register_device(String folderPath) {
         String filename = "/.AukletAuth";
-        JSONParser parser = new JSONParser();
 
         try {
             Path fileLocation = Paths.get(folderPath + filename);
@@ -45,8 +43,7 @@ public final class Device {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
             String decrypted = new String(cipher.doFinal(data));
-            JSONObject jsonObject = (JSONObject) parser.parse(decrypted);
-            setCreds(jsonObject);
+            setCreds(new JSONObject(decrypted));
 
         } catch (FileNotFoundException | NoSuchFileException e) {
             JSONObject newObject = create_device();
@@ -71,7 +68,7 @@ public final class Device {
             obj.put("application", Auklet.AppId);
 
             HttpPost request = new HttpPost(Auklet.getBaseUrl() + "/private/devices/");
-            StringEntity params = new StringEntity(obj.toJSONString());
+            StringEntity params = new StringEntity(obj.toString());
 
             request.addHeader("content-type", "application/json");
             request.addHeader("Authorization", "JWT "+Auklet.ApiKey);
@@ -86,9 +83,7 @@ public final class Device {
                     System.out.println("Exception during reading contents of create device: " + e.getMessage());
                     return null;
                 }
-                JSONParser parser = new JSONParser();
-                JSONObject myResponse = (JSONObject) parser.parse(text);
-                return myResponse;
+                return new JSONObject(text);
             } else {
                 System.out.println("could not create a device and status code is: " +
                         response.getStatusLine().getStatusCode());
@@ -102,10 +97,10 @@ public final class Device {
     }
 
     private static void setCreds(JSONObject jsonObject) {
-        client_password = (String) jsonObject.get("client_password");
-        client_username = (String) jsonObject.get("id");
-        client_id = (String) jsonObject.get("client_id");
-        organization = (String) jsonObject.get("organization");
+        client_password = jsonObject.getString("client_password");
+        client_username = jsonObject.getString("id");
+        client_id = jsonObject.getString("client_id");
+        organization = jsonObject.getString("organization");
     }
 
     private static void writeCreds(String filename) {
@@ -118,7 +113,7 @@ public final class Device {
         try (FileOutputStream file = new FileOutputStream(filename)) {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, aesKey);
-            byte[] encrypted = cipher.doFinal(obj.toJSONString().getBytes());
+            byte[] encrypted = cipher.doFinal(obj.toString().getBytes());
 
             file.write(encrypted);
             file.flush();
@@ -163,7 +158,7 @@ public final class Device {
                 HttpResponse response = httpClient.execute(request);
                 if (response.getStatusLine().getStatusCode() == 200) {
                     InputStream ca = response.getEntity().getContent();
-                    String text = null;
+                    String text;
                     try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
                         text = scanner.useDelimiter("\\A").next();
                     }
