@@ -57,7 +57,7 @@ public final class Auklet {
         }
         System.out.println("Directory to store creds: " + folderPath);
 
-        if(Device.get_Certs(folderPath) && Device.register_device(folderPath)) {
+        if(Device.register_device(folderPath) && Device.get_Certs(folderPath) && Device.initConfig(folderPath)) {
             client = MQTT.connectMqtt(folderPath, mqttThreadPool);
             if (client != null) {
                 AukletExceptionHandler.setup();
