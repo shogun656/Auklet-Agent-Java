@@ -1,6 +1,8 @@
 package io.auklet.agent;
 
 import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.*;
@@ -9,6 +11,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public final class Util {
+
+    static private Logger logger = LoggerFactory.getLogger(Util.class);
 
     private Util(){ }
 
@@ -28,7 +32,7 @@ public final class Util {
                     break;
                 }
             }
-            Auklet.logger.info("Network Interface: " + networkinterface);
+            logger.info("Network Interface: " + networkinterface);
 
             byte[] mac = networkinterface.getHardwareAddress();
 
@@ -45,7 +49,7 @@ public final class Util {
 
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
 
-            Auklet.logger.error("Error while computing the mac address hash: " + e.getMessage());
+            logger.error("Error while computing the mac address hash: " + e.getMessage());
 
         }
         return machash;
@@ -62,7 +66,7 @@ public final class Util {
             ipAddr = in.readLine(); //you get the IP as a String
 
         } catch (IOException e) {
-            Auklet.logger.error("Error while fetching the ip address: " + e.getMessage());
+            logger.error("Error while fetching the ip address: " + e.getMessage());
 
         }
         return ipAddr;
@@ -73,11 +77,11 @@ public final class Util {
         String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
         File newfile = new File(path);
         if (newfile.exists()){
-            Auklet.logger.info("Folder already exists");
+            logger.info("Folder already exists");
         } else if (newfile.mkdir()){
-            Auklet.logger.info("Folder created");
+            logger.info("Folder created");
         } else {
-            Auklet.logger.info("Folder was not created for " + sysProperty);
+            logger.info("Folder was not created for " + sysProperty);
             return null;
         }
 

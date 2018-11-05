@@ -4,12 +4,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public final class Messages {
+
+    static protected Logger logger = LoggerFactory.getLogger(Messages.class);
 
     private Messages(){ }
 
@@ -30,7 +34,7 @@ public final class Messages {
             bytes = objectMapper.writeValueAsBytes(map);
 
         } catch (JsonProcessingException e) {
-            Auklet.logger.error("Exception while processing json in creating messagePack: " + e.getMessage());
+            logger.error("Exception while processing json in creating messagePack: " + e.getMessage());
         }
         return bytes;
     }

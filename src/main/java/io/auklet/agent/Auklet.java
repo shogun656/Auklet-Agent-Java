@@ -16,7 +16,7 @@ public final class Auklet {
     static protected String AppId;
     static protected String ApiKey;
     static protected MqttClient client;
-    static protected Logger logger = LoggerFactory.getLogger("Auklet");
+    static private Logger logger = LoggerFactory.getLogger(Auklet.class);
 
     /*
     Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340

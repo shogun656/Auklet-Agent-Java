@@ -8,6 +8,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
@@ -29,6 +30,7 @@ public final class Device {
     private Device(){ }
 
     private static String filename = "/.AukletAuth";
+    static private Logger logger = LoggerFactory.getLogger(Device.class);
 
     // AppId is 22 bytes but AES is a 128-bit block cipher supporting keys of 128, 192, and 256 bits.
     private static final Key aesKey = new SecretKeySpec(Auklet.AppId.substring(0,16).getBytes(), "AES");
@@ -45,7 +47,7 @@ public final class Device {
         try {
             Path fileLocation = Paths.get(folderPath + filename);
             byte[] data = Files.readAllBytes(fileLocation);
-            Auklet.logger.info("AukletAuth file content length: " + data.length);
+            logger.info("AukletAuth file content length: " + data.length);
 
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
@@ -54,7 +56,7 @@ public final class Device {
             setCreds(jsonObject);
 
         } catch (FileNotFoundException | NoSuchFileException e) {
-            Auklet.logger.info("Creating a new AukletAuth file");
+            logger.info("Creating a new AukletAuth file");
             JSONObject newObject = create_device();
             if (newObject != null) {
                 setCreds(newObject);
@@ -63,7 +65,7 @@ public final class Device {
             else return false;
 
         } catch (Exception e) {
-            Auklet.logger.error("Exception while device registration: " + e.getMessage());
+            logger.error("Exception while device registration: " + e.getMessage());
             return false;
         }
         return true;
@@ -88,7 +90,7 @@ public final class Device {
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
                 } catch (Exception e) {
-                    Auklet.logger.error("Exception during reading contents of create device endpoint: " + e.getMessage());
+                    logger.error("Exception during reading contents of create device endpoint: " + e.getMessage());
                     return null;
                 }
                 JSONParser parser = new JSONParser();
@@ -97,13 +99,13 @@ public final class Device {
             }
 
             else {
-                Auklet.logger.error("could not create a device and status code is: " +
+                logger.error("could not create a device and status code is: " +
                         response.getStatusLine().getStatusCode());
             }
 
         } catch (Exception e) {
 
-            Auklet.logger.error("Error while posting device info: " + e.getMessage());
+            logger.error("Error while posting device info: " + e.getMessage());
         }
         return null;
     }
@@ -137,7 +139,7 @@ public final class Device {
             file.flush();
 
         } catch (Exception e) {
-            Auklet.logger.error("Error while writing Auklet Auth creds: " + e.getMessage());
+            logger.error("Error while writing Auklet Auth creds: " + e.getMessage());
         }
 
     }
@@ -186,23 +188,23 @@ public final class Device {
                     BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
                     writer.write(text);
                     writer.close();
-                    Auklet.logger.info("CA File is created!");
+                    logger.info("CA File is created!");
                 }
                 else{
-                    Auklet.logger.info("Get cert response code: " + response.getStatusLine().getStatusCode());
+                    logger.info("Get cert response code: " + response.getStatusLine().getStatusCode());
                     if(file.delete()){
-                        Auklet.logger.info("CA file deleted");
+                        logger.info("CA file deleted");
                         return false;
                     }
                 }
             }
 
             else {
-                Auklet.logger.info("CA File already exists.");
+                logger.info("CA File already exists.");
             }
 
         } catch (Exception e) {
-            Auklet.logger.error("Exception while getting CA cert" + e.getMessage());
+            logger.error("Exception while getting CA cert" + e.getMessage());
             return false;
         }
         return true;

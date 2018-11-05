@@ -8,6 +8,8 @@ import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -23,6 +25,8 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public final class MQTT {
 
+    static private Logger logger = LoggerFactory.getLogger(MQTT.class);
+
     private MQTT(){ }
 
     protected static MqttClient connectMqtt(String folderPath, ScheduledExecutorService executorService){
@@ -31,9 +35,9 @@ public final class MQTT {
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
-            Auklet.logger.info("Auklet mqtt connection url: " + serverUrl);
+            logger.info("Auklet mqtt connection url: " + serverUrl);
             String caFilePath = folderPath + "/CA";
-            Auklet.logger.info("Auklet mqtt connection looking for CA files at: " + caFilePath);
+            logger.info("Auklet mqtt connection looking for CA files at: " + caFilePath);
             String mqttUserName = Device.getClient_Username();
             String mqttPassword = Device.getClient_Password();
 
@@ -53,17 +57,17 @@ public final class MQTT {
                 SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
                 options.setSocketFactory(socketFactory);
 
-                Auklet.logger.info("Auklet starting connect the mqtt server...");
+                logger.info("Auklet starting connect the mqtt server...");
                 client.connect(options);
-                Auklet.logger.info("Auklet mqtt client connected!");
+                logger.info("Auklet mqtt client connected!");
 
                 return client;
 
 
             } catch (MqttException e) {
-                Auklet.logger.error("Auklet Mqtt exception: " + e.getMessage());
+                logger.error("Auklet Mqtt exception: " + e.getMessage());
             } catch (Exception e) {
-                Auklet.logger.error("Error while connecting to mqtt: " + e.getMessage());
+                logger.error("Error while connecting to mqtt: " + e.getMessage());
             }
         }
 
@@ -96,10 +100,10 @@ public final class MQTT {
             return context.getSocketFactory();
 
         } catch (Exception e) {
-            Auklet.logger.error("Error while setting up socket factory: " + e.getMessage());
+            logger.error("Error while setting up socket factory: " + e.getMessage());
         }
 
-        Auklet.logger.error("Auklet MQTT Socket factory is null");
+        logger.error("Auklet MQTT Socket factory is null");
 
         return null;
 
@@ -121,7 +125,7 @@ public final class MQTT {
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
                 } catch (Exception e) {
-                    Auklet.logger.error("Exception occurred during reading brokers info: " + e.getMessage());
+                    logger.error("Exception occurred during reading brokers info: " + e.getMessage());
                     return null;
                 }
                 JSONParser parser = new JSONParser();
@@ -129,11 +133,11 @@ public final class MQTT {
                 return brokers;
             }
             else {
-                Auklet.logger.info("get broker response code: "+ response.getStatusLine().getStatusCode());
+                logger.info("get broker response code: "+ response.getStatusLine().getStatusCode());
             }
 
         }catch(Exception e) {
-            Auklet.logger.error("Error while getting the brokers: " + e.getMessage());
+            logger.error("Error while getting the brokers: " + e.getMessage());
         }
         return null;
     }

@@ -2,6 +2,8 @@ package io.auklet.agent;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +13,7 @@ import java.util.Map;
 public final class AukletExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     private Thread.UncaughtExceptionHandler defaultExceptionHandler;
+    static private Logger logger = LoggerFactory.getLogger(AukletExceptionHandler.class);
 
     private AukletExceptionHandler(Thread.UncaughtExceptionHandler defaultExceptionHandler) {
         this.defaultExceptionHandler = defaultExceptionHandler;
@@ -31,10 +34,10 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
 
     protected static AukletExceptionHandler setup() {
 
-        Auklet.logger.info("Auklet Configuring uncaught exception handler.");
+        logger.info("Auklet Configuring uncaught exception handler.");
         Thread.UncaughtExceptionHandler currentHandler = Thread.getDefaultUncaughtExceptionHandler();
         if (currentHandler != null) {
-            Auklet.logger.info("Default UncaughtExceptionHandler class='" + currentHandler.getClass().getName() + "'");
+            logger.info("Default UncaughtExceptionHandler class='" + currentHandler.getClass().getName() + "'");
         }
 
         AukletExceptionHandler handler = new AukletExceptionHandler(currentHandler);
@@ -44,9 +47,9 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
 
     protected static synchronized void sendEvent(Throwable thrown) {
         List<Object> list = new ArrayList<>();
-        Auklet.logger.info("Exception in application thread \"" + Thread.currentThread().getName() + "\" ");
+        logger.info("Exception in application thread \"" + Thread.currentThread().getName() + "\" ");
 
-        Auklet.logger.info("Exception message from application: " + thrown.getMessage());
+        logger.info("Exception message from application: " + thrown.getMessage());
 
         for (StackTraceElement se : thrown.getStackTrace()) {
             Map<String, Object> map = new HashMap<>();
@@ -64,10 +67,10 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
             message.setQos(2);
             Auklet.client.publish("java/events/" + Device.getOrganization() + "/" +
                     Device.getClient_Username(), message);
-            Auklet.logger.info("Message published");
+            logger.info("Message published");
 
         } catch (MqttException | NullPointerException e) {
-            Auklet.logger.error("Error while publishing the mqtt message: " + e.getMessage());
+            logger.error("Error while publishing the mqtt message: " + e.getMessage());
         }
     }
 
