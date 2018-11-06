@@ -13,7 +13,6 @@ public final class Util {
     private Util(){ }
 
     protected static String getMacAddressHash() {
-        InetAddress ip;
         String machash = "";
         NetworkInterface networkinterface = null;
         try {

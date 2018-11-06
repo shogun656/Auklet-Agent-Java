@@ -1,9 +1,9 @@
 package io.auklet.agent;
 
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -13,7 +13,7 @@ public final class Auklet {
 
     static protected String AppId;
     static protected String ApiKey;
-    static protected MqttClient client;
+    static protected MqttAsyncClient client;
 
     /*
     Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
@@ -57,7 +57,7 @@ public final class Auklet {
         }
         System.out.println("Directory to store creds: " + folderPath);
 
-        if(Device.register_device(folderPath) && Device.get_Certs(folderPath) && Device.initConfig(folderPath)) {
+        if(Device.register_device(folderPath) && Device.get_Certs(folderPath) && Device.initLimitsConfig(folderPath)) {
             client = MQTT.connectMqtt(folderPath, mqttThreadPool);
             if (client != null) {
                 AukletExceptionHandler.setup();
@@ -80,13 +80,12 @@ public final class Auklet {
     public static void shutdown(){
         if (client.isConnected()) {
             try {
-                client.disconnect();
+                client.disconnect().waitForCompletion();
             } catch (MqttException e) {
                 System.out.println(e.getMessage());
                 try {
                     client.disconnectForcibly();
-                } catch (MqttException e2) {
-                }
+                } catch (MqttException e2) { }
             }
         }
         try {
@@ -97,8 +96,7 @@ public final class Auklet {
             mqttThreadPool.shutdown();
             try {
                 mqttThreadPool.awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e2) {
-            }
+            } catch (InterruptedException e2) { }
         }
     }
 

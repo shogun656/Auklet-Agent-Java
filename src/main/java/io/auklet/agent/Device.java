@@ -39,16 +39,13 @@ public final class Device {
 
     public static boolean register_device(String folderPath){
 
-        JSONParser parser = new JSONParser();
-
         try {
             Path fileLocation = Paths.get(folderPath + filename);
             byte[] data = Files.readAllBytes(fileLocation);
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
             String decrypted = new String(cipher.doFinal(data));
-            JSONObject jsonObject = (JSONObject) parser.parse(decrypted);
-            setCreds(jsonObject);
+            setCreds(new JSONObject(decrypted));
 
         } catch (FileNotFoundException | NoSuchFileException e) {
             JSONObject newObject = create_device();
@@ -124,7 +121,7 @@ public final class Device {
 
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, aesKey);
-            byte[] encrypted = cipher.doFinal(obj.toJSONString().getBytes());
+            byte[] encrypted = cipher.doFinal(obj.toString().getBytes());
 
             file.write(encrypted);
             file.flush();
@@ -158,12 +155,12 @@ public final class Device {
                 HttpResponse response = httpGet("/private/devices/certificates/");
                 if (response.getStatusLine().getStatusCode() == 200) {
                     InputStream ca = response.getEntity().getContent();
-                    String text = null;
+                    String text;
                     try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
                         text = scanner.useDelimiter("\\A").next();
                     }
 
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
+                    FileWriter writer = new FileWriter(folderPath + "/CA");
                     writer.write(text);
                     writer.close();
                     System.out.println("CA File is created!");
@@ -185,11 +182,13 @@ public final class Device {
         return true;
     }
 
-    public static boolean initConfig(String folderPath) {
+    public static boolean initLimitsConfig(String folderPath) {
         try {
-            File file = new File(folderPath + "/config");
-            if (!file.exists())
-                file.createNewFile();
+            String limits = folderPath + "/limits";
+            File limitsFile = new File(limits);
+            limitsFile.createNewFile();
+            DataRetention.setUsageFile(folderPath + "/usage");
+
             HttpResponse response = httpGet(String.format("/private/devices/%s/config/", Auklet.AppId));
             if (response.getStatusLine().getStatusCode() == 200) {
                 InputStream config = response.getEntity().getContent();
@@ -200,7 +199,7 @@ public final class Device {
                 JSONObject conf = new JSONObject(text).getJSONObject("config");
                 DataRetention.initDataRetention(conf);
 
-                BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/config"));
+                FileWriter writer = new FileWriter(limits);
                 writer.write(conf.toString());
                 writer.close();
                 System.out.println("Config File was stored");

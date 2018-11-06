@@ -61,12 +61,11 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
 
         try {
             byte[] bytesToSend = Messages.createMessagePack();
-            if (!DataRetention.hasExceededDataLimit(bytesToSend.length)) {
+            if (DataRetention.hasNotExceededDataLimit(bytesToSend.length)) {
                 MqttMessage message = new MqttMessage(bytesToSend);
                 message.setQos(1); // At Least Once Semantics
                 Auklet.client.publish("java/events/" + Device.getOrganization() + "/" +
                         Device.getClient_Username(), message);
-                System.out.println("Message published");
             }
         } catch (MqttException | NullPointerException e) {
             e.printStackTrace();

@@ -2,7 +2,6 @@ package io.auklet.agent;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONObject;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 import java.util.HashMap;
