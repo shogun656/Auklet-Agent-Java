@@ -39,7 +39,7 @@ public final class MQTT {
                 client.setBufferOpts(getDisconnectBufferOptions());
 
                 System.out.println("starting connect the server...");
-                client.connect(getMqttConnectOptions(Auklet.folderPath));
+                client.connect(getMqttConnectOptions());
                 System.out.println("connected!");
 
                 return client;
@@ -75,8 +75,8 @@ public final class MQTT {
         };
     }
 
-    private static MqttConnectOptions getMqttConnectOptions(String folderPath) {
-        String caFilePath = folderPath + "/CA";
+    private static MqttConnectOptions getMqttConnectOptions() {
+        String caFilePath = Auklet.folderPath + "/CA";
         SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
         String mqttUserName = Device.getClient_Username();
         String mqttPassword = Device.getClient_Password();
