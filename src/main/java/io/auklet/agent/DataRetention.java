@@ -9,6 +9,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class DataRetention {
+
+    final static private Long MEGABYTES_TO_BYTES = 1000000L;
+    final static private Long SECONDS_TO_MILLISECONDS = 1000L;
+
     static private Long emissionPeriod = 60000L;
     static private Long storageLimit;
     static private Long cellularDataLimit;
@@ -19,9 +23,9 @@ public class DataRetention {
     private DataRetention(){ }
 
     public static void initDataRetention(JSONObject config) throws JSONException, IOException {
-        emissionPeriod = config.getLong("emission_period");
-        storageLimit = config.getJSONObject("storage").getLong("storage_limit");
-        cellularDataLimit = config.getJSONObject("data").getLong("cellular_data_limit");
+        emissionPeriod = config.getLong("emission_period") * SECONDS_TO_MILLISECONDS;
+        storageLimit = config.getJSONObject("storage").getLong("storage_limit") * MEGABYTES_TO_BYTES;
+        cellularDataLimit = config.getJSONObject("data").getLong("cellular_data_limit") * MEGABYTES_TO_BYTES;
         cellPlanDate = config.getJSONObject("data").getInt("normalized_cell_plan_date");
 
         ObjectMapper mapper = new ObjectMapper();
@@ -63,6 +67,6 @@ public class DataRetention {
     }
 
     public static int getBufferSize() {
-        return (int)(storageLimit / 1000); // TODO: Use a message size avg instead of 1000
+        return (int)(storageLimit / 5000); // divide by 5KB to get amount of messages
     }
 }
