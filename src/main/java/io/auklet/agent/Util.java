@@ -32,7 +32,7 @@ public final class Util {
                     break;
                 }
             }
-            logger.info("Network Interface: " + networkinterface);
+            logger.debug("Network Interface: " + networkinterface);
 
             byte[] mac = networkinterface.getHardwareAddress();
 
@@ -77,11 +77,11 @@ public final class Util {
         String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
         File newfile = new File(path);
         if (newfile.exists()){
-            logger.info("Folder already exists");
+            logger.debug("Folder already exists");
         } else if (newfile.mkdir()){
-            logger.info("Folder created");
+            logger.debug("Folder created");
         } else {
-            logger.info("Folder was not created for " + sysProperty);
+            logger.debug("Folder was not created for " + sysProperty);
             return null;
         }
 
