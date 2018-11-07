@@ -24,7 +24,7 @@ public final class MQTT {
 
     private MQTT(){ }
 
-    protected static MqttAsyncClient connectMqtt(String folderPath, ScheduledExecutorService executorService){
+    protected static MqttAsyncClient connectMqtt(ScheduledExecutorService executorService){
 
         JSONObject brokerJSON = getbroker();
 
@@ -39,7 +39,7 @@ public final class MQTT {
                 client.setBufferOpts(getDisconnectBufferOptions());
 
                 System.out.println("starting connect the server...");
-                client.connect(getMqttConnectOptions(folderPath));
+                client.connect(getMqttConnectOptions(Auklet.folderPath));
                 System.out.println("connected!");
 
                 return client;

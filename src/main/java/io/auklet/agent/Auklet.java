@@ -13,6 +13,7 @@ public final class Auklet {
 
     static protected String AppId;
     static protected String ApiKey;
+    static protected String folderPath;
     static protected MqttAsyncClient client;
 
     /*
@@ -48,17 +49,17 @@ public final class Auklet {
 
         SystemMetrics.initSystemMetrics();
 
-        String folderPath = Util.createCustomFolder("user.dir");
-        if (folderPath == null){
+        folderPath = Util.createCustomFolder("user.dir");
+        if (folderPath == null) {
             folderPath = Util.createCustomFolder("user.home");
         }
-        if (folderPath == null){
+        if (folderPath == null) {
             folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
         System.out.println("Directory to store creds: " + folderPath);
 
-        if(Device.register_device(folderPath) && Device.get_Certs(folderPath) && Device.initLimitsConfig(folderPath)) {
-            client = MQTT.connectMqtt(folderPath, mqttThreadPool);
+        if(Device.register_device() && Device.get_Certs() && Device.initLimitsConfig()) {
+            client = MQTT.connectMqtt(mqttThreadPool);
             if (client != null) {
                 AukletExceptionHandler.setup();
             }

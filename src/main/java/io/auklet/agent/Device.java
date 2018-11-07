@@ -37,10 +37,10 @@ public final class Device {
     private static String client_password;
     private static String organization;
 
-    public static boolean register_device(String folderPath){
+    public static boolean register_device(){
 
         try {
-            Path fileLocation = Paths.get(folderPath + filename);
+            Path fileLocation = Paths.get(Auklet.folderPath + filename);
             byte[] data = Files.readAllBytes(fileLocation);
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
@@ -51,7 +51,7 @@ public final class Device {
             JSONObject newObject = create_device();
             if (newObject != null) {
                 setCreds(newObject);
-                writeCreds(folderPath + filename);
+                writeCreds(Auklet.folderPath + filename);
             }
             else return false;
 
@@ -148,9 +148,9 @@ public final class Device {
         return organization;
     }
 
-    public static boolean get_Certs(String folderPath) {
+    public static boolean get_Certs() {
         try {
-            File file = new File(folderPath + "/CA");
+            File file = new File(Auklet.folderPath + "/CA");
             if (file.createNewFile()) {
                 HttpResponse response = httpGet("/private/devices/certificates/");
                 if (response.getStatusLine().getStatusCode() == 200) {
@@ -160,7 +160,7 @@ public final class Device {
                         text = scanner.useDelimiter("\\A").next();
                     }
 
-                    FileWriter writer = new FileWriter(folderPath + "/CA");
+                    FileWriter writer = new FileWriter(Auklet.folderPath + "/CA");
                     writer.write(text);
                     writer.close();
                     System.out.println("CA File is created!");
@@ -182,12 +182,12 @@ public final class Device {
         return true;
     }
 
-    public static boolean initLimitsConfig(String folderPath) {
+    public static boolean initLimitsConfig() {
         try {
-            String limits = folderPath + "/limits";
+            String limits = Auklet.folderPath + "/limits";
             File limitsFile = new File(limits);
             limitsFile.createNewFile();
-            DataRetention.setUsageFile(folderPath + "/usage");
+            DataRetention.setUsageFile(Auklet.folderPath + "/usage");
 
             HttpResponse response = httpGet(String.format("/private/devices/%s/config/", Auklet.AppId));
             if (response.getStatusLine().getStatusCode() == 200) {

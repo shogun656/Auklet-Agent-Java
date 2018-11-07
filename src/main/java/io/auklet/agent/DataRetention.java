@@ -7,18 +7,26 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class DataRetention {
 
     final static private Long MEGABYTES_TO_BYTES = 1000000L;
     final static private Long SECONDS_TO_MILLISECONDS = 1000L;
 
+    static private boolean freshStart = true;
+    static private boolean resetData = false;
+
     static private Long emissionPeriod = 60000L;
     static private Long storageLimit;
     static private Long cellularDataLimit;
     static private int cellPlanDate;
-    static private Long dataSent;
+
     static private String usageFile;
+    static private Long dataSent;
+    static private int hours;
 
     private DataRetention(){ }
 
@@ -30,6 +38,11 @@ public class DataRetention {
 
         ObjectMapper mapper = new ObjectMapper();
         dataSent = mapper.readValue(new File("json_file"), JSONObject.class).getLong("usage");
+
+        if (freshStart) {
+            checkDate();
+            freshStart = false;
+        }
     }
 
     public static void updateDataSent(int dataSize) {
@@ -64,6 +77,31 @@ public class DataRetention {
         } else {
             System.out.println("UsageFile needs to be set"); // TODO: change this to a log statement
         }
+    }
+
+    private static void checkDate() {
+        Timer timer = new Timer();
+        TimerTask hourlyTask = new TimerTask() {
+            @Override
+            public void run () {
+                hours++;
+                if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) == cellPlanDate) {
+                    if (resetData) {
+                        dataSent = 0L;
+                        resetData = false;
+                    }
+                } else {
+                    resetData = true;
+                }
+
+                if (hours >= 24) {
+                    Device.initLimitsConfig(); // Refresh the config once a day
+                }
+            }
+        };
+
+        // schedule the task to run starting now and then every hour...
+        timer.schedule (hourlyTask, 0L, 1000*60*60);
     }
 
     public static int getBufferSize() {
