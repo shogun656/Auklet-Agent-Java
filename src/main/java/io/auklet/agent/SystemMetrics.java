@@ -11,22 +11,22 @@ public class SystemMetrics {
 
     static private Logger logger = LoggerFactory.getLogger(SystemMetrics.class);
 
-    private SystemMetrics(){ }
+    private SystemMetrics() { }
 
     private static OperatingSystemMXBean operatingSystemMXBean;
 
-    protected static void initSystemMetrics(){
+    protected static void initSystemMetrics() {
         operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
         operatingSystemMXBean.getSystemLoadAverage();
     }
 
-    protected static Map<String, Object> getSystemMetrics(){
+    protected static Map<String, Object> getSystemMetrics() {
         double memUsage;
         try{
             com.sun.management.OperatingSystemMXBean mxBean =
                     (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-            memUsage = 100*(1-((double)mxBean.getFreePhysicalMemorySize()/(double)mxBean.getTotalPhysicalMemorySize()));
-
+            memUsage = 100 *
+                    (1 - ((double) mxBean.getFreePhysicalMemorySize() / (double) mxBean.getTotalPhysicalMemorySize()));
         }catch (Exception e) {
             // If Exception occurs, it mean we can not use com.sun.management package and
             // we fall back without recording mem usage
@@ -34,15 +34,13 @@ public class SystemMetrics {
             memUsage = 0;
         }
         try {
-
             Map<String, Object> obj = new HashMap<>();
             obj.put("outboundNetwork", 0);
             obj.put("inboundNetwork", 0);
             obj.put("cpuUsage",
-                    100*(operatingSystemMXBean.getSystemLoadAverage()/operatingSystemMXBean.getAvailableProcessors()));
+                    100 * (operatingSystemMXBean.getSystemLoadAverage() / operatingSystemMXBean.getAvailableProcessors()));
             obj.put("memoryUsage", memUsage);
             return obj;
-
         } catch (Exception e) {
             logger.error("Error while getting system metrics: " + e.getMessage());
         }

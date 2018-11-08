@@ -21,19 +21,15 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
 
     @Override
     public void uncaughtException(Thread thread, Throwable thrown) {
-
         if (defaultExceptionHandler != null) {
             // call the original handler
             defaultExceptionHandler.uncaughtException(thread, thrown);
-        }
-
-        else if (!(thrown instanceof ThreadDeath)) {
+        } else if (!(thrown instanceof ThreadDeath)) {
             sendEvent(thrown);
         }
     }
 
     protected static AukletExceptionHandler setup() {
-
         logger.info("Auklet Configuring uncaught exception handler.");
         Thread.UncaughtExceptionHandler currentHandler = Thread.getDefaultUncaughtExceptionHandler();
         if (currentHandler != null) {
@@ -74,11 +70,10 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
         }
     }
 
-    private static void setStackTrace(List<Object> stackTraceList, String exceptionMessage){
+    private static void setStackTrace(List<Object> stackTraceList, String exceptionMessage) {
         Messages.map.put("stackTrace", stackTraceList);
         Messages.map.put("timestamp", System.currentTimeMillis());
         Messages.map.put("excType", exceptionMessage);
-
     }
 
 }

@@ -6,8 +6,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,12 +28,11 @@ public final class MQTT {
 
     private MQTT(){ }
 
-    protected static MqttClient connectMqtt(String folderPath, ScheduledExecutorService executorService){
-
+    protected static MqttClient connectMqtt(String folderPath, ScheduledExecutorService executorService) {
         JSONObject brokerJSON = getbroker();
 
         if(brokerJSON != null) {
-            String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
+            String serverUrl = "ssl://" + brokerJSON.getString("brokers") + ":" + brokerJSON.getString("port");
             logger.info("Auklet mqtt connection url: " + serverUrl);
             String caFilePath = folderPath + "/CA";
             logger.info("Auklet mqtt connection looking for CA files at: " + caFilePath);
@@ -53,7 +51,6 @@ public final class MQTT {
                 options.setCleanSession(true);
                 options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
 
-
                 SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
                 options.setSocketFactory(socketFactory);
 
@@ -62,21 +59,14 @@ public final class MQTT {
                 logger.info("Auklet mqtt client connected!");
 
                 return client;
-
-
-            } catch (MqttException e) {
-                logger.error("Auklet Mqtt exception: " + e.getMessage());
             } catch (Exception e) {
                 logger.error("Error while connecting to mqtt: " + e.getMessage());
             }
         }
-
         return null;
-
     }
 
-    private static SSLSocketFactory getSocketFactory (String caFilePath){
-
+    private static SSLSocketFactory getSocketFactory (String caFilePath) {
         try {
             X509Certificate caCert = null;
 
@@ -98,7 +88,6 @@ public final class MQTT {
             context.init(null, tmf.getTrustManagers(), null);
 
             return context.getSocketFactory();
-
         } catch (Exception e) {
             logger.error("Error while setting up socket factory: " + e.getMessage());
         }
@@ -106,31 +95,26 @@ public final class MQTT {
         logger.error("Auklet MQTT Socket factory is null");
 
         return null;
-
     }
 
-    private static JSONObject getbroker(){
-
+    private static JSONObject getbroker() {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
-            JSONObject obj = new JSONObject();
             HttpGet request = new HttpGet(Auklet.getBaseUrl() + "/private/devices/config/");
             request.addHeader("content-type", "application/json");
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);
 
             if (response.getStatusLine().getStatusCode() == 200) {
-                String text = null;
+                String text;
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
                 } catch (Exception e) {
                     logger.error("Exception occurred during reading brokers info: " + e.getMessage());
                     return null;
                 }
-                JSONParser parser = new JSONParser();
-                JSONObject brokers = (JSONObject) parser.parse(text);
-                return brokers;
+                return new JSONObject(text);
             }
             else {
                 logger.info("get broker response code: "+ response.getStatusLine().getStatusCode());
