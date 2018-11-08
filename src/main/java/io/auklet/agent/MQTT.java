@@ -105,8 +105,7 @@ public final class MQTT {
         return disconnectOptions;
     }
 
-    private static SSLSocketFactory getSocketFactory (String caFilePath){
-
+    private static SSLSocketFactory getSocketFactory (String caFilePath) {
         try {
             X509Certificate caCert = null;
 
@@ -128,7 +127,6 @@ public final class MQTT {
             context.init(null, tmf.getTrustManagers(), null);
 
             return context.getSocketFactory();
-
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
@@ -137,11 +135,9 @@ public final class MQTT {
         System.out.println("something went wrong while setting up socket factory");
 
         return null;
-
     }
 
-    private static JSONObject getbroker(){
-
+    private static JSONObject getbroker() {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
@@ -151,7 +147,7 @@ public final class MQTT {
             HttpResponse response = httpClient.execute(request);
 
             if (response.getStatusLine().getStatusCode() == 200) {
-                String text = null;
+                String text;
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
                 } catch (Exception e) {

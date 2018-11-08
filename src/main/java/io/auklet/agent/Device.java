@@ -27,8 +27,6 @@ public final class Device {
 
     private Device(){ }
 
-    private static String filename = "/.AukletAuth";
-
     // AppId is 22 bytes but AES is a 128-bit block cipher supporting keys of 128, 192, and 256 bits.
     private static final Key aesKey = new SecretKeySpec(Auklet.AppId.substring(0,16).getBytes(), "AES");
 
@@ -38,6 +36,7 @@ public final class Device {
     private static String organization;
 
     public static boolean register_device(){
+        String filename = "/.AukletAuth";
 
         try {
             Path fileLocation = Paths.get(Auklet.folderPath + filename);
@@ -62,15 +61,17 @@ public final class Device {
         return true;
     }
 
-    private static JSONObject create_device(){
+    private static JSONObject create_device() {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
             JSONObject obj = new JSONObject();
             obj.put("mac_address_hash", Util.getMacAddressHash());
             obj.put("application", Auklet.AppId);
+
             HttpPost request = new HttpPost(Auklet.getBaseUrl() + "/private/devices/");
             StringEntity params = new StringEntity(obj.toString());
+
             request.addHeader("content-type", "application/json");
             request.addHeader("Authorization", "JWT "+Auklet.ApiKey);
             request.setEntity(params);
@@ -91,7 +92,6 @@ public final class Device {
                         response.getStatusLine().getStatusCode());
             }
         } catch (Exception ex) {
-
             System.out.println(ex.getMessage());
             ex.printStackTrace();
         }
@@ -99,18 +99,13 @@ public final class Device {
     }
 
     private static void setCreds(JSONObject jsonObject) {
-
-        client_password = (String) jsonObject.get("client_password");
-
-        client_username = (String) jsonObject.get("id");
-
-        client_id = (String) jsonObject.get("client_id");
-
-        organization = (String) jsonObject.get("organization");
+        client_password = jsonObject.getString("client_password");
+        client_username = jsonObject.getString("id");
+        client_id = jsonObject.getString("client_id");
+        organization = jsonObject.getString("organization");
     }
 
-    private static void writeCreds(String filename){
-
+    private static void writeCreds(String filename) {
         JSONObject obj = new JSONObject();
         obj.put("client_password", client_password);
         obj.put("id", client_username);
@@ -118,7 +113,6 @@ public final class Device {
         obj.put("organization", organization);
 
         try (FileOutputStream file = new FileOutputStream(filename)) {
-
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, aesKey);
             byte[] encrypted = cipher.doFinal(obj.toString().getBytes());
@@ -129,7 +123,6 @@ public final class Device {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public static String getClient_Username(){

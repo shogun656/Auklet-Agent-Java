@@ -1,12 +1,10 @@
 package io.auklet.agent;
 
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 public final class Auklet {
@@ -20,12 +18,10 @@ public final class Auklet {
     Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
      */
     static private ScheduledExecutorService mqttThreadPool = Executors.newScheduledThreadPool(10,
-            new ThreadFactory() {
-                public Thread newThread(Runnable r) {
-                    Thread t = Executors.defaultThreadFactory().newThread(r);
-                    t.setDaemon(true);
-                    return t;
-                }
+            (Runnable r) -> {
+                Thread t = Executors.defaultThreadFactory().newThread(r);
+                t.setDaemon(true);
+                return t;
             });
 
     private Auklet(){ }
@@ -35,16 +31,16 @@ public final class Auklet {
         AppId = appId;
 
         if(handleShutDown) {
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                public void run() {
-                    try {
-                        System.out.println("Auklet agent shutting down");
-                        Auklet.shutdown();
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
-                }
-            });
+            Runtime.getRuntime().addShutdownHook(
+                    new Thread(() -> {
+                        try {
+                            System.out.println("Auklet agent shutting down");
+                            Auklet.shutdown();
+                        } catch (Exception e) {
+                            System.out.println(e.getMessage());
+                        }
+                    })
+            );
         }
 
         SystemMetrics.initSystemMetrics();
@@ -78,7 +74,7 @@ public final class Auklet {
         AukletExceptionHandler.sendEvent(thrown);
     }
 
-    public static void shutdown(){
+    public static void shutdown() {
         if (client.isConnected()) {
             try {
                 client.disconnect().waitForCompletion();

@@ -10,20 +10,19 @@ import java.util.*;
 
 public final class Util {
 
-    private Util(){ }
+    private Util() { }
 
     protected static String getMacAddressHash() {
         String machash = "";
         NetworkInterface networkinterface = null;
         try {
             Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
-            for (; n.hasMoreElements();)
-            {
+            for (; n.hasMoreElements();) {
                 NetworkInterface e = n.nextElement();
                 if (!e.isLoopback()) { // Check against network interface "127.0.0.1"
                     networkinterface = e;
                 }
-                if(e.getHardwareAddress() != null) {
+                if (e.getHardwareAddress() != null) {
                     break;
                 }
             }
@@ -40,17 +39,13 @@ public final class Util {
             byte[] macHashByte = md.digest(macBytes);
             machash = Hex.encodeHexString(macHashByte);
 
-
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
-
             e.printStackTrace();
-
         }
         return machash;
-
     }
 
-    protected static String getIpAddress(){
+    protected static String getIpAddress() {
         String ipAddr = "";
         try {
             URL whatismyip = new URL("http://checkip.amazonaws.com");
@@ -58,21 +53,18 @@ public final class Util {
                     whatismyip.openStream()));
 
             ipAddr = in.readLine(); //you get the IP as a String
-
         } catch (IOException e) {
             e.printStackTrace();
-
         }
         return ipAddr;
     }
 
     protected static String createCustomFolder(String sysProperty) {
-
         String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
         File newfile = new File(path);
-        if (newfile.exists()){
+        if (newfile.exists()) {
             System.out.println("folder already exists");
-        } else if (newfile.mkdir()){
+        } else if (newfile.mkdir()) {
             System.out.println("folder created");
         } else {
             System.out.println("folder was not created for " + sysProperty);
