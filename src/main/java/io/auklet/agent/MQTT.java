@@ -106,18 +106,20 @@ public final class MQTT {
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);
 
+            String text;
+            try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
+                text = scanner.useDelimiter("\\A").next();
+            } catch (Exception e) {
+                logger.error("Exception occurred during reading brokers info: " + e.getMessage());
+                return null;
+            }
+
             if (response.getStatusLine().getStatusCode() == 200) {
-                String text;
-                try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
-                    text = scanner.useDelimiter("\\A").next();
-                } catch (Exception e) {
-                    logger.error("Exception occurred during reading brokers info: " + e.getMessage());
-                    return null;
-                }
                 return new JSONObject(text);
             }
             else {
-                logger.info("get broker response code: "+ response.getStatusLine().getStatusCode());
+                logger.info("get broker response code: "+ response.getStatusLine());
+                logger.info("get broker response body: "+ text);
             }
 
         }catch(Exception e) {

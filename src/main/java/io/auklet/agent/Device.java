@@ -82,18 +82,19 @@ public final class Device {
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
 
+            String text;
+            try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
+                text = scanner.useDelimiter("\\A").next();
+            } catch (Exception e) {
+                logger.error("Exception during reading contents of create device endpoint: " + e.getMessage());
+                return null;
+            }
+
             if(response.getStatusLine().getStatusCode() == 201) {
-                String text;
-                try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
-                    text = scanner.useDelimiter("\\A").next();
-                } catch (Exception e) {
-                    logger.error("Exception during reading contents of create device endpoint: " + e.getMessage());
-                    return null;
-                }
                 return new JSONObject(text);
             } else {
-                logger.error("could not create a device and status code is: " +
-                        response.getStatusLine().getStatusCode());
+                logger.error("could not create a device and status code is: " + response.getStatusLine());
+                logger.error("could not create a device and response is: " + text);
             }
 
         } catch (Exception ex) {
@@ -162,21 +163,26 @@ public final class Device {
 
                 HttpGet request = new HttpGet(con.getURL().toURI());
                 HttpResponse response = httpClient.execute(request);
-                if (response.getStatusLine().getStatusCode() == 200) {
-                    InputStream ca = response.getEntity().getContent();
-                    String text;
-                    try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
-                        text = scanner.useDelimiter("\\A").next();
-                    }
+                InputStream ca = response.getEntity().getContent();
 
+                String text;
+                try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
+                    text = scanner.useDelimiter("\\A").next();
+                } catch (Exception e) {
+                    logger.error("Exception during reading the contents of CA file: " + e.getMessage());
+                    return false;
+                }
+
+                if (response.getStatusLine().getStatusCode() == 200) {
                     BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
                     writer.write(text);
                     writer.close();
                     logger.info("CA File is created!");
                 } else{
-                    logger.info("Get cert response code: " + response.getStatusLine().getStatusCode());
+                    logger.error("Get cert response code: " + response.getStatusLine());
+                    logger.error("Get cert response body: " + text);
                     if(file.delete()){
-                        logger.info("CA file deleted");
+                        logger.error("CA file deleted");
                         return false;
                     }
                 }
