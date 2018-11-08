@@ -6,8 +6,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.JSONObject;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -27,8 +26,6 @@ public final class Device {
 
     private Device(){ }
 
-    private static String filename = "/.AukletAuth";
-
     // AppId is 22 bytes but AES is a 128-bit block cipher supporting keys of 128, 192, and 256 bits.
     private static final Key aesKey = new SecretKeySpec(Auklet.AppId.substring(0,16).getBytes(), "AES");
 
@@ -37,9 +34,8 @@ public final class Device {
     private static String client_password;
     private static String organization;
 
-    public static boolean register_device(String folderPath){
-
-        JSONParser parser = new JSONParser();
+    public static boolean register_device(String folderPath) {
+        String filename = "/.AukletAuth";
 
         try {
             Path fileLocation = Paths.get(folderPath + filename);
@@ -47,16 +43,14 @@ public final class Device {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
             String decrypted = new String(cipher.doFinal(data));
-            JSONObject jsonObject = (JSONObject) parser.parse(decrypted);
-            setCreds(jsonObject);
+            setCreds(new JSONObject(decrypted));
 
         } catch (FileNotFoundException | NoSuchFileException e) {
             JSONObject newObject = create_device();
             if (newObject != null) {
                 setCreds(newObject);
                 writeCreds(folderPath + filename);
-            }
-            else return false;
+            } else return false;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -65,40 +59,37 @@ public final class Device {
         return true;
     }
 
-    private static JSONObject create_device(){
+    private static JSONObject create_device() {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
             JSONObject obj = new JSONObject();
             obj.put("mac_address_hash", Util.getMacAddressHash());
             obj.put("application", Auklet.AppId);
+
             HttpPost request = new HttpPost(Auklet.getBaseUrl() + "/private/devices/");
-            StringEntity params = new StringEntity(obj.toJSONString());
+            StringEntity params = new StringEntity(obj.toString());
+
             request.addHeader("content-type", "application/json");
             request.addHeader("Authorization", "JWT "+Auklet.ApiKey);
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
 
             if(response.getStatusLine().getStatusCode() == 201) {
-                String text = null;
+                String text;
                 try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
                     text = scanner.useDelimiter("\\A").next();
                 } catch (Exception e) {
                     System.out.println("Exception during reading contents of create device: " + e.getMessage());
                     return null;
                 }
-                JSONParser parser = new JSONParser();
-                JSONObject myResponse = (JSONObject) parser.parse(text);
-                return myResponse;
-            }
-
-            else {
+                return new JSONObject(text);
+            } else {
                 System.out.println("could not create a device and status code is: " +
                         response.getStatusLine().getStatusCode());
             }
 
         } catch (Exception ex) {
-
             System.out.println(ex.getMessage());
             ex.printStackTrace();
         }
@@ -106,18 +97,13 @@ public final class Device {
     }
 
     private static void setCreds(JSONObject jsonObject) {
-
-        client_password = (String) jsonObject.get("client_password");
-
-        client_username = (String) jsonObject.get("id");
-
-        client_id = (String) jsonObject.get("client_id");
-
-        organization = (String) jsonObject.get("organization");
+        client_password = jsonObject.getString("client_password");
+        client_username = jsonObject.getString("id");
+        client_id = jsonObject.getString("client_id");
+        organization = jsonObject.getString("organization");
     }
 
-    private static void writeCreds(String filename){
-
+    private static void writeCreds(String filename) {
         JSONObject obj = new JSONObject();
         obj.put("client_password", client_password);
         obj.put("id", client_username);
@@ -125,10 +111,9 @@ public final class Device {
         obj.put("organization", organization);
 
         try (FileOutputStream file = new FileOutputStream(filename)) {
-
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, aesKey);
-            byte[] encrypted = cipher.doFinal(obj.toJSONString().getBytes());
+            byte[] encrypted = cipher.doFinal(obj.toString().getBytes());
 
             file.write(encrypted);
             file.flush();
@@ -136,7 +121,6 @@ public final class Device {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public static String getClient_Username(){
@@ -156,7 +140,6 @@ public final class Device {
     }
 
     public static boolean get_Certs(String folderPath) {
-
         try {
             File file = new File(folderPath + "/CA");
             if (file.createNewFile()) {
@@ -175,7 +158,7 @@ public final class Device {
                 HttpResponse response = httpClient.execute(request);
                 if (response.getStatusLine().getStatusCode() == 200) {
                     InputStream ca = response.getEntity().getContent();
-                    String text = null;
+                    String text;
                     try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
                         text = scanner.useDelimiter("\\A").next();
                     }
@@ -184,20 +167,16 @@ public final class Device {
                     writer.write(text);
                     writer.close();
                     System.out.println("CA File is created!");
-                }
-                else{
+                } else {
                     System.out.println("Get cert response code: " + response.getStatusLine().getStatusCode());
                     if(file.delete()){
                         System.out.println("CA file deleted");
                         return false;
                     }
                 }
-            }
-
-            else {
+            } else {
                 System.out.println("CA File already exists.");
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
