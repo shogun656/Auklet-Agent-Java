@@ -73,7 +73,7 @@ public final class Device {
             StringEntity params = new StringEntity(obj.toString());
 
             request.addHeader("content-type", "application/json");
-            request.addHeader("Authorization", "JWT "+Auklet.ApiKey);
+            request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
 
@@ -145,7 +145,19 @@ public final class Device {
         try {
             File file = new File(Auklet.folderPath + "/CA");
             if (file.createNewFile()) {
-                HttpResponse response = httpGet("/private/devices/certificates/");
+                HttpClient httpClient = HttpClientBuilder.create().build();
+                URL newUrl = new URL(Auklet.getBaseUrl() + "/private/devices/certificates/");
+                HttpURLConnection con = (HttpURLConnection) newUrl.openConnection();
+
+                con.setRequestProperty("Authorization", "JWT " + Auklet.ApiKey);
+                con.setDoInput(true);
+                con.setRequestMethod("GET");
+                con.setInstanceFollowRedirects(true);
+
+                con.getResponseCode();
+
+                HttpGet request = new HttpGet(con.getURL().toURI());
+                HttpResponse response = httpClient.execute(request);
                 if (response.getStatusLine().getStatusCode() == 200) {
                     InputStream ca = response.getEntity().getContent();
                     String text;
@@ -156,7 +168,7 @@ public final class Device {
                     FileWriter writer = new FileWriter(Auklet.folderPath + "/CA");
                     writer.write(text);
                     writer.close();
-                    System.out.println("CA File is created!");
+                    System.out.println("CA File has been created!");
                 } else {
                     System.out.println("Get cert response code: " + response.getStatusLine().getStatusCode());
                     if(file.delete()){
@@ -182,7 +194,13 @@ public final class Device {
             limitsFile.createNewFile();
             DataRetention.setUsageFile(Auklet.folderPath + "/usage");
 
-            HttpResponse response = httpGet(String.format("/private/devices/%s/config/", Auklet.AppId));
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpGet request = new HttpGet(Auklet.getBaseUrl() + String.format("/private/devices/%s/app_config/",
+                    Auklet.AppId));
+            request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
+            HttpResponse response = httpClient.execute(request);
+            System.out.println(response.getStatusLine());
+
             if (response.getStatusLine().getStatusCode() == 200) {
                 InputStream config = response.getEntity().getContent();
                 String text;
@@ -190,11 +208,12 @@ public final class Device {
                     text = scanner.useDelimiter("\\A").next();
                 }
                 JSONObject conf = new JSONObject(text).getJSONObject("config");
-                DataRetention.initDataRetention(conf);
 
                 FileWriter writer = new FileWriter(limits);
                 writer.write(conf.toString());
                 writer.close();
+
+                DataRetention.initDataRetention(conf);
                 System.out.println("Config File was stored");
             } else {
                 System.out.println("Get config response code: " + response.getStatusLine().getStatusCode());
@@ -205,21 +224,5 @@ public final class Device {
             return false;
         }
         return true;
-    }
-
-    public static HttpResponse httpGet(String link) throws URISyntaxException, IOException {
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        URL newUrl = new URL(Auklet.getBaseUrl() + link);
-        HttpURLConnection con = (HttpURLConnection) newUrl.openConnection();
-
-        con.setRequestProperty("Authorization", "JWT " + Auklet.ApiKey);
-        con.setDoInput(true);
-        con.setRequestMethod("GET");
-        con.setInstanceFollowRedirects(true);
-
-        con.getResponseCode();
-
-        HttpGet request = new HttpGet(con.getURL().toURI());
-        return httpClient.execute(request);
     }
 }
