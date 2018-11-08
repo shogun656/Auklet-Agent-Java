@@ -43,9 +43,6 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
 
     protected static synchronized void sendEvent(Throwable thrown) {
         List<Object> list = new ArrayList<>();
-        logger.info("Exception in application thread \"" + Thread.currentThread().getName() + "\" ");
-
-        logger.info("Exception message from application: " + thrown.getMessage());
 
         for (StackTraceElement se : thrown.getStackTrace()) {
             Map<String, Object> map = new HashMap<>();
