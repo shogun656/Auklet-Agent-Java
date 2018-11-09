@@ -62,7 +62,7 @@ public class DataRetention {
         }
     }
 
-    public static void writeToUsageFile(Long usage) {
+    public synchronized static void writeToUsageFile(Long usage) {
         if (usageFile != null) {
             try {
                 JSONObject usageJson = new JSONObject();
