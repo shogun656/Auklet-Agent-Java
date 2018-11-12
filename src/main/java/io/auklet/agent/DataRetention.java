@@ -12,22 +12,22 @@ import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class DataRetention {
+public final class DataRetention {
 
-    final static private Long MEGABYTES_TO_BYTES = 1000000L;
-    final static private Long SECONDS_TO_MILLISECONDS = 1000L;
+    private final static Long MEGABYTES_TO_BYTES = 1000000L;
+    private final static Long SECONDS_TO_MILLISECONDS = 1000L;
 
-    static private boolean freshStart = true;
-    static private boolean resetData = false;
+    private static boolean freshStart = true;
+    private static boolean resetData = false;
 
-    static private Long emissionPeriod = 60000L;
-    static private Long storageLimit;
-    static private Long cellularDataLimit;
-    static private int cellPlanDate;
+    private static Long emissionPeriod = 60000L;
+    private static Long storageLimit;
+    private static Long cellularDataLimit;
+    private static int cellPlanDate;
 
-    static private String usageFile;
-    static private Long dataSent;
-    static private int hours;
+    private static String usageFile;
+    private static Long dataSent;
+    private static int hours;
 
     private DataRetention(){ }
 
@@ -62,20 +62,22 @@ public class DataRetention {
         }
     }
 
-    public synchronized static void writeToUsageFile(Long usage) {
-        if (usageFile != null) {
-            try {
-                JSONObject usageJson = new JSONObject();
-                usageJson.put("usage", usage);
+    public static void writeToUsageFile(Long usage) {
+        synchronized (usageFile) {
+            if (usageFile != null) {
+                try {
+                    JSONObject usageJson = new JSONObject();
+                    usageJson.put("usage", usage);
 
-                FileWriter writer = new FileWriter(usageFile);
-                writer.write(usageJson.toString());
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+                    FileWriter writer = new FileWriter(usageFile);
+                    writer.write(usageJson.toString());
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("UsageFile needs to be set"); // TODO: change this to a log statement
             }
-        } else {
-            System.out.println("UsageFile needs to be set"); // TODO: change this to a log statement
         }
     }
 
