@@ -44,7 +44,7 @@ public final class Device {
         try {
             Path fileLocation = Paths.get(folderPath + filename);
             byte[] data = Files.readAllBytes(fileLocation);
-            logger.info("AukletAuth file content length: " + data.length);
+            logger.info(String.format("AukletAuth file content length: %s", data.length));
 
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
@@ -60,7 +60,7 @@ public final class Device {
             } else return false;
 
         } catch (Exception e) {
-            logger.error("Exception while device registration: " + e.getMessage());
+            logger.error(String.format("Exception while device registration: %s", e.toString()));
             return false;
         }
         return true;
@@ -82,23 +82,16 @@ public final class Device {
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
 
-            String text;
-            try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
-                text = scanner.useDelimiter("\\A").next();
-            } catch (Exception e) {
-                logger.error("Exception during reading contents of create device endpoint: " + e.getMessage());
-                return null;
-            }
+            String contents = Util.readContents("create_device", response);
 
-            if(response.getStatusLine().getStatusCode() == 201) {
-                return new JSONObject(text);
+            if(response.getStatusLine().getStatusCode() == 201 && contents != null) {
+                return new JSONObject(contents);
             } else {
-                logger.error("could not create a device and status code is: " + response.getStatusLine());
-                logger.error("could not create a device and response is: " + text);
+                logger.error(String.format("Error while creating device: %s: %s", response.getStatusLine(), contents));
             }
 
         } catch (Exception ex) {
-            logger.error("Error while posting device info: " + ex.getMessage());
+            logger.error(String.format("Error while posting device info: %s", ex.toString()));
         }
         return null;
     }
@@ -126,7 +119,7 @@ public final class Device {
             file.flush();
 
         } catch (Exception e) {
-            logger.error("Error while writing Auklet Auth creds: " + e.getMessage());
+            logger.error(String.format("Error while writing Auklet Auth creds: %s", e.toString()));
         }
     }
 
@@ -163,26 +156,19 @@ public final class Device {
 
                 HttpGet request = new HttpGet(con.getURL().toURI());
                 HttpResponse response = httpClient.execute(request);
-                InputStream ca = response.getEntity().getContent();
 
-                String text;
-                try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
-                    text = scanner.useDelimiter("\\A").next();
-                } catch (Exception e) {
-                    logger.error("Exception during reading the contents of CA file: " + e.getMessage());
-                    return false;
-                }
+                String contents = Util.readContents("get_Certs", response);
 
-                if (response.getStatusLine().getStatusCode() == 200) {
+                if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
                     BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
-                    writer.write(text);
+                    writer.write(contents);
                     writer.close();
                     logger.info("CA File is created!");
                 } else{
-                    logger.error("Get cert response code: " + response.getStatusLine());
-                    logger.error("Get cert response body: " + text);
+                    logger.error(String.format("Error while getting certs: %s: %s",
+                            response.getStatusLine(), contents));
                     if(file.delete()){
-                        logger.error("CA file deleted");
+                        logger.info("CA file deleted");
                         return false;
                     }
                 }
@@ -190,7 +176,7 @@ public final class Device {
                 logger.info("CA File already exists.");
             }
         } catch (Exception e) {
-            logger.error("Exception while getting CA cert" + e.getMessage());
+            logger.error(String.format("Exception while getting CA cert %s", e.toString()));
             return false;
         }
         return true;

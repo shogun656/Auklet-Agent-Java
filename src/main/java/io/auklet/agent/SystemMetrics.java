@@ -42,7 +42,7 @@ public class SystemMetrics {
             obj.put("memoryUsage", memUsage);
             return obj;
         } catch (Exception e) {
-            logger.error("Error while getting system metrics: " + e.getMessage());
+            logger.error(String.format("Error while getting system metrics: %s", e.toString()));
         }
         return null;
     }

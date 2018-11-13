@@ -1,11 +1,13 @@
 package io.auklet.agent;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -30,7 +32,7 @@ public final class Util {
                     break;
                 }
             }
-            logger.debug("Network Interface: " + networkinterface);
+            logger.debug(String.format("Network Interface: %s", networkinterface));
 
             byte[] mac = networkinterface.getHardwareAddress();
 
@@ -45,7 +47,7 @@ public final class Util {
             machash = Hex.encodeHexString(macHashByte);
 
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            logger.error("Error while computing the mac address hash: " + e.getMessage());
+            logger.error(String.format("Error while computing the mac address hash: %s", e.toString()));
         }
         return machash;
     }
@@ -59,7 +61,7 @@ public final class Util {
 
             ipAddr = in.readLine(); //you get the IP as a String
         } catch (IOException e) {
-            logger.error("Error while fetching the ip address: " + e.getMessage());
+            logger.error(String.format("Error while fetching the ip address: %s", e.toString()));
         }
         return ipAddr;
     }
@@ -72,10 +74,22 @@ public final class Util {
         } else if (newfile.mkdir()) {
             logger.debug("Folder created");
         } else {
-            logger.debug("Folder was not created for " + sysProperty);
+            logger.debug(String.format("Folder was not created for %s", sysProperty));
             return null;
         }
 
         return path;
+    }
+
+    protected static String readContents(String methodName, HttpResponse response) {
+        String text;
+        try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
+            text = scanner.useDelimiter("\\A").next();
+        } catch (Exception e) {
+            logger.error(String.format("Exception while parsing the contents of response using scanner in %s: %s",
+                    methodName, e.toString()));
+            return null;
+        }
+        return text;
     }
 }

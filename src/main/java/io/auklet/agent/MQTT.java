@@ -29,13 +29,13 @@ public final class MQTT {
     private MQTT(){ }
 
     protected static MqttClient connectMqtt(String folderPath, ScheduledExecutorService executorService) {
-        JSONObject brokerJSON = getbroker();
+        JSONObject brokerJSON = getBroker();
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.getString("brokers") + ":" + brokerJSON.getString("port");
-            logger.info("Auklet mqtt connection url: " + serverUrl);
+            logger.info(String.format("Auklet mqtt connection url: %s", serverUrl));
             String caFilePath = folderPath + "/CA";
-            logger.info("Auklet mqtt connection looking for CA files at: " + caFilePath);
+            logger.info(String.format("Auklet mqtt connection looking for CA files at: %s", caFilePath));
             String mqttUserName = Device.getClient_Username();
             String mqttPassword = Device.getClient_Password();
 
@@ -60,7 +60,7 @@ public final class MQTT {
 
                 return client;
             } catch (Exception e) {
-                logger.error("Error while connecting to mqtt: " + e.getMessage());
+                logger.error(String.format("Error while connecting to mqtt: %s", e.toString()));
             }
         }
         return null;
@@ -89,7 +89,7 @@ public final class MQTT {
 
             return context.getSocketFactory();
         } catch (Exception e) {
-            logger.error("Error while setting up socket factory: " + e.getMessage());
+            logger.error(String.format("Error while setting up socket factory: %s", e.toString()));
         }
 
         logger.error("Auklet MQTT Socket factory is null");
@@ -97,7 +97,7 @@ public final class MQTT {
         return null;
     }
 
-    private static JSONObject getbroker() {
+    private static JSONObject getBroker() {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
@@ -106,24 +106,18 @@ public final class MQTT {
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);
 
-            String text;
-            try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
-                text = scanner.useDelimiter("\\A").next();
-            } catch (Exception e) {
-                logger.error("Exception occurred during reading brokers info: " + e.getMessage());
-                return null;
-            }
+            String contents = Util.readContents("getBroker", response);
 
-            if (response.getStatusLine().getStatusCode() == 200) {
-                return new JSONObject(text);
+            if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
+                return new JSONObject(contents);
             }
             else {
-                logger.info("get broker response code: "+ response.getStatusLine());
-                logger.info("get broker response body: "+ text);
+                logger.error(String.format("Error while getting brokers: %s: %s",
+                        response.getStatusLine(), contents));
             }
 
         }catch(Exception e) {
-            logger.error("Error while getting the brokers: " + e.getMessage());
+            logger.error(String.format("Error while getting the brokers: %s", e.toString()));
         }
         return null;
     }
