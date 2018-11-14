@@ -23,12 +23,15 @@ import java.util.Scanner;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class MQTT implements Client {
+public class MQTTClient implements Client {
 
+    private boolean setUp = false;
     private MqttClient client;
 
-    public MQTT(String appId, String folderPath, ScheduledExecutorService executorService) {
+    public MQTTClient(String appId, String folderPath, ScheduledExecutorService executorService) {
         client = connectMqtt(appId, folderPath, executorService);
+        if (client != null)
+            setUp = true;
     }
 
     private MqttClient connectMqtt(String appId, String folderPath, ScheduledExecutorService executorService) {
@@ -131,11 +134,16 @@ public class MQTT implements Client {
     }
 
     @Override
-    public void sendEvent(byte[] bytesToSend) {
+    public boolean isSetUp() {
+        return setUp;
+    }
+
+    @Override
+    public void sendEvent(String topic, byte[] bytesToSend) {
         try {
             MqttMessage message = new MqttMessage(bytesToSend);
             message.setQos(1);
-            client.publish("java/events/" + Device.getOrganization() + "/" +
+            client.publish(topic + Device.getOrganization() + "/" +
                     Device.getClient_Username(), message);
             System.out.println("Message published");
 
