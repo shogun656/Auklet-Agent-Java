@@ -40,7 +40,7 @@ public final class Auklet {
                             logger.info("Auklet agent shutting down");
                             Auklet.shutdown();
                         } catch (Exception e) {
-                            logger.error(String.format("error while shutting down Auklet agent %s", e.toString()));
+                            logger.error("error while shutting down Auklet agent ", e);
                         }
                     })
             );
@@ -82,7 +82,7 @@ public final class Auklet {
             try {
                 client.disconnect();
             } catch (MqttException e) {
-                logger.error(String.format("Error while disconnecting mqtt client %s", e.toString()));
+                logger.error("Error while disconnecting mqtt client ", e);
                 try {
                     client.disconnectForcibly();
                 } catch (MqttException e2) {
@@ -92,7 +92,7 @@ public final class Auklet {
         try {
             client.close();
         } catch (MqttException e) {
-            logger.error(String.format("Error while closing mqtt client %s", e.toString()));
+            logger.error("Error while closing mqtt client ", e);
         } finally {
             mqttThreadPool.shutdown();
             try {

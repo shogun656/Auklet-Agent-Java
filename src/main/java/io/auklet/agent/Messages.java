@@ -33,7 +33,7 @@ public final class Messages {
             bytes = objectMapper.writeValueAsBytes(map);
 
         } catch (JsonProcessingException e) {
-            logger.error(String.format("Exception while processing json in creating messagePack: %s", e.toString()));
+            logger.error("Exception while processing json in creating messagePack ", e);
         }
         return bytes;
     }

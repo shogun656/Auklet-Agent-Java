@@ -60,7 +60,7 @@ public final class MQTT {
 
                 return client;
             } catch (Exception e) {
-                logger.error(String.format("Error while connecting to mqtt: %s", e.toString()));
+                logger.error("Error while connecting to mqtt ", e);
             }
         }
         return null;
@@ -89,7 +89,7 @@ public final class MQTT {
 
             return context.getSocketFactory();
         } catch (Exception e) {
-            logger.error(String.format("Error while setting up socket factory: %s", e.toString()));
+            logger.error("Error while setting up socket factory ", e);
         }
 
         logger.error("Auklet MQTT Socket factory is null");
@@ -106,7 +106,7 @@ public final class MQTT {
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);
 
-            String contents = Util.readContents("getBroker", response);
+            String contents = Util.readContents(response);
 
             if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
                 return new JSONObject(contents);
@@ -117,7 +117,7 @@ public final class MQTT {
             }
 
         }catch(Exception e) {
-            logger.error(String.format("Error while getting the brokers: %s", e.toString()));
+            logger.error("Error while getting the brokers ", e);
         }
         return null;
     }

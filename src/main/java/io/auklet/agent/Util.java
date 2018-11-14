@@ -47,7 +47,7 @@ public final class Util {
             machash = Hex.encodeHexString(macHashByte);
 
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            logger.error(String.format("Error while computing the mac address hash: %s", e.toString()));
+            logger.error("Error while computing the mac address hash ", e);
         }
         return machash;
     }
@@ -61,7 +61,7 @@ public final class Util {
 
             ipAddr = in.readLine(); //you get the IP as a String
         } catch (IOException e) {
-            logger.error(String.format("Error while fetching the ip address: %s", e.toString()));
+            logger.error("Error while fetching the ip address ", e);
         }
         return ipAddr;
     }
@@ -81,13 +81,12 @@ public final class Util {
         return path;
     }
 
-    protected static String readContents(String methodName, HttpResponse response) {
+    protected static String readContents(HttpResponse response) {
         String text;
         try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
             text = scanner.useDelimiter("\\A").next();
         } catch (Exception e) {
-            logger.error(String.format("Exception while parsing the contents of response using scanner in %s: %s",
-                    methodName, e.toString()));
+            logger.error("Exception while parsing the contents of response using scanner in ", e);
             return null;
         }
         return text;
