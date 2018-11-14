@@ -1,5 +1,7 @@
-package io.auklet.agent;
+package io.auklet.agent.broker;
 
+import io.auklet.agent.Auklet;
+import io.auklet.agent.Device;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -19,13 +21,18 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Scanner;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-public final class MQTT {
+public class MQTT implements Client {
 
-    private MQTT(){ }
+    private MqttClient client;
 
-    protected static MqttClient connectMqtt(String folderPath, ScheduledExecutorService executorService) {
-        JSONObject brokerJSON = getbroker();
+    public MQTT(String appId, String folderPath, ScheduledExecutorService executorService) {
+        client = connectMqtt(appId, folderPath, executorService);
+    }
+
+    private MqttClient connectMqtt(String appId, String folderPath, ScheduledExecutorService executorService) {
+        JSONObject brokerJSON = getbroker(appId);
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.getString("brokers") + ":" + brokerJSON.getString("port");
@@ -61,7 +68,7 @@ public final class MQTT {
         return null;
     }
 
-    private static SSLSocketFactory getSocketFactory (String caFilePath) {
+    private SSLSocketFactory getSocketFactory (String caFilePath) {
         try {
             X509Certificate caCert = null;
 
@@ -93,13 +100,13 @@ public final class MQTT {
         return null;
     }
 
-    private static JSONObject getbroker() {
+    private JSONObject getbroker(String appId) {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
             HttpGet request = new HttpGet(Auklet.getBaseUrl() + "/private/devices/config/");
             request.addHeader("content-type", "application/json");
-            request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
+            request.addHeader("Authorization", "JWT " + appId);
             HttpResponse response = httpClient.execute(request);
 
             if (response.getStatusLine().getStatusCode() == 200) {
@@ -123,4 +130,44 @@ public final class MQTT {
         return null;
     }
 
+    @Override
+    public void sendEvent(byte[] bytesToSend) {
+        try {
+            MqttMessage message = new MqttMessage(bytesToSend);
+            message.setQos(1);
+            client.publish("java/events/" + Device.getOrganization() + "/" +
+                    Device.getClient_Username(), message);
+            System.out.println("Message published");
+
+        } catch (MqttException | NullPointerException e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+    }
+
+
+    @Override
+    public void shutdown(ScheduledExecutorService threadPool) {
+        if (client.isConnected()) {
+            try {
+                client.disconnect();
+            } catch (MqttException e) {
+                System.out.println(e.getMessage());
+                try {
+                    client.disconnectForcibly();
+                } catch (MqttException e2) {
+                }
+            }
+        }
+        try {
+            client.close();
+        } catch (MqttException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            threadPool.shutdown();
+            try {
+                threadPool.awaitTermination(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e2) {}
+        }
+    }
 }

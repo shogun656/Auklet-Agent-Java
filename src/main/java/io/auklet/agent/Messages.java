@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,9 +11,7 @@ public final class Messages {
 
     private Messages(){ }
 
-    protected static Map<String, Object> map = new HashMap<>();
-
-    protected static byte[] createMessagePack(){
+    protected static byte[] createMessagePack(Map<String, Object> map){
         byte[] bytes = new byte[]{};
         try {
             map.put("id", UUID.randomUUID());

@@ -53,26 +53,18 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
             map.put("lineNumber", se.getLineNumber());
             list.add(map);
         }
-        setStackTrace(list, thrown.toString());
+        Map<String, Object> map = startMessage(list, thrown.toString());
+        byte[] bytesToSend = Messages.createMessagePack(map);
 
-        try {
-            byte[] bytesToSend = Messages.createMessagePack();
-            MqttMessage message = new MqttMessage(bytesToSend);
-            message.setQos(2);
-            Auklet.client.publish("java/events/" + Device.getOrganization() + "/" +
-                    Device.getClient_Username(), message);
-            System.out.println("Message published");
-
-        } catch (MqttException | NullPointerException e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
-        }
+        Auklet.client.sendEvent(bytesToSend);
     }
 
-    private static void setStackTrace(List<Object> stackTraceList, String exceptionMessage) {
-        Messages.map.put("stackTrace", stackTraceList);
-        Messages.map.put("timestamp", System.currentTimeMillis());
-        Messages.map.put("excType", exceptionMessage);
+    private static Map<String, Object> startMessage(List<Object> stackTraceList, String exceptionMessage) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("stackTrace", stackTraceList);
+        map.put("timestamp", System.currentTimeMillis());
+        map.put("excType", exceptionMessage);
+        return map;
     }
 
 }
