@@ -1,27 +1,28 @@
 package io.auklet.agent.broker;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
-import purejavacomm.CommPort;
-import purejavacomm.CommPortIdentifier;
-import purejavacomm.NoSuchPortException;
-import purejavacomm.PortInUseException;
+import purejavacomm.*;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class SerialClient implements Client {
 
     private Boolean setUp;
-    private CommPort comm;
+    private SerialPort comm;
+    private OutputStream stream;
 
     public SerialClient(String portName) {
         try {
-            comm = CommPortIdentifier.getPortIdentifier(portName).open("AukletPort", 1000);
+            comm = (SerialPort) CommPortIdentifier.getPortIdentifier(portName).open("AukletPort", 1000);
+            stream = comm.getOutputStream();
             setUp = true;
-        } catch (NoSuchPortException | PortInUseException e) {
+        } catch (NoSuchPortException | PortInUseException | IOException e) {
             setUp = false;
             // log error
         }
@@ -41,15 +42,24 @@ public class SerialClient implements Client {
 
             ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
             byte[] bytes = objectMapper.writeValueAsBytes(map);
-        } catch (JsonProcessingException e) {
+            stream.write(bytes);
+        } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-
         }
     }
 
     @Override
     public void shutdown(ScheduledExecutorService threadPool) {
-
+        try {
+            stream.close();
+            comm.close();
+        } catch (IOException e) {
+            System.out.println(e);
+        } finally {
+            threadPool.shutdown();
+            try {
+                threadPool.awaitTermination(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e2) {}
+        }
     }
 }
