@@ -44,7 +44,7 @@ public final class Device {
         try {
             Path fileLocation = Paths.get(folderPath + filename);
             byte[] data = Files.readAllBytes(fileLocation);
-            logger.info(String.format("AukletAuth file content length: %d", data.length));
+            logger.info(String.format("Auklet auth file content length: %d", data.length));
 
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
@@ -60,7 +60,7 @@ public final class Device {
             } else return false;
 
         } catch (Exception e) {
-            logger.error("Exception while device registration ", e);
+            logger.error("Error during device registration", e);
             return false;
         }
         return true;
@@ -91,7 +91,7 @@ public final class Device {
             }
 
         } catch (Exception ex) {
-            logger.error("Error while posting device info ", ex);
+            logger.error("Error while posting device info", ex);
         }
         return null;
     }
@@ -119,7 +119,7 @@ public final class Device {
             file.flush();
 
         } catch (Exception e) {
-            logger.error("Error while writing Auklet Auth creds ", e);
+            logger.error("Error while writing Auklet auth credentials", e);
         }
     }
 
@@ -173,10 +173,10 @@ public final class Device {
                     }
                 }
             } else {
-                logger.info("CA File already exists");
+                logger.info("CA file already exists");
             }
         } catch (Exception e) {
-            logger.error("Exception while getting CA cert ", e);
+            logger.error("Error while getting CA cert", e);
             return false;
         }
         return true;

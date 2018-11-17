@@ -33,9 +33,9 @@ public final class MQTT {
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.getString("brokers") + ":" + brokerJSON.getString("port");
-            logger.info(String.format("Auklet mqtt connection url: %s", serverUrl));
+            logger.info(String.format("Auklet MQTT connection url: %s", serverUrl));
             String caFilePath = folderPath + "/CA";
-            logger.info(String.format("Auklet mqtt connection looking for CA files at: %s", caFilePath));
+            logger.info(String.format("Auklet MQTT connection looking for CA files at: %s", caFilePath));
             String mqttUserName = Device.getClient_Username();
             String mqttPassword = Device.getClient_Password();
 
@@ -54,13 +54,13 @@ public final class MQTT {
                 SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
                 options.setSocketFactory(socketFactory);
 
-                logger.info("Auklet starting connect the mqtt server...");
+                logger.info("Auklet starting connect the MQTT server...");
                 client.connect(options);
-                logger.info("Auklet mqtt client connected!");
+                logger.info("Auklet MQTT client connected!");
 
                 return client;
             } catch (Exception e) {
-                logger.error("Error while connecting to mqtt ", e);
+                logger.error("Error while connecting to MQTT", e);
             }
         }
         return null;
@@ -89,7 +89,7 @@ public final class MQTT {
 
             return context.getSocketFactory();
         } catch (Exception e) {
-            logger.error("Error while setting up socket factory ", e);
+            logger.error("Error while setting up MQTT socket factory", e);
         }
 
         logger.error("Auklet MQTT Socket factory is null");
@@ -117,7 +117,7 @@ public final class MQTT {
             }
 
         }catch(Exception e) {
-            logger.error("Error while getting the brokers ", e);
+            logger.error("Error while getting the brokers", e);
         }
         return null;
     }

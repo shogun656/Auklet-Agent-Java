@@ -47,7 +47,7 @@ public final class Util {
             machash = Hex.encodeHexString(macHashByte);
 
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            logger.error("Error while computing the mac address hash ", e);
+            logger.error("Error while computing the MAC address hash", e);
         }
         return machash;
     }
@@ -61,7 +61,7 @@ public final class Util {
 
             ipAddr = in.readLine(); //you get the IP as a String
         } catch (IOException e) {
-            logger.error("Error while fetching the ip address ", e);
+            logger.error("Error while fetching the IP address", e);
         }
         return ipAddr;
     }
@@ -86,7 +86,7 @@ public final class Util {
         try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
             text = scanner.useDelimiter("\\A").next();
         } catch (Exception e) {
-            logger.error("Exception while parsing the contents of response using scanner in ", e);
+            logger.error("Error while parsing HTTP response body", e);
             return null;
         }
         return text;
