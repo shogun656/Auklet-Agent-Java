@@ -44,7 +44,7 @@ public final class Device {
         try {
             Path fileLocation = Paths.get(folderPath + filename);
             byte[] data = Files.readAllBytes(fileLocation);
-            logger.info(String.format("Auklet auth file content length: %d", data.length));
+            logger.info("Auklet auth file content length: {}", data.length);
 
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
@@ -52,7 +52,7 @@ public final class Device {
             setCreds(new JSONObject(decrypted));
 
         } catch (FileNotFoundException | NoSuchFileException e) {
-            logger.info("Creating a new AukletAuth file");
+            logger.info("Creating a new Auklet auth file");
             JSONObject newObject = create_device();
             if (newObject != null) {
                 setCreds(newObject);
@@ -87,7 +87,7 @@ public final class Device {
             if(response.getStatusLine().getStatusCode() == 201 && contents != null) {
                 return new JSONObject(contents);
             } else {
-                logger.error(String.format("Error while creating device: %s: %s", response.getStatusLine(), contents));
+                logger.error("Error while creating device: {}: {}", response.getStatusLine(), contents);
             }
 
         } catch (Exception ex) {
@@ -163,10 +163,10 @@ public final class Device {
                     BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
                     writer.write(contents);
                     writer.close();
-                    logger.info("CA File is created!");
+                    logger.info("CA file is created!");
                 } else{
-                    logger.error(String.format("Error while getting certs: %s: %s",
-                            response.getStatusLine(), contents));
+                    logger.error("Error while getting certs: {}: {}",
+                            response.getStatusLine(), contents);
                     if(file.delete()){
                         logger.info("CA file deleted");
                         return false;

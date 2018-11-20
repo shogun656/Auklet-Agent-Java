@@ -33,8 +33,8 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
         logger.info("Auklet Configuring uncaught exception handler");
         Thread.UncaughtExceptionHandler currentHandler = Thread.getDefaultUncaughtExceptionHandler();
         if (currentHandler != null) {
-            logger.info(String.format("Default UncaughtExceptionHandler class= %s",
-                    currentHandler.getClass().getName()));
+            logger.info("Default UncaughtExceptionHandler class= {}",
+                    currentHandler.getClass().getName());
         }
 
         AukletExceptionHandler handler = new AukletExceptionHandler(currentHandler);
@@ -61,7 +61,7 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
             message.setQos(2);
             Auklet.client.publish("java/events/" + Device.getOrganization() + "/" +
                     Device.getClient_Username(), message);
-            logger.info(String.format("Duplicate message published: %b", message.isDuplicate()));
+            logger.info("Duplicate message published: {}", message.isDuplicate());
 
         } catch (MqttException | NullPointerException e) {
             logger.error("Error while publishing the mqtt message", e);

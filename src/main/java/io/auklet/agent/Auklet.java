@@ -92,7 +92,7 @@ public final class Auklet {
         try {
             client.close();
         } catch (MqttException e) {
-            logger.error("Error while closing mqtt client", e);
+            logger.error("Error while closing MQTT client", e);
         } finally {
             mqttThreadPool.shutdown();
             try {

@@ -32,7 +32,7 @@ public final class Util {
                     break;
                 }
             }
-            logger.debug(String.format("Network Interface: %s", networkinterface));
+            logger.debug("Network Interface: {}", networkinterface);
 
             byte[] mac = networkinterface.getHardwareAddress();
 
@@ -74,7 +74,7 @@ public final class Util {
         } else if (newfile.mkdir()) {
             logger.debug("Folder created");
         } else {
-            logger.debug(String.format("Folder was not created for %s", sysProperty));
+            logger.debug("Folder was not created for {}", sysProperty);
             return null;
         }
 

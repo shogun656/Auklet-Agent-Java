@@ -33,9 +33,9 @@ public final class MQTT {
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.getString("brokers") + ":" + brokerJSON.getString("port");
-            logger.info(String.format("Auklet MQTT connection url: %s", serverUrl));
+            logger.info("Auklet MQTT connection url: {}", serverUrl);
             String caFilePath = folderPath + "/CA";
-            logger.info(String.format("Auklet MQTT connection looking for CA files at: %s", caFilePath));
+            logger.info("Auklet MQTT connection looking for CA files at: {}", caFilePath);
             String mqttUserName = Device.getClient_Username();
             String mqttPassword = Device.getClient_Password();
 
@@ -112,8 +112,8 @@ public final class MQTT {
                 return new JSONObject(contents);
             }
             else {
-                logger.error(String.format("Error while getting brokers: %s: %s",
-                        response.getStatusLine(), contents));
+                logger.error("Error while getting brokers: {}: {}",
+                        response.getStatusLine(), contents);
             }
 
         }catch(Exception e) {
