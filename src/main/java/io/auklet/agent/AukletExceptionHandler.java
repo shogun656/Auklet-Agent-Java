@@ -64,7 +64,7 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
             logger.info("Duplicate message published: {}", message.isDuplicate());
 
         } catch (MqttException | NullPointerException e) {
-            logger.error("Error while publishing the mqtt message", e);
+            logger.error("Error while publishing the MQTT message", e);
         }
     }
 
