@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class SerialClient implements Client {
 
 
-    static private Logger logger = LoggerFactory.getLogger(SerialClient.class);
+    private static Logger logger = LoggerFactory.getLogger(SerialClient.class);
     private Boolean setUp;
     private SerialPort comm;
     private OutputStream stream;
@@ -47,8 +47,9 @@ public class SerialClient implements Client {
             ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
             byte[] bytes = objectMapper.writeValueAsBytes(map);
             stream.write(bytes);
+            logger.info("Event was sent");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Event was unable to be sent", e);
         }
     }
 

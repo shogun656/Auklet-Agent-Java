@@ -38,11 +38,11 @@ public final class Device {
     private static String client_password;
     private static String organization;
 
-    public static boolean register_device(String folderPath) {
+    public static boolean register_device(){
         String filename = "/.AukletAuth";
 
         try {
-            Path fileLocation = Paths.get(folderPath + filename);
+            Path fileLocation = Paths.get(Auklet.getFolderPath() + filename);
             byte[] data = Files.readAllBytes(fileLocation);
             logger.info("Auklet auth file content length: {}", data.length);
 
@@ -56,7 +56,7 @@ public final class Device {
             JSONObject newObject = create_device();
             if (newObject != null) {
                 setCreds(newObject);
-                writeCreds(folderPath + filename);
+                writeCreds(Auklet.getFolderPath() + filename);
             } else return false;
 
         } catch (Exception e) {
@@ -78,7 +78,7 @@ public final class Device {
             StringEntity params = new StringEntity(obj.toString());
 
             request.addHeader("content-type", "application/json");
-            request.addHeader("Authorization", "JWT "+Auklet.ApiKey);
+            request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
 
@@ -89,7 +89,6 @@ public final class Device {
             } else {
                 logger.error("Error while creating device: {}: {}", response.getStatusLine(), contents);
             }
-
         } catch (Exception ex) {
             logger.error("Error while posting device info", ex);
         }
@@ -139,9 +138,9 @@ public final class Device {
         return organization;
     }
 
-    public static boolean get_Certs(String folderPath) {
+    public static boolean get_Certs() {
         try {
-            File file = new File(folderPath + "/CA");
+            File file = new File(Auklet.getFolderPath() + "/CA");
             if (file.createNewFile()) {
                 HttpClient httpClient = HttpClientBuilder.create().build();
                 URL newUrl = new URL(Auklet.getBaseUrl() + "/private/devices/certificates/");
@@ -160,11 +159,11 @@ public final class Device {
                 String contents = Util.readContents(response);
 
                 if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + "/CA"));
+                    FileWriter writer = new FileWriter(Auklet.getFolderPath() + "/CA");
                     writer.write(contents);
                     writer.close();
-                    logger.info("CA file is created!");
-                } else{
+                    logger.info("CA File has been created!");
+                } else {
                     logger.error("Error while getting certs: {}: {}",
                             response.getStatusLine(), contents);
                     if(file.delete()){
@@ -177,6 +176,44 @@ public final class Device {
             }
         } catch (Exception e) {
             logger.error("Error while getting CA cert", e);
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean initLimitsConfig() {
+        try {
+            String limits = Auklet.getFolderPath() + "/limits";
+            File limitsFile = new File(limits);
+            limitsFile.createNewFile();
+            DataRetention.setUsageFile(Auklet.getFolderPath() + "/usage");
+
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpGet request = new HttpGet(Auklet.getBaseUrl() + String.format("/private/devices/%s/app_config/",
+                    Auklet.AppId));
+            request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
+            HttpResponse response = httpClient.execute(request);
+            logger.info(response.getStatusLine().toString());
+
+            if (response.getStatusLine().getStatusCode() == 200) {
+                InputStream config = response.getEntity().getContent();
+                String text;
+                try (Scanner scanner = new Scanner(config, StandardCharsets.UTF_8.name())) {
+                    text = scanner.useDelimiter("\\A").next();
+                }
+                JSONObject conf = new JSONObject(text).getJSONObject("config");
+
+                FileWriter writer = new FileWriter(limits);
+                writer.write(conf.toString());
+                writer.close();
+
+                DataRetention.initDataRetention(conf);
+                logger.info("Config File was stored");
+            } else {
+                logger.error("Get config response code: " + response.getStatusLine().getStatusCode());
+            }
+        } catch (Exception e) {
+            logger.error("Unable to initialize Config", e);
             return false;
         }
         return true;

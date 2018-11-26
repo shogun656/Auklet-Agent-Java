@@ -1,6 +1,7 @@
 package io.auklet.agent.broker;
 
 import io.auklet.agent.Auklet;
+import io.auklet.agent.DataRetention;
 import io.auklet.agent.Device;
 import io.auklet.agent.Util;
 import org.apache.http.HttpResponse;
@@ -26,44 +27,31 @@ import java.util.concurrent.TimeUnit;
 
 public class MQTTClient implements Client {
 
-    static private Logger logger = LoggerFactory.getLogger(MQTTClient.class);
+    private static Logger logger = LoggerFactory.getLogger(MQTTClient.class);
     private boolean setUp = false;
-    private MqttClient client;
+    private MqttAsyncClient client;
 
-    public MQTTClient(String appId, String folderPath, ScheduledExecutorService executorService) {
-        client = connectMqtt(appId, folderPath, executorService);
+    public MQTTClient(String appId, ScheduledExecutorService executorService) {
+        client = connectMqtt(appId, executorService);
         if (client != null)
             setUp = true;
     }
 
-    private MqttClient connectMqtt(String appId, String folderPath, ScheduledExecutorService executorService) {
+    private MqttAsyncClient connectMqtt(String appId, ScheduledExecutorService executorService) {
         JSONObject brokerJSON = getbroker(appId);
 
         if(brokerJSON != null) {
-            String serverUrl = "ssl://" + brokerJSON.getString("brokers") + ":" + brokerJSON.getString("port");
-            logger.info("Auklet MQTT connection url: {}", serverUrl);
-            String caFilePath = folderPath + "/CA";
-            logger.info("Auklet MQTT connection looking for CA files at: {}", caFilePath);
-            String mqttUserName = Device.getClient_Username();
-            String mqttPassword = Device.getClient_Password();
+            String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
 
-            MqttClient client;
+            MqttAsyncClient client;
             try {
-                client = new MqttClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(), executorService);
-                MqttConnectOptions options = new MqttConnectOptions();
-                options.setUserName(mqttUserName);
-                options.setPassword(mqttPassword.toCharArray());
-
-                options.setConnectionTimeout(60);
-                options.setKeepAliveInterval(60);
-                options.setCleanSession(true);
-                options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
-
-                SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
-                options.setSocketFactory(socketFactory);
+                client = new MqttAsyncClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(),
+                        new TimerPingSender(), executorService);
+                client.setCallback(getMqttCallback());
+                client.setBufferOpts(getDisconnectBufferOptions());
 
                 logger.info("Auklet starting connect the MQTT server...");
-                client.connect(options);
+                client.connect(getMqttConnectOptions());
                 logger.info("Auklet MQTT client connected!");
 
                 return client;
@@ -74,7 +62,61 @@ public class MQTTClient implements Client {
         return null;
     }
 
-    private SSLSocketFactory getSocketFactory (String caFilePath) {
+    private static MqttCallback getMqttCallback() {
+        return new MqttCallback() {
+            @Override
+            public void connectionLost(Throwable cause) {
+                logger.error("Unexpected disconnect from MQTT");
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+                try {
+                    DataRetention.updateDataSent(token.getMessage().getPayload().length);
+                    logger.info("Message published");
+                } catch (MqttException e) {
+                    logger.error("Message was not published", e);
+                }
+            }
+        };
+    }
+
+    private static MqttConnectOptions getMqttConnectOptions() {
+        String caFilePath = Auklet.getFolderPath() + "/CA";
+        SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
+        String mqttUserName = Device.getClient_Username();
+        String mqttPassword = Device.getClient_Password();
+
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setUserName(mqttUserName);
+        options.setPassword(mqttPassword.toCharArray());
+
+        options.setConnectionTimeout(60);
+        options.setKeepAliveInterval(60);
+        options.setCleanSession(false);
+        options.setAutomaticReconnect(true);
+
+        options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
+        options.setSocketFactory(socketFactory);
+
+        return options;
+    }
+
+    private static DisconnectedBufferOptions getDisconnectBufferOptions() {
+        DisconnectedBufferOptions disconnectOptions = new DisconnectedBufferOptions();
+        disconnectOptions.setBufferEnabled(true);
+        disconnectOptions.setDeleteOldestMessages(true);
+        disconnectOptions.setPersistBuffer(true);
+        disconnectOptions.setBufferSize(DataRetention.getBufferSize());
+        return disconnectOptions;
+    }
+
+    private static SSLSocketFactory getSocketFactory (String caFilePath) {
         try {
             X509Certificate caCert = null;
 
@@ -138,14 +180,15 @@ public class MQTTClient implements Client {
     @Override
     public void sendEvent(String topic, byte[] bytesToSend) {
         try {
-            MqttMessage message = new MqttMessage(bytesToSend);
-            message.setQos(1);
-            client.publish(topic + Device.getOrganization() + "/" +
-                    Device.getClient_Username(), message);
-            logger.info("Message published");
-
+            if (DataRetention.hasNotExceededDataLimit(bytesToSend.length)) {
+                MqttMessage message = new MqttMessage(bytesToSend);
+                message.setQos(1); // At Least Once Semantics
+                client.publish("java/events/" + Device.getOrganization() + "/" +
+                        Device.getClient_Username(), message);
+                logger.info("Duplicate message published: {}", message.isDuplicate());
+            }
         } catch (MqttException | NullPointerException e) {
-            logger.error("Error while sending event", e);
+            logger.error("Error while publishing the MQTT message", e);
         }
     }
 
@@ -154,13 +197,12 @@ public class MQTTClient implements Client {
     public void shutdown(ScheduledExecutorService threadPool) {
         if (client.isConnected()) {
             try {
-                client.disconnect();
+                client.disconnect().waitForCompletion();
             } catch (MqttException e) {
                 logger.error("Error while disconnecting down MQTT agent", e);
                 try {
                     client.disconnectForcibly();
-                } catch (MqttException e2) {
-                }
+                } catch (MqttException e2) {}
             }
         }
         try {

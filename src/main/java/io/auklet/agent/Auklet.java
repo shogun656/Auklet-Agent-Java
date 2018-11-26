@@ -12,10 +12,11 @@ import org.slf4j.LoggerFactory;
 
 public final class Auklet {
 
-    static protected String AppId;
-    static protected String ApiKey;
-    static protected Client client;
-    static private Logger logger = LoggerFactory.getLogger(Auklet.class);
+    protected static String AppId;
+    protected static String ApiKey;
+    protected static String folderPath;
+    protected static Client client;
+    private static Logger logger = LoggerFactory.getLogger(Auklet.class);
 
     private Auklet(){ }
 
@@ -24,10 +25,10 @@ public final class Auklet {
         AppId = appId;
 
         ScheduledExecutorService mqttThreadPool = createThreadPool();
-        String folderPath = createFolderPath();
+        createFolderPath();
         SystemMetrics.initSystemMetrics();
 
-        client = createClient(folderPath, serialOut, mqttThreadPool);
+        client = createClient(serialOut, mqttThreadPool);
 
         if (client != null && client.isSetUp()) {
             AukletExceptionHandler.setup();
@@ -64,23 +65,21 @@ public final class Auklet {
                 });
     }
 
-    private static String createFolderPath() {
-        String folderPath = Util.createCustomFolder("user.dir");
+    private static void createFolderPath() {
+        folderPath = Util.createCustomFolder("user.dir");
         if (folderPath == null){
             folderPath = Util.createCustomFolder("user.home");
         }
-        if (folderPath == null){
+        if (folderPath == null) {
             folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
         logger.info("Directory to store creds: " + folderPath);
-
-        return folderPath;
     }
 
-    private static Client createClient(String folderPath, String serialOut, ScheduledExecutorService mqttThreadPool) {
+    private static Client createClient(String serialOut, ScheduledExecutorService mqttThreadPool) {
         if (serialOut.equals("")) {
-            if(Device.get_Certs(folderPath) && Device.register_device(folderPath)) {
-                return new MQTTClient(AppId, folderPath, mqttThreadPool);
+            if(Device.get_Certs() && Device.register_device()) {
+                return new MQTTClient(AppId, mqttThreadPool);
             }
         } else {
             return new SerialClient(serialOut);
@@ -106,4 +105,7 @@ public final class Auklet {
       return fromEnv != null ? fromEnv : "https://api.auklet.io";
     }
 
+    public static String getFolderPath() {
+        return folderPath;
+    }
 }
