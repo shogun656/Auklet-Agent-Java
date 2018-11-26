@@ -1,6 +1,6 @@
 package io.auklet.agent;
 
-import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import java.util.concurrent.Executors;
@@ -14,7 +14,8 @@ public final class Auklet {
 
     static protected String AppId;
     static protected String ApiKey;
-    static protected MqttClient client;
+    static protected String folderPath;
+    static protected MqttAsyncClient client;
     static private Logger logger = LoggerFactory.getLogger(Auklet.class);
 
     /*
@@ -48,17 +49,17 @@ public final class Auklet {
 
         SystemMetrics.initSystemMetrics();
 
-        String folderPath = Util.createCustomFolder("user.dir");
-        if (folderPath == null){
+        folderPath = Util.createCustomFolder("user.dir");
+        if (folderPath == null) {
             folderPath = Util.createCustomFolder("user.home");
         }
-        if (folderPath == null){
+        if (folderPath == null) {
             folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
         logger.info("Directory to store creds: " + folderPath);
 
-        if(Device.get_Certs(folderPath) && Device.register_device(folderPath)) {
-            client = MQTT.connectMqtt(folderPath, mqttThreadPool);
+        if(Device.register_device() && Device.get_Certs() && Device.initLimitsConfig()) {
+            client = MQTT.connectMqtt(mqttThreadPool);
             if (client != null) {
                 AukletExceptionHandler.setup();
             }
@@ -80,13 +81,12 @@ public final class Auklet {
     public static void shutdown() {
         if (client.isConnected()) {
             try {
-                client.disconnect();
+                client.disconnect().waitForCompletion();
             } catch (MqttException e) {
                 logger.error("Error while disconnecting MQTT client", e);
                 try {
                     client.disconnectForcibly();
-                } catch (MqttException e2) {
-                }
+                } catch (MqttException e2) { }
             }
         }
         try {
@@ -97,7 +97,7 @@ public final class Auklet {
             mqttThreadPool.shutdown();
             try {
                 mqttThreadPool.awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e2) {}
+            } catch (InterruptedException e2) { }
         }
     }
 

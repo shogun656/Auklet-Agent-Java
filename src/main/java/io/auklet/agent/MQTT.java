@@ -15,11 +15,9 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Scanner;
 import java.util.concurrent.ScheduledExecutorService;
 
 public final class MQTT {
@@ -28,34 +26,22 @@ public final class MQTT {
 
     private MQTT(){ }
 
-    protected static MqttClient connectMqtt(String folderPath, ScheduledExecutorService executorService) {
+    protected static MqttAsyncClient connectMqtt(ScheduledExecutorService executorService){
+
         JSONObject brokerJSON = getBroker();
 
         if(brokerJSON != null) {
-            String serverUrl = "ssl://" + brokerJSON.getString("brokers") + ":" + brokerJSON.getString("port");
-            logger.info("Auklet MQTT connection url: {}", serverUrl);
-            String caFilePath = folderPath + "/CA";
-            logger.info("Auklet MQTT connection looking for CA files at: {}", caFilePath);
-            String mqttUserName = Device.getClient_Username();
-            String mqttPassword = Device.getClient_Password();
+            String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
 
-            MqttClient client;
+            MqttAsyncClient client;
             try {
-                client = new MqttClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(), executorService);
-                MqttConnectOptions options = new MqttConnectOptions();
-                options.setUserName(mqttUserName);
-                options.setPassword(mqttPassword.toCharArray());
-
-                options.setConnectionTimeout(60);
-                options.setKeepAliveInterval(60);
-                options.setCleanSession(true);
-                options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
-
-                SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
-                options.setSocketFactory(socketFactory);
+                client = new MqttAsyncClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(),
+                        new TimerPingSender(), executorService);
+                client.setCallback(getMqttCallback());
+                client.setBufferOpts(getDisconnectBufferOptions());
 
                 logger.info("Auklet starting connect the MQTT server...");
-                client.connect(options);
+                client.connect(getMqttConnectOptions());
                 logger.info("Auklet MQTT client connected!");
 
                 return client;
@@ -64,6 +50,60 @@ public final class MQTT {
             }
         }
         return null;
+    }
+
+    private static MqttCallback getMqttCallback() {
+        return new MqttCallback() {
+            @Override
+            public void connectionLost(Throwable cause) {
+                logger.error("Unexpected disconnect from MQTT");
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+                try {
+                    DataRetention.updateDataSent(token.getMessage().getPayload().length);
+                    logger.info("Message published");
+                } catch (MqttException e) {
+                    logger.error("Message was not published", e);
+                }
+            }
+        };
+    }
+
+    private static MqttConnectOptions getMqttConnectOptions() {
+        String caFilePath = Auklet.folderPath + "/CA";
+        SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
+        String mqttUserName = Device.getClient_Username();
+        String mqttPassword = Device.getClient_Password();
+
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setUserName(mqttUserName);
+        options.setPassword(mqttPassword.toCharArray());
+
+        options.setConnectionTimeout(60);
+        options.setKeepAliveInterval(60);
+        options.setCleanSession(false);
+        options.setAutomaticReconnect(true);
+
+        options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
+        options.setSocketFactory(socketFactory);
+
+        return options;
+    }
+
+    private static DisconnectedBufferOptions getDisconnectBufferOptions() {
+        DisconnectedBufferOptions disconnectOptions = new DisconnectedBufferOptions();
+        disconnectOptions.setBufferEnabled(true);
+        disconnectOptions.setDeleteOldestMessages(true);
+        disconnectOptions.setPersistBuffer(true);
+        disconnectOptions.setBufferSize(DataRetention.getBufferSize());
+        return disconnectOptions;
     }
 
     private static SSLSocketFactory getSocketFactory (String caFilePath) {
