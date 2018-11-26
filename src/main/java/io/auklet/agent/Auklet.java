@@ -7,11 +7,15 @@ import io.auklet.agent.broker.SerialClient;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class Auklet {
 
     static protected String AppId;
     static protected String ApiKey;
     static protected Client client;
+    static private Logger logger = LoggerFactory.getLogger(Auklet.class);
 
     private Auklet(){ }
 
@@ -68,7 +72,7 @@ public final class Auklet {
         if (folderPath == null){
             folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
-        System.out.println("Directory to store creds: " + folderPath);
+        logger.info("Directory to store creds: " + folderPath);
 
         return folderPath;
     }
@@ -88,10 +92,10 @@ public final class Auklet {
         Runtime.getRuntime().addShutdownHook(
                 new Thread(() -> {
                     try {
-                        System.out.println("Auklet agent shutting down");
+                        logger.info("Auklet agent shutting down");
                         client.shutdown(mqttThreadPool);
                     } catch (Exception e) {
-                        System.out.println(e.getMessage());
+                        logger.error("Error while shutting down Auklet agent", e);
                     }
                 })
         );

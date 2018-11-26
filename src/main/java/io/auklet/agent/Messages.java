@@ -3,11 +3,15 @@ package io.auklet.agent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.UUID;
 
 public final class Messages {
+
+    static protected Logger logger = LoggerFactory.getLogger(Messages.class);
 
     private Messages(){ }
 
@@ -26,7 +30,7 @@ public final class Messages {
             bytes = objectMapper.writeValueAsBytes(map);
 
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error("Error while converting JSON to msgpack", e);
         }
         return bytes;
     }

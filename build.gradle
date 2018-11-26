@@ -35,6 +35,8 @@ dependencies {
     compile "org.msgpack:jackson-dataformat-msgpack:0.8.16"
     compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
     compile "com.github.purejavacomm:purejavacomm:1.0.1.RELEASE"
+    compile "org.slf4j:slf4j-api:1.7.25"
+    testCompile "org.slf4j:slf4j-simple:1.7.25"
 }
 
 test {

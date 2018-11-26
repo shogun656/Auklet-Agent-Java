@@ -2,6 +2,8 @@ package io.auklet.agent.broker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import purejavacomm.*;
 
 import java.io.IOException;
@@ -13,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 
 public class SerialClient implements Client {
 
+
+    static private Logger logger = LoggerFactory.getLogger(SerialClient.class);
     private Boolean setUp;
     private SerialPort comm;
     private OutputStream stream;
@@ -24,7 +28,7 @@ public class SerialClient implements Client {
             setUp = true;
         } catch (NoSuchPortException | PortInUseException | IOException e) {
             setUp = false;
-            // log error
+            logger.error(e.toString());
         }
     }
 
@@ -54,7 +58,7 @@ public class SerialClient implements Client {
             stream.close();
             comm.close();
         } catch (IOException e) {
-            System.out.println(e);
+            logger.error("Error while shutting down Serial Client", e);
         } finally {
             threadPool.shutdown();
             try {
