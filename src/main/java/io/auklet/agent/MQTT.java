@@ -56,7 +56,7 @@ public final class MQTT {
         return new MqttCallback() {
             @Override
             public void connectionLost(Throwable cause) {
-                System.out.println("Unexpected disconnect from MQTT"); // Switch to log
+                logger.error("Unexpected disconnect from MQTT");
             }
 
             @Override
@@ -68,9 +68,9 @@ public final class MQTT {
             public void deliveryComplete(IMqttDeliveryToken token) {
                 try {
                     DataRetention.updateDataSent(token.getMessage().getPayload().length);
-                    System.out.println("Message published"); // Switch to log
+                    logger.info("Message published");
                 } catch (MqttException e) {
-                    e.printStackTrace();
+                    logger.error("Message was not published", e);
                 }
             }
         };

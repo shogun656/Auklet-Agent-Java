@@ -57,8 +57,7 @@ public final class Device {
             if (newObject != null) {
                 setCreds(newObject);
                 writeCreds(Auklet.folderPath + filename);
-            }
-            else return false;
+            } else return false;
 
         } catch (Exception e) {
             logger.error("Error during device registration", e);
@@ -194,7 +193,7 @@ public final class Device {
                     Auklet.AppId));
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);
-            System.out.println(response.getStatusLine());
+            logger.info(response.getStatusLine().toString());
 
             if (response.getStatusLine().getStatusCode() == 200) {
                 InputStream config = response.getEntity().getContent();
@@ -209,13 +208,12 @@ public final class Device {
                 writer.close();
 
                 DataRetention.initDataRetention(conf);
-                System.out.println("Config File was stored");
+                logger.info("Config File was stored");
             } else {
-                System.out.println("Get config response code: " + response.getStatusLine().getStatusCode());
+                logger.error("Get config response code: " + response.getStatusLine().getStatusCode());
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            logger.error("Unable to initialize Config", e);
             return false;
         }
         return true;

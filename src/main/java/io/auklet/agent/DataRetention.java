@@ -2,6 +2,8 @@ package io.auklet.agent;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -13,6 +15,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public final class DataRetention {
+
+
+    private static Logger logger = LoggerFactory.getLogger(DataRetention.class);
 
     private final static Long MEGABYTES_TO_BYTES = 1000000L;
     private final static Long SECONDS_TO_MILLISECONDS = 1000L;
@@ -73,10 +78,10 @@ public final class DataRetention {
                     writer.write(usageJson.toString());
                     writer.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Unable to access Usage File", e);
                 }
             } else {
-                System.out.println("UsageFile needs to be set"); // TODO: change this to a log statement
+                logger.error("UsageFile needs to be set");
             }
         }
     }
