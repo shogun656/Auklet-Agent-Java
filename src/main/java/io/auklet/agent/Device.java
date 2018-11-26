@@ -7,13 +7,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 
 import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
@@ -26,6 +27,8 @@ import java.nio.file.Files;
 public final class Device {
 
     private Device(){ }
+
+    static private Logger logger = LoggerFactory.getLogger(Device.class);
 
     // AppId is 22 bytes but AES is a 128-bit block cipher supporting keys of 128, 192, and 256 bits.
     private static final Key aesKey = new SecretKeySpec(Auklet.AppId.substring(0,16).getBytes(), "AES");
@@ -41,12 +44,15 @@ public final class Device {
         try {
             Path fileLocation = Paths.get(Auklet.folderPath + filename);
             byte[] data = Files.readAllBytes(fileLocation);
+            logger.info("Auklet auth file content length: {}", data.length);
+
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
             String decrypted = new String(cipher.doFinal(data));
             setCreds(new JSONObject(decrypted));
 
         } catch (FileNotFoundException | NoSuchFileException e) {
+            logger.info("Creating a new Auklet auth file");
             JSONObject newObject = create_device();
             if (newObject != null) {
                 setCreds(newObject);
@@ -55,7 +61,7 @@ public final class Device {
             else return false;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error during device registration", e);
             return false;
         }
         return true;
@@ -77,23 +83,15 @@ public final class Device {
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
 
-            if(response.getStatusLine().getStatusCode() == 201) {
-                String text;
-                try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
-                    text = scanner.useDelimiter("\\A").next();
-                } catch (Exception e) {
-                    System.out.println("Exception during reading contents of create device: " + e.getMessage());
-                    return null;
-                }
+            String contents = Util.readContents(response);
 
-                return new JSONObject(text);
+            if(response.getStatusLine().getStatusCode() == 201 && contents != null) {
+                return new JSONObject(contents);
             } else {
-                System.out.println("could not create a device and status code is: " +
-                        response.getStatusLine().getStatusCode());
+                logger.error("Error while creating device: {}: {}", response.getStatusLine(), contents);
             }
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-            ex.printStackTrace();
+            logger.error("Error while posting device info", ex);
         }
         return null;
     }
@@ -121,7 +119,7 @@ public final class Device {
             file.flush();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error while writing Auklet auth credentials", e);
         }
     }
 
@@ -158,30 +156,27 @@ public final class Device {
 
                 HttpGet request = new HttpGet(con.getURL().toURI());
                 HttpResponse response = httpClient.execute(request);
-                if (response.getStatusLine().getStatusCode() == 200) {
-                    InputStream ca = response.getEntity().getContent();
-                    String text;
-                    try (Scanner scanner = new Scanner(ca, StandardCharsets.UTF_8.name())) {
-                        text = scanner.useDelimiter("\\A").next();
-                    }
 
+                String contents = Util.readContents(response);
+
+                if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
                     FileWriter writer = new FileWriter(Auklet.folderPath + "/CA");
-                    writer.write(text);
+                    writer.write(contents);
                     writer.close();
-                    System.out.println("CA File has been created!");
+                    logger.info("CA File has been created!");
                 } else {
-                    System.out.println("Get cert response code: " + response.getStatusLine().getStatusCode());
+                    logger.error("Error while getting certs: {}: {}",
+                            response.getStatusLine(), contents);
                     if(file.delete()){
-                        System.out.println("CA file deleted");
+                        logger.info("CA file deleted");
                         return false;
                     }
                 }
             } else {
-                System.out.println("CA File already exists.");
+                logger.info("CA file already exists");
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            logger.error("Error while getting CA cert", e);
             return false;
         }
         return true;

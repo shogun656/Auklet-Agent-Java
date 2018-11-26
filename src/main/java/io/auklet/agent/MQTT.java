@@ -7,26 +7,28 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Scanner;
 import java.util.concurrent.ScheduledExecutorService;
 
 public final class MQTT {
+
+    static private Logger logger = LoggerFactory.getLogger(MQTT.class);
 
     private MQTT(){ }
 
     protected static MqttAsyncClient connectMqtt(ScheduledExecutorService executorService){
 
-        JSONObject brokerJSON = getbroker();
+        JSONObject brokerJSON = getBroker();
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
@@ -38,14 +40,13 @@ public final class MQTT {
                 client.setCallback(getMqttCallback());
                 client.setBufferOpts(getDisconnectBufferOptions());
 
-                System.out.println("starting connect the server...");
+                logger.info("Auklet starting connect the MQTT server...");
                 client.connect(getMqttConnectOptions());
-                System.out.println("connected!");
+                logger.info("Auklet MQTT client connected!");
 
                 return client;
             } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println(e.getMessage());
+                logger.error("Error while connecting to MQTT", e);
             }
         }
         return null;
@@ -128,16 +129,15 @@ public final class MQTT {
 
             return context.getSocketFactory();
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            logger.error("Error while setting up MQTT socket factory", e);
         }
 
-        System.out.println("something went wrong while setting up socket factory");
+        logger.error("Auklet MQTT Socket factory is null");
 
         return null;
     }
 
-    private static JSONObject getbroker() {
+    private static JSONObject getBroker() {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
@@ -146,23 +146,18 @@ public final class MQTT {
             request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
             HttpResponse response = httpClient.execute(request);
 
-            if (response.getStatusLine().getStatusCode() == 200) {
-                String text;
-                try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
-                    text = scanner.useDelimiter("\\A").next();
-                } catch (Exception e) {
-                    System.out.println("Exception occurred during reading brokers info: " + e.getMessage());
-                    return null;
-                }
-                return new JSONObject(text);
+            String contents = Util.readContents(response);
+
+            if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
+                return new JSONObject(contents);
             }
             else {
-                System.out.println("Get broker response code: " + response.getStatusLine().getStatusCode());
+                logger.error("Error while getting brokers: {}: {}",
+                        response.getStatusLine(), contents);
             }
 
         }catch(Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            logger.error("Error while getting the brokers", e);
         }
         return null;
     }

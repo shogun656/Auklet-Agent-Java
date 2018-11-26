@@ -1,10 +1,15 @@
 package io.auklet.agent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.util.*;
 
 public class SystemMetrics {
+
+    static private Logger logger = LoggerFactory.getLogger(SystemMetrics.class);
 
     private SystemMetrics() { }
 
@@ -25,6 +30,7 @@ public class SystemMetrics {
         }catch (Exception e) {
             // If Exception occurs, it mean we can not use com.sun.management package and
             // we fall back without recording mem usage
+            logger.warn("Underlying JVM does not support sun framework implementation");
             memUsage = 0;
         }
         try {
@@ -36,8 +42,7 @@ public class SystemMetrics {
             obj.put("memoryUsage", memUsage);
             return obj;
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            logger.error("Error while getting system metrics", e);
         }
         return null;
     }

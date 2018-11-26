@@ -1,16 +1,22 @@
 package io.auklet.agent;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.http.HttpResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public final class Util {
 
-    private Util() { }
+    static private Logger logger = LoggerFactory.getLogger(Util.class);
+
+    private Util(){ }
 
     protected static String getMacAddressHash() {
         String machash = "";
@@ -26,6 +32,7 @@ public final class Util {
                     break;
                 }
             }
+            logger.debug("Network Interface: {}", networkinterface);
 
             byte[] mac = networkinterface.getHardwareAddress();
 
@@ -40,7 +47,7 @@ public final class Util {
             machash = Hex.encodeHexString(macHashByte);
 
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.error("Error while computing the MAC address hash", e);
         }
         return machash;
     }
@@ -54,7 +61,7 @@ public final class Util {
 
             ipAddr = in.readLine(); //you get the IP as a String
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error while fetching the IP address", e);
         }
         return ipAddr;
     }
@@ -63,14 +70,25 @@ public final class Util {
         String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
         File newfile = new File(path);
         if (newfile.exists()) {
-            System.out.println("folder already exists");
+            logger.debug("Folder already exists");
         } else if (newfile.mkdir()) {
-            System.out.println("folder created");
+            logger.debug("Folder created");
         } else {
-            System.out.println("folder was not created for " + sysProperty);
+            logger.debug("Folder was not created for {}", sysProperty);
             return null;
         }
 
         return path;
+    }
+
+    protected static String readContents(HttpResponse response) {
+        String text;
+        try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
+            text = scanner.useDelimiter("\\A").next();
+        } catch (Exception e) {
+            logger.error("Error while parsing HTTP response body", e);
+            return null;
+        }
+        return text;
     }
 }
