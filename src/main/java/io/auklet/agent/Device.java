@@ -138,7 +138,7 @@ public final class Device {
         return organization;
     }
 
-    public static boolean get_Certs() {
+    protected static boolean get_Certs() {
         try {
             File file = new File(Auklet.getFolderPath() + "/CA");
             if (file.createNewFile()) {

@@ -10,31 +10,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class SerialClient implements Client {
-
-
     private static Logger logger = LoggerFactory.getLogger(SerialClient.class);
-    private Boolean setUp;
     private SerialPort comm;
     private OutputStream stream;
 
-    public SerialClient(String portName) {
-        try {
-            comm = (SerialPort) CommPortIdentifier.getPortIdentifier(portName).open("AukletPort", 1000);
-            stream = comm.getOutputStream();
-            setUp = true;
-        } catch (NoSuchPortException | PortInUseException | IOException e) {
-            setUp = false;
-            logger.error(e.toString());
-        }
-    }
-
-    @Override
-    public boolean isSetUp() {
-        return setUp;
+    public SerialClient(String portName) throws  NoSuchPortException, PortInUseException, IOException {
+        comm = (SerialPort) CommPortIdentifier.getPortIdentifier(portName).open("AukletPort", 1000);
+        stream = comm.getOutputStream();
     }
 
     @Override
@@ -54,17 +38,12 @@ public class SerialClient implements Client {
     }
 
     @Override
-    public void shutdown(ScheduledExecutorService threadPool) {
+    public void shutdown() {
         try {
             stream.close();
             comm.close();
         } catch (IOException e) {
             logger.error("Error while shutting down Serial Client", e);
-        } finally {
-            threadPool.shutdown();
-            try {
-                threadPool.awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e2) {}
         }
     }
 }

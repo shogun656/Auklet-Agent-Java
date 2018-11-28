@@ -22,44 +22,51 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MQTTClient implements Client {
 
     private static Logger logger = LoggerFactory.getLogger(MQTTClient.class);
-    private boolean setUp = false;
     private MqttAsyncClient client;
+    private ScheduledExecutorService executorService;
 
-    public MQTTClient(String appId, ScheduledExecutorService executorService) {
-        client = connectMqtt(appId, executorService);
-        if (client != null)
-            setUp = true;
+    public MQTTClient(String appId) throws Exception {
+        client = connectMqtt(appId);
     }
 
-    private MqttAsyncClient connectMqtt(String appId, ScheduledExecutorService executorService) {
-        JSONObject brokerJSON = getbroker(appId);
+    private MqttAsyncClient connectMqtt(String appId) throws Exception {
+        JSONObject brokerJSON = getBroker(appId);
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
 
-            MqttAsyncClient client;
-            try {
-                client = new MqttAsyncClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(),
-                        new TimerPingSender(), executorService);
-                client.setCallback(getMqttCallback());
-                client.setBufferOpts(getDisconnectBufferOptions());
+            executorService = createThreadPool();
+            MqttAsyncClient client = new MqttAsyncClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(),
+                    new TimerPingSender(), executorService);
+            client.setCallback(getMqttCallback());
+            client.setBufferOpts(getDisconnectBufferOptions());
 
-                logger.info("Auklet starting connect the MQTT server...");
-                client.connect(getMqttConnectOptions());
-                logger.info("Auklet MQTT client connected!");
+            logger.info("Auklet starting connect the MQTT server...");
+            client.connect(getMqttConnectOptions());
+            logger.info("Auklet MQTT client connected!");
 
-                return client;
-            } catch (Exception e) {
-                logger.error("Error while connecting to MQTT", e);
-            }
+            return client;
         }
         return null;
+    }
+
+    private static ScheduledExecutorService createThreadPool() {
+        /*
+        Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
+         */
+        return Executors.newScheduledThreadPool(10,
+                (Runnable r) -> {
+                    Thread t = Executors.defaultThreadFactory().newThread(r);
+                    t.setDaemon(true);
+                    return t;
+                });
     }
 
     private static MqttCallback getMqttCallback() {
@@ -147,7 +154,7 @@ public class MQTTClient implements Client {
         return null;
     }
 
-    private JSONObject getbroker(String appId) {
+    private JSONObject getBroker(String appId) {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
@@ -173,11 +180,6 @@ public class MQTTClient implements Client {
     }
 
     @Override
-    public boolean isSetUp() {
-        return setUp;
-    }
-
-    @Override
     public void sendEvent(String topic, byte[] bytesToSend) {
         try {
             if (DataRetention.hasNotExceededDataLimit(bytesToSend.length)) {
@@ -194,7 +196,7 @@ public class MQTTClient implements Client {
 
 
     @Override
-    public void shutdown(ScheduledExecutorService threadPool) {
+    public void shutdown() {
         if (client.isConnected()) {
             try {
                 client.disconnect().waitForCompletion();
@@ -210,10 +212,12 @@ public class MQTTClient implements Client {
         } catch (MqttException e) {
             logger.error("Error while closing down MQTT Client", e);
         } finally {
-            threadPool.shutdown();
+            executorService.shutdown();
             try {
-                threadPool.awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e2) {}
+                executorService.awaitTermination(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                logger.error("Error while closing down executor service", e);
+            }
         }
     }
 }

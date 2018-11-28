@@ -4,11 +4,12 @@ import io.auklet.agent.broker.Client;
 import io.auklet.agent.broker.MQTTClient;
 import io.auklet.agent.broker.SerialClient;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import purejavacomm.NoSuchPortException;
+import purejavacomm.PortInUseException;
 
 public final class Auklet {
 
@@ -24,16 +25,15 @@ public final class Auklet {
         ApiKey = apiKey;
         AppId = appId;
 
-        ScheduledExecutorService mqttThreadPool = createThreadPool();
         createFolderPath();
         SystemMetrics.initSystemMetrics();
 
-        client = createClient(serialOut, mqttThreadPool);
+        client = createClient(serialOut);
 
-        if (client != null && client.isSetUp()) {
+        if (client != null) {
             AukletExceptionHandler.setup();
             if(handleShutDown)
-                setUpShutdownThread(mqttThreadPool);
+                setUpShutdownThread();
         }
     }
 
@@ -45,24 +45,16 @@ public final class Auklet {
         setup(appId, apiKey, handleShutDown, "");
     }
 
+    public static void init(String appId, String apiKey, String serialOut) {
+        setup(appId, apiKey, true, serialOut);
+    }
+
     public static void init(String appId, String apiKey, boolean handleShutDown, String serialOut) {
         setup(appId, apiKey, handleShutDown, serialOut);
     }
 
     public static void exception(Throwable thrown) {
         AukletExceptionHandler.sendEvent(thrown);
-    }
-
-    private static ScheduledExecutorService createThreadPool() {
-        /*
-        Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
-         */
-        return Executors.newScheduledThreadPool(10,
-                (Runnable r) -> {
-                    Thread t = Executors.defaultThreadFactory().newThread(r);
-                    t.setDaemon(true);
-                    return t;
-                });
     }
 
     private static void createFolderPath() {
@@ -76,23 +68,32 @@ public final class Auklet {
         logger.info("Directory to store creds: " + folderPath);
     }
 
-    private static Client createClient(String serialOut, ScheduledExecutorService mqttThreadPool) {
+    private static Client createClient(String serialOut) {
+        Client client = null;
         if (serialOut.equals("")) {
-            if(Device.get_Certs() && Device.register_device()) {
-                return new MQTTClient(AppId, mqttThreadPool);
+            if(Device.get_Certs() && Device.initLimitsConfig() && Device.register_device()) {
+                try {
+                    client = new MQTTClient(AppId);
+                } catch (Exception e) {
+                    logger.error("MQTTClient is not able to be initialized", e);
+                }
             }
         } else {
-            return new SerialClient(serialOut);
+            try {
+                client = new SerialClient(serialOut);
+            } catch (NoSuchPortException | PortInUseException | IOException e) {
+                logger.error("SerialClient is not able to be initialized", e);
+            }
         }
-        return null;
+        return client;
     }
 
-    private static void setUpShutdownThread(ScheduledExecutorService mqttThreadPool) {
+    private static void setUpShutdownThread() {
         Runtime.getRuntime().addShutdownHook(
                 new Thread(() -> {
                     try {
                         logger.info("Auklet agent shutting down");
-                        client.shutdown(mqttThreadPool);
+                        client.shutdown();
                     } catch (Exception e) {
                         logger.error("Error while shutting down Auklet agent", e);
                     }
