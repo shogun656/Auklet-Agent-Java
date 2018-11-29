@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -89,5 +90,15 @@ public final class Util {
             return null;
         }
         return text;
+    }
+
+    protected static boolean deleteFile(File file) {
+        try {
+            Files.delete(file.toPath());
+            return true;
+        } catch (IOException | SecurityException e) {
+            logger.warn("Could not delete file", e);
+            return false;
+        }
     }
 }

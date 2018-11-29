@@ -138,9 +138,13 @@ public final class Device {
     }
 
     public static boolean getCerts() {
-        try (FileWriter writer = new FileWriter(Auklet.folderPath + "/CA")) {
-            File file = new File(Auklet.folderPath + "/CA");
-            if (file.createNewFile()) {
+        File caFile = new File(Auklet.folderPath + "/CA");
+        boolean success = false;
+        if (caFile.exists()) {
+            logger.info("CA file already exists");
+            success = true;
+        } else {
+            try (FileWriter writer = new FileWriter(caFile)) {
                 HttpClient httpClient = HttpClientBuilder.create().build();
                 URL newUrl = new URL(Auklet.getBaseUrl() + "/private/devices/certificates/");
                 HttpURLConnection con = (HttpURLConnection) newUrl.openConnection();
@@ -160,27 +164,19 @@ public final class Device {
                 if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
                     writer.write(contents);
                     logger.info("CA File has been created!");
+                    success = true;
                 } else {
                     logger.error("Error while getting certs: {}: {}",
                             response.getStatusLine(), contents);
-                    try {
-                        Files.delete(file.toPath());
-                        logger.info("CA file deleted");
-                        return false;
-                    } catch (IOException | SecurityException e) {
-                        logger.warn("Could not delete CA file", e);
-                        // Since we couldn't delete it, don't trust/attempt to use it.
-                        return false;
-                    }
                 }
-            } else {
-                logger.info("CA file already exists");
+            } catch (Exception e) {
+                logger.error("Error while getting CA cert", e);
             }
-        } catch (Exception e) {
-            logger.error("Error while getting CA cert", e);
-            return false;
         }
-        return true;
+        if (!success && Util.deleteFile(caFile)) {
+            logger.info("CA file deleted");
+        }
+        return success;
     }
 
     public static boolean initLimitsConfig() {
