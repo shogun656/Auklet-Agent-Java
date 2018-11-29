@@ -32,27 +32,30 @@ public class MQTTClient implements Client {
     private MqttAsyncClient client;
     private ScheduledExecutorService executorService;
 
-    public MQTTClient(String appId) throws Exception {
+    public MQTTClient(String appId) throws MqttException {
         client = connectMqtt(appId);
+        if (client == null) {
+            throw new NullPointerException();
+        }
     }
 
-    private MqttAsyncClient connectMqtt(String appId) throws Exception {
+    private MqttAsyncClient connectMqtt(String appId) throws MqttException {
         JSONObject brokerJSON = getBroker(appId);
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
 
             executorService = createThreadPool();
-            MqttAsyncClient client = new MqttAsyncClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(),
+            MqttAsyncClient mqttAsyncClient = new MqttAsyncClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(),
                     new TimerPingSender(), executorService);
-            client.setCallback(getMqttCallback());
-            client.setBufferOpts(getDisconnectBufferOptions());
+            mqttAsyncClient.setCallback(getMqttCallback());
+            mqttAsyncClient.setBufferOpts(getDisconnectBufferOptions());
 
             logger.info("Auklet starting connect the MQTT server...");
-            client.connect(getMqttConnectOptions());
+            mqttAsyncClient.connect(getMqttConnectOptions());
             logger.info("Auklet MQTT client connected!");
 
-            return client;
+            return mqttAsyncClient;
         }
         return null;
     }
@@ -167,13 +170,11 @@ public class MQTTClient implements Client {
 
             if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
                 return new JSONObject(contents);
-            }
-            else {
+            } else {
                 logger.error("Error while getting brokers: {}: {}",
                         response.getStatusLine(), contents);
             }
-
-        }catch(Exception e) {
+        } catch(Exception e) {
             logger.error("Error while getting the brokers", e);
         }
         return null;
@@ -193,7 +194,6 @@ public class MQTTClient implements Client {
             logger.error("Error while publishing the MQTT message", e);
         }
     }
-
 
     @Override
     public void shutdown() {

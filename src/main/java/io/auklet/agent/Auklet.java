@@ -6,6 +6,7 @@ import io.auklet.agent.broker.SerialClient;
 
 import java.io.IOException;
 
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import purejavacomm.NoSuchPortException;
@@ -65,7 +66,7 @@ public final class Auklet {
         if (folderPath == null) {
             folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
-        logger.info("Directory to store creds: " + folderPath);
+        logger.info("Directory to store creds: {}", folderPath);
     }
 
     private static Client createClient(String serialOut) {
@@ -74,7 +75,7 @@ public final class Auklet {
             if(Device.get_Certs() && Device.initLimitsConfig() && Device.register_device()) {
                 try {
                     client = new MQTTClient(AppId);
-                } catch (Exception e) {
+                } catch (MqttException | NullPointerException e) {
                     logger.error("MQTTClient is not able to be initialized", e);
                 }
             }
