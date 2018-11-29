@@ -22,7 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public final class MQTT {
 
-    static private Logger logger = LoggerFactory.getLogger(MQTT.class);
+    private static Logger logger = LoggerFactory.getLogger(MQTT.class);
 
     private MQTT(){ }
 
@@ -35,7 +35,7 @@ public final class MQTT {
 
             MqttAsyncClient client;
             try {
-                client = new MqttAsyncClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(),
+                client = new MqttAsyncClient(serverUrl, Device.getClientId(), new MemoryPersistence(),
                         new TimerPingSender(), executorService);
                 client.setCallback(getMqttCallback());
                 client.setBufferOpts(getDisconnectBufferOptions());
@@ -61,7 +61,7 @@ public final class MQTT {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-
+                // TODO handle messages received from the Auklet backend.
             }
 
             @Override
@@ -79,8 +79,8 @@ public final class MQTT {
     private static MqttConnectOptions getMqttConnectOptions() {
         String caFilePath = Auklet.folderPath + "/CA";
         SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
-        String mqttUserName = Device.getClient_Username();
-        String mqttPassword = Device.getClient_Password();
+        String mqttUserName = Device.getClientUsername();
+        String mqttPassword = Device.getClientPassword();
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setUserName(mqttUserName);
@@ -107,11 +107,9 @@ public final class MQTT {
     }
 
     private static SSLSocketFactory getSocketFactory (String caFilePath) {
-        try {
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(caFilePath))) {
             X509Certificate caCert = null;
 
-            FileInputStream fis = new FileInputStream(caFilePath);
-            BufferedInputStream bis = new BufferedInputStream(fis);
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
 
             while (bis.available() > 0) {
@@ -143,7 +141,7 @@ public final class MQTT {
         try {
             HttpGet request = new HttpGet(Auklet.getBaseUrl() + "/private/devices/config/");
             request.addHeader("content-type", "application/json");
-            request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
+            request.addHeader("Authorization", "JWT " + Auklet.apiKey);
             HttpResponse response = httpClient.execute(request);
 
             String contents = Util.readContents(response);
