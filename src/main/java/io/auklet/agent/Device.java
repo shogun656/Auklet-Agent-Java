@@ -189,7 +189,9 @@ public final class Device {
                     Auklet.appId));
             request.addHeader("Authorization", "JWT " + Auklet.apiKey);
             HttpResponse response = httpClient.execute(request);
-            logger.info("{}", response.getStatusLine().toString());
+            if (logger.isInfoEnabled()) {
+                logger.info(response.getStatusLine().toString());
+            }
 
             if (response.getStatusLine().getStatusCode() == 200) {
                 InputStream config = response.getEntity().getContent();
