@@ -32,15 +32,15 @@ public class MQTTClient implements Client {
     private MqttAsyncClient client;
     private ScheduledExecutorService executorService;
 
-    public MQTTClient(String appId) throws MqttException {
-        client = connectMqtt(appId);
+    public MQTTClient(String apiKey) throws MqttException {
+        client = connectMqtt(apiKey);
         if (client == null) {
             throw new NullPointerException();
         }
     }
 
-    private MqttAsyncClient connectMqtt(String appId) throws MqttException {
-        JSONObject brokerJSON = getBroker(appId);
+    private MqttAsyncClient connectMqtt(String apiKey) throws MqttException {
+        JSONObject brokerJSON = getBroker(apiKey);
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
@@ -157,13 +157,13 @@ public class MQTTClient implements Client {
         return null;
     }
 
-    private JSONObject getBroker(String appId) {
+    private JSONObject getBroker(String apiKey) {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
             HttpGet request = new HttpGet(Auklet.getBaseUrl() + "/private/devices/config/");
             request.addHeader("content-type", "application/json");
-            request.addHeader("Authorization", "JWT " + appId);
+            request.addHeader("Authorization", "JWT " + apiKey);
             HttpResponse response = httpClient.execute(request);
 
             String contents = Util.readContents(response);

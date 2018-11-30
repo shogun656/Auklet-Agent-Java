@@ -74,7 +74,7 @@ public final class Auklet {
         if (serialOut.equals("")) {
             if(Device.get_Certs() && Device.initLimitsConfig() && Device.register_device()) {
                 try {
-                    client = new MQTTClient(AppId);
+                    client = new MQTTClient(ApiKey);
                 } catch (MqttException | NullPointerException e) {
                     logger.error("MQTTClient is not able to be initialized", e);
                 }
