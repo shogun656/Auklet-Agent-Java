@@ -11,7 +11,7 @@ import java.util.Map;
 public final class AukletExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     private Thread.UncaughtExceptionHandler defaultExceptionHandler;
-    static private Logger logger = LoggerFactory.getLogger(AukletExceptionHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(AukletExceptionHandler.class);
 
     private AukletExceptionHandler(Thread.UncaughtExceptionHandler defaultExceptionHandler) {
         this.defaultExceptionHandler = defaultExceptionHandler;

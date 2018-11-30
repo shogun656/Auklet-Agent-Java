@@ -46,7 +46,7 @@ public class MQTTClient implements Client {
             String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
 
             executorService = createThreadPool();
-            MqttAsyncClient mqttAsyncClient = new MqttAsyncClient(serverUrl, Device.getClient_Id(), new MemoryPersistence(),
+            MqttAsyncClient mqttAsyncClient = new MqttAsyncClient(serverUrl, Device.getClientId(), new MemoryPersistence(),
                     new TimerPingSender(), executorService);
             mqttAsyncClient.setCallback(getMqttCallback());
             mqttAsyncClient.setBufferOpts(getDisconnectBufferOptions());
@@ -81,7 +81,7 @@ public class MQTTClient implements Client {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-
+                // TODO handle messages received from the Auklet backend.
             }
 
             @Override
@@ -99,8 +99,8 @@ public class MQTTClient implements Client {
     private static MqttConnectOptions getMqttConnectOptions() {
         String caFilePath = Auklet.getFolderPath() + "/CA";
         SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
-        String mqttUserName = Device.getClient_Username();
-        String mqttPassword = Device.getClient_Password();
+        String mqttUserName = Device.getClientUsername();
+        String mqttPassword = Device.getClientPassword();
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setUserName(mqttUserName);
@@ -127,11 +127,9 @@ public class MQTTClient implements Client {
     }
 
     private static SSLSocketFactory getSocketFactory (String caFilePath) {
-        try {
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(caFilePath))) {
             X509Certificate caCert = null;
 
-            FileInputStream fis = new FileInputStream(caFilePath);
-            BufferedInputStream bis = new BufferedInputStream(fis);
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
 
             while (bis.available() > 0) {
@@ -187,7 +185,7 @@ public class MQTTClient implements Client {
                 MqttMessage message = new MqttMessage(bytesToSend);
                 message.setQos(1); // At Least Once Semantics
                 client.publish("java/events/" + Device.getOrganization() + "/" +
-                        Device.getClient_Username(), message);
+                        Device.getClientUsername(), message);
                 logger.info("Duplicate message published: {}", message.isDuplicate());
             }
         } catch (MqttException | NullPointerException e) {
@@ -204,7 +202,9 @@ public class MQTTClient implements Client {
                 logger.error("Error while disconnecting down MQTT agent", e);
                 try {
                     client.disconnectForcibly();
-                } catch (MqttException e2) {}
+                } catch (MqttException e2) {
+                    // No reason to log this, since we already failed to disconnect once.
+                }
             }
         }
         try {
@@ -215,8 +215,11 @@ public class MQTTClient implements Client {
             executorService.shutdown();
             try {
                 executorService.awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                logger.error("Error while closing down executor service", e);
+            } catch (InterruptedException e2) {
+                // End users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
+                // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
+                logger.warn("Interrupted while awaiting MQTT thread pool shutdown", e2);
+                Thread.currentThread().interrupt();
             }
         }
     }

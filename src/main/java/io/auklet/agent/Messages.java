@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public final class Messages {
 
-    static protected Logger logger = LoggerFactory.getLogger(Messages.class);
+    protected static Logger logger = LoggerFactory.getLogger(Messages.class);
 
     private Messages(){ }
 
@@ -19,12 +19,12 @@ public final class Messages {
         byte[] bytes = new byte[]{};
         try {
             map.put("id", UUID.randomUUID());
-            map.put("application", Auklet.AppId);
+            map.put("application", Auklet.appId);
             map.put("macAddressHash", Util.getMacAddressHash());
             map.put("publicIP", Util.getIpAddress());
             map.put("systemMetrics", SystemMetrics.getSystemMetrics());
             map.put("agentVersion", "0.0");
-            map.put("device", Device.getClient_Username());
+            map.put("device", Device.getClientUsername());
 
             ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
             bytes = objectMapper.writeValueAsBytes(map);

@@ -14,17 +14,17 @@ import purejavacomm.PortInUseException;
 
 public final class Auklet {
 
-    protected static String AppId;
-    protected static String ApiKey;
+    protected static String appId;
+    protected static String apiKey;
     protected static String folderPath;
     protected static Client client;
     private static Logger logger = LoggerFactory.getLogger(Auklet.class);
 
     private Auklet(){ }
 
-    private static void setup(String appId, String apiKey, boolean handleShutDown, String serialOut) {
-        ApiKey = apiKey;
-        AppId = appId;
+    private static void setup(String appId, String apiKey, boolean handleShutDown, String serialOut){
+        Auklet.apiKey = apiKey;
+        Auklet.appId = appId;
 
         createFolderPath();
         SystemMetrics.initSystemMetrics();
@@ -72,9 +72,9 @@ public final class Auklet {
     private static Client createClient(String serialOut) {
         Client client = null;
         if (serialOut.equals("")) {
-            if(Device.get_Certs() && Device.initLimitsConfig() && Device.register_device()) {
+            if(Device.getCerts() && Device.registerDevice() && Device.initLimitsConfig()) {
                 try {
-                    client = new MQTTClient(ApiKey);
+                    client = new MQTTClient(apiKey);
                 } catch (MqttException | NullPointerException e) {
                     logger.error("MQTTClient is not able to be initialized", e);
                 }
