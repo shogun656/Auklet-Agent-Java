@@ -1,11 +1,11 @@
 package io.auklet.agent;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,32 +13,31 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Key;
 import java.util.Scanner;
-import java.nio.file.Files;
 
 public final class Device {
 
     private Device(){ }
 
-    static private Logger logger = LoggerFactory.getLogger(Device.class);
+    private static Logger logger = LoggerFactory.getLogger(Device.class);
 
-    // AppId is 22 bytes but AES is a 128-bit block cipher supporting keys of 128, 192, and 256 bits.
-    private static final Key aesKey = new SecretKeySpec(Auklet.AppId.substring(0,16).getBytes(), "AES");
+    // appId is 22 bytes but AES is a 128-bit block cipher supporting keys of 128, 192, and 256 bits.
+    private static final Key aesKey = new SecretKeySpec(Auklet.appId.substring(0,16).getBytes(), "AES");
 
-    private static String client_id;
-    private static String client_username;
-    private static String client_password;
+    private static String clientId;
+    private static String clientUsername;
+    private static String clientPassword;
     private static String organization;
 
-    public static boolean register_device(){
+    public static boolean registerDevice(){
         String filename = "/.AukletAuth";
 
         try {
@@ -53,7 +52,7 @@ public final class Device {
 
         } catch (FileNotFoundException | NoSuchFileException e) {
             logger.info("Creating a new Auklet auth file");
-            JSONObject newObject = create_device();
+            JSONObject newObject = createDevice();
             if (newObject != null) {
                 setCreds(newObject);
                 writeCreds(Auklet.folderPath + filename);
@@ -66,19 +65,19 @@ public final class Device {
         return true;
     }
 
-    private static JSONObject create_device() {
+    private static JSONObject createDevice() {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
             JSONObject obj = new JSONObject();
             obj.put("mac_address_hash", Util.getMacAddressHash());
-            obj.put("application", Auklet.AppId);
+            obj.put("application", Auklet.appId);
 
             HttpPost request = new HttpPost(Auklet.getBaseUrl() + "/private/devices/");
             StringEntity params = new StringEntity(obj.toString());
 
             request.addHeader("content-type", "application/json");
-            request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
+            request.addHeader("Authorization", "JWT " + Auklet.apiKey);
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request);
 
@@ -96,17 +95,17 @@ public final class Device {
     }
 
     private static void setCreds(JSONObject jsonObject) {
-        client_password = jsonObject.getString("client_password");
-        client_username = jsonObject.getString("id");
-        client_id = jsonObject.getString("client_id");
+        clientPassword = jsonObject.getString("clientPassword");
+        clientUsername = jsonObject.getString("id");
+        clientId = jsonObject.getString("clientId");
         organization = jsonObject.getString("organization");
     }
 
     private static void writeCreds(String filename) {
         JSONObject obj = new JSONObject();
-        obj.put("client_password", client_password);
-        obj.put("id", client_username);
-        obj.put("client_id", client_id);
+        obj.put("clientPassword", clientPassword);
+        obj.put("id", clientUsername);
+        obj.put("clientId", clientId);
         obj.put("organization", organization);
 
         try (FileOutputStream file = new FileOutputStream(filename)) {
@@ -122,31 +121,35 @@ public final class Device {
         }
     }
 
-    public static String getClient_Username(){
-        return client_username;
+    public static String getClientUsername(){
+        return clientUsername;
     }
 
-    public static String getClient_Password(){
-        return client_password;
+    public static String getClientPassword(){
+        return clientPassword;
     }
 
-    public static String getClient_Id(){
-        return client_id;
+    public static String getClientId(){
+        return clientId;
     }
 
     public static String getOrganization(){
         return organization;
     }
 
-    public static boolean get_Certs() {
-        try {
-            File file = new File(Auklet.folderPath + "/CA");
-            if (file.createNewFile()) {
+    public static boolean getCerts() {
+        File caFile = new File(Auklet.folderPath + "/CA");
+        boolean success = false;
+        if (caFile.exists()) {
+            logger.info("CA file already exists");
+            success = true;
+        } else {
+            try (FileWriter writer = new FileWriter(caFile)) {
                 HttpClient httpClient = HttpClientBuilder.create().build();
                 URL newUrl = new URL(Auklet.getBaseUrl() + "/private/devices/certificates/");
                 HttpURLConnection con = (HttpURLConnection) newUrl.openConnection();
 
-                con.setRequestProperty("Authorization", "JWT " + Auklet.ApiKey);
+                con.setRequestProperty("Authorization", "JWT " + Auklet.apiKey);
                 con.setDoInput(true);
                 con.setRequestMethod("GET");
                 con.setInstanceFollowRedirects(true);
@@ -159,41 +162,36 @@ public final class Device {
                 String contents = Util.readContents(response);
 
                 if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
-                    FileWriter writer = new FileWriter(Auklet.folderPath + "/CA");
                     writer.write(contents);
-                    writer.close();
                     logger.info("CA File has been created!");
+                    success = true;
                 } else {
                     logger.error("Error while getting certs: {}: {}",
                             response.getStatusLine(), contents);
-                    if(file.delete()){
-                        logger.info("CA file deleted");
-                        return false;
-                    }
                 }
-            } else {
-                logger.info("CA file already exists");
+            } catch (Exception e) {
+                logger.error("Error while getting CA cert", e);
             }
-        } catch (Exception e) {
-            logger.error("Error while getting CA cert", e);
-            return false;
         }
-        return true;
+        if (!success && Util.deleteFile(caFile)) {
+            logger.info("CA file deleted");
+        }
+        return success;
     }
 
     public static boolean initLimitsConfig() {
-        try {
-            String limits = Auklet.folderPath + "/limits";
-            File limitsFile = new File(limits);
-            limitsFile.createNewFile();
+        String limits = Auklet.folderPath + "/limits";
+        try (FileWriter writer = new FileWriter(limits)) {
             DataRetention.setUsageFile(Auklet.folderPath + "/usage");
 
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet request = new HttpGet(Auklet.getBaseUrl() + String.format("/private/devices/%s/app_config/",
-                    Auklet.AppId));
-            request.addHeader("Authorization", "JWT " + Auklet.ApiKey);
+                    Auklet.appId));
+            request.addHeader("Authorization", "JWT " + Auklet.apiKey);
             HttpResponse response = httpClient.execute(request);
-            logger.info(response.getStatusLine().toString());
+            if (logger.isInfoEnabled()) {
+                logger.info(response.getStatusLine().toString());
+            }
 
             if (response.getStatusLine().getStatusCode() == 200) {
                 InputStream config = response.getEntity().getContent();
@@ -203,14 +201,12 @@ public final class Device {
                 }
                 JSONObject conf = new JSONObject(text).getJSONObject("config");
 
-                FileWriter writer = new FileWriter(limits);
                 writer.write(conf.toString());
-                writer.close();
 
                 DataRetention.initDataRetention(conf);
                 logger.info("Config File was stored");
             } else {
-                logger.error("Get config response code: " + response.getStatusLine().getStatusCode());
+                logger.error("Get config response code: {}", response.getStatusLine().getStatusCode());
             }
         } catch (Exception e) {
             logger.error("Unable to initialize Config", e);

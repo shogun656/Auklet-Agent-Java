@@ -12,16 +12,16 @@ import org.slf4j.LoggerFactory;
 
 public final class Auklet {
 
-    static protected String AppId;
-    static protected String ApiKey;
-    static protected String folderPath;
-    static protected MqttAsyncClient client;
-    static private Logger logger = LoggerFactory.getLogger(Auklet.class);
+    protected static String appId;
+    protected static String apiKey;
+    protected static String folderPath;
+    protected static MqttAsyncClient client;
+    private static Logger logger = LoggerFactory.getLogger(Auklet.class);
 
     /*
     Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
      */
-    static private ScheduledExecutorService mqttThreadPool = Executors.newScheduledThreadPool(10,
+    private static ScheduledExecutorService mqttThreadPool = Executors.newScheduledThreadPool(10,
             (Runnable r) -> {
                 Thread t = Executors.defaultThreadFactory().newThread(r);
                 t.setDaemon(true);
@@ -31,8 +31,8 @@ public final class Auklet {
     private Auklet(){ }
 
     private static void setup(String appId, String apiKey, boolean handleShutDown){
-        ApiKey = apiKey;
-        AppId = appId;
+        Auklet.apiKey = apiKey;
+        Auklet.appId = appId;
 
         if(handleShutDown) {
             Runtime.getRuntime().addShutdownHook(
@@ -56,9 +56,9 @@ public final class Auklet {
         if (folderPath == null) {
             folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
-        logger.info("Directory to store creds: " + folderPath);
+        logger.info("Directory to store creds: {}", folderPath);
 
-        if(Device.register_device() && Device.get_Certs() && Device.initLimitsConfig()) {
+        if(Device.registerDevice() && Device.getCerts() && Device.initLimitsConfig()) {
             client = MQTT.connectMqtt(mqttThreadPool);
             if (client != null) {
                 AukletExceptionHandler.setup();
@@ -86,7 +86,9 @@ public final class Auklet {
                 logger.error("Error while disconnecting MQTT client", e);
                 try {
                     client.disconnectForcibly();
-                } catch (MqttException e2) { }
+                } catch (MqttException e2) {
+                    // No reason to log this, since we already failed to disconnect once.
+                }
             }
         }
         try {
@@ -97,7 +99,12 @@ public final class Auklet {
             mqttThreadPool.shutdown();
             try {
                 mqttThreadPool.awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e2) { }
+            } catch (InterruptedException e2) {
+                // End users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
+                // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
+                logger.warn("Interrupted while awaiting MQTT thread pool shutdown", e2);
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

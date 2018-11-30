@@ -13,7 +13,7 @@ import java.util.Map;
 public final class AukletExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     private Thread.UncaughtExceptionHandler defaultExceptionHandler;
-    static private Logger logger = LoggerFactory.getLogger(AukletExceptionHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(AukletExceptionHandler.class);
 
     private AukletExceptionHandler(Thread.UncaughtExceptionHandler defaultExceptionHandler) {
         this.defaultExceptionHandler = defaultExceptionHandler;
@@ -61,7 +61,7 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
                 MqttMessage message = new MqttMessage(bytesToSend);
                 message.setQos(1); // At Least Once Semantics
                 Auklet.client.publish("java/events/" + Device.getOrganization() + "/" +
-                        Device.getClient_Username(), message);
+                        Device.getClientUsername(), message);
                 logger.info("Duplicate message published: {}", message.isDuplicate());
             }
         } catch (MqttException | NullPointerException e) {
