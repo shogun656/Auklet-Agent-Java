@@ -1,111 +1,105 @@
 package io.auklet.agent;
 
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
+import io.auklet.agent.broker.Client;
+import io.auklet.agent.broker.MQTTClient;
+import io.auklet.agent.broker.SerialClient;
+
+import java.io.IOException;
+
 import org.eclipse.paho.client.mqttv3.MqttException;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import purejavacomm.NoSuchPortException;
+import purejavacomm.PortInUseException;
 
 public final class Auklet {
 
     protected static String appId;
     protected static String apiKey;
     protected static String folderPath;
-    protected static MqttAsyncClient client;
+    protected static Client client;
     private static Logger logger = LoggerFactory.getLogger(Auklet.class);
-
-    /*
-    Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
-     */
-    private static ScheduledExecutorService mqttThreadPool = Executors.newScheduledThreadPool(10,
-            (Runnable r) -> {
-                Thread t = Executors.defaultThreadFactory().newThread(r);
-                t.setDaemon(true);
-                return t;
-            });
 
     private Auklet(){ }
 
-    private static void setup(String appId, String apiKey, boolean handleShutDown){
+    private static void setup(String appId, String apiKey, boolean handleShutDown, String serialOut){
         Auklet.apiKey = apiKey;
         Auklet.appId = appId;
 
-        if(handleShutDown) {
-            Runtime.getRuntime().addShutdownHook(
-                    new Thread(() -> {
-                        try {
-                            logger.info("Auklet agent shutting down");
-                            Auklet.shutdown();
-                        } catch (Exception e) {
-                            logger.error("Error while shutting down Auklet agent", e);
-                        }
-                    })
-            );
-        }
-
+        createFolderPath();
         SystemMetrics.initSystemMetrics();
 
+        client = createClient(serialOut);
+
+        if (client != null) {
+            AukletExceptionHandler.setup();
+            if(handleShutDown)
+                setUpShutdownThread();
+        }
+    }
+
+    public static void init(String appId, String apiKey) {
+        setup(appId, apiKey, true, "");
+    }
+
+    public static void init(String appId, String apiKey, boolean handleShutDown) {
+        setup(appId, apiKey, handleShutDown, "");
+    }
+
+    public static void init(String appId, String apiKey, String serialOut) {
+        setup(appId, apiKey, true, serialOut);
+    }
+
+    public static void init(String appId, String apiKey, boolean handleShutDown, String serialOut) {
+        setup(appId, apiKey, handleShutDown, serialOut);
+    }
+
+    public static void exception(Throwable thrown) {
+        AukletExceptionHandler.sendEvent(thrown);
+    }
+
+    private static void createFolderPath() {
         folderPath = Util.createCustomFolder("user.dir");
-        if (folderPath == null) {
+        if (folderPath == null){
             folderPath = Util.createCustomFolder("user.home");
         }
         if (folderPath == null) {
             folderPath = Util.createCustomFolder("java.io.tmpdir");
         }
         logger.info("Directory to store creds: {}", folderPath);
-
-        if(Device.registerDevice() && Device.getCerts() && Device.initLimitsConfig()) {
-            client = MQTT.connectMqtt(mqttThreadPool);
-            if (client != null) {
-                AukletExceptionHandler.setup();
-            }
-        }
     }
 
-    public static void init(String appId, String apiKey){
-        setup(appId, apiKey, true);
-    }
-
-    public static void init(String appId, String apiKey, boolean handleShutDown){
-        setup(appId, apiKey, handleShutDown);
-    }
-
-    public static void exception(Throwable thrown){
-        AukletExceptionHandler.sendEvent(thrown);
-    }
-
-    public static void shutdown() {
-        if (client.isConnected()) {
-            try {
-                client.disconnect().waitForCompletion();
-            } catch (MqttException e) {
-                logger.error("Error while disconnecting MQTT client", e);
+    private static Client createClient(String serialOut) {
+        Client client = null;
+        if (serialOut.equals("")) {
+            if(Device.getCerts() && Device.registerDevice() && Device.initLimitsConfig()) {
                 try {
-                    client.disconnectForcibly();
-                } catch (MqttException e2) {
-                    // No reason to log this, since we already failed to disconnect once.
+                    client = new MQTTClient(apiKey);
+                } catch (MqttException | NullPointerException e) {
+                    logger.error("MQTTClient is not able to be initialized", e);
                 }
             }
-        }
-        try {
-            client.close();
-        } catch (MqttException e) {
-            logger.error("Error while closing MQTT client", e);
-        } finally {
-            mqttThreadPool.shutdown();
+        } else {
             try {
-                mqttThreadPool.awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e2) {
-                // End users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
-                // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
-                logger.warn("Interrupted while awaiting MQTT thread pool shutdown", e2);
-                Thread.currentThread().interrupt();
+                client = new SerialClient(serialOut);
+            } catch (NoSuchPortException | PortInUseException | IOException e) {
+                logger.error("SerialClient is not able to be initialized", e);
             }
         }
+        return client;
+    }
+
+    private static void setUpShutdownThread() {
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(() -> {
+                    try {
+                        logger.info("Auklet agent shutting down");
+                        client.shutdown();
+                    } catch (Exception e) {
+                        logger.error("Error while shutting down Auklet agent", e);
+                    }
+                })
+        );
     }
 
     public static String getBaseUrl() {
@@ -113,4 +107,7 @@ public final class Auklet {
       return fromEnv != null ? fromEnv : "https://api.auklet.io";
     }
 
+    public static String getFolderPath() {
+        return folderPath;
+    }
 }

@@ -1,5 +1,9 @@
-package io.auklet.agent;
+package io.auklet.agent.broker;
 
+import io.auklet.agent.Auklet;
+import io.auklet.agent.DataRetention;
+import io.auklet.agent.Device;
+import io.auklet.agent.Util;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -18,38 +22,54 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-public final class MQTT {
+public class MQTTClient implements Client {
 
-    private static Logger logger = LoggerFactory.getLogger(MQTT.class);
+    private static Logger logger = LoggerFactory.getLogger(MQTTClient.class);
+    private MqttAsyncClient client;
+    private ScheduledExecutorService executorService;
 
-    private MQTT(){ }
+    public MQTTClient(String apiKey) throws MqttException {
+        client = connectMqtt(apiKey);
+        if (client == null) {
+            throw new NullPointerException();
+        }
+    }
 
-    protected static MqttAsyncClient connectMqtt(ScheduledExecutorService executorService){
-
-        JSONObject brokerJSON = getBroker();
+    private MqttAsyncClient connectMqtt(String apiKey) throws MqttException {
+        JSONObject brokerJSON = getBroker(apiKey);
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
 
-            MqttAsyncClient client;
-            try {
-                client = new MqttAsyncClient(serverUrl, Device.getClientId(), new MemoryPersistence(),
-                        new TimerPingSender(), executorService);
-                client.setCallback(getMqttCallback());
-                client.setBufferOpts(getDisconnectBufferOptions());
+            executorService = createThreadPool();
+            MqttAsyncClient mqttAsyncClient = new MqttAsyncClient(serverUrl, Device.getClientId(), new MemoryPersistence(),
+                    new TimerPingSender(), executorService);
+            mqttAsyncClient.setCallback(getMqttCallback());
+            mqttAsyncClient.setBufferOpts(getDisconnectBufferOptions());
 
-                logger.info("Auklet starting connect the MQTT server...");
-                client.connect(getMqttConnectOptions());
-                logger.info("Auklet MQTT client connected!");
+            logger.info("Auklet starting connect the MQTT server...");
+            mqttAsyncClient.connect(getMqttConnectOptions());
+            logger.info("Auklet MQTT client connected!");
 
-                return client;
-            } catch (Exception e) {
-                logger.error("Error while connecting to MQTT", e);
-            }
+            return mqttAsyncClient;
         }
         return null;
+    }
+
+    private static ScheduledExecutorService createThreadPool() {
+        /*
+        Ref: https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
+         */
+        return Executors.newScheduledThreadPool(10,
+                (Runnable r) -> {
+                    Thread t = Executors.defaultThreadFactory().newThread(r);
+                    t.setDaemon(true);
+                    return t;
+                });
     }
 
     private static MqttCallback getMqttCallback() {
@@ -77,7 +97,7 @@ public final class MQTT {
     }
 
     private static MqttConnectOptions getMqttConnectOptions() {
-        String caFilePath = Auklet.folderPath + "/CA";
+        String caFilePath = Auklet.getFolderPath() + "/CA";
         SSLSocketFactory socketFactory = getSocketFactory(caFilePath);
         String mqttUserName = Device.getClientUsername();
         String mqttPassword = Device.getClientPassword();
@@ -135,29 +155,72 @@ public final class MQTT {
         return null;
     }
 
-    private static JSONObject getBroker() {
+    private JSONObject getBroker(String apiKey) {
         HttpClient httpClient = HttpClientBuilder.create().build();
 
         try {
             HttpGet request = new HttpGet(Auklet.getBaseUrl() + "/private/devices/config/");
             request.addHeader("content-type", "application/json");
-            request.addHeader("Authorization", "JWT " + Auklet.apiKey);
+            request.addHeader("Authorization", "JWT " + apiKey);
             HttpResponse response = httpClient.execute(request);
 
             String contents = Util.readContents(response);
 
             if (response.getStatusLine().getStatusCode() == 200 && contents != null) {
                 return new JSONObject(contents);
-            }
-            else {
+            } else {
                 logger.error("Error while getting brokers: {}: {}",
                         response.getStatusLine(), contents);
             }
-
-        }catch(Exception e) {
+        } catch(Exception e) {
             logger.error("Error while getting the brokers", e);
         }
         return null;
     }
 
+    @Override
+    public void sendEvent(String topic, byte[] bytesToSend) {
+        try {
+            if (DataRetention.hasNotExceededDataLimit(bytesToSend.length)) {
+                MqttMessage message = new MqttMessage(bytesToSend);
+                message.setQos(1); // At Least Once Semantics
+                client.publish("java/events/" + Device.getOrganization() + "/" +
+                        Device.getClientUsername(), message);
+                logger.info("Duplicate message published: {}", message.isDuplicate());
+            }
+        } catch (MqttException | NullPointerException e) {
+            logger.error("Error while publishing the MQTT message", e);
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        if (client.isConnected()) {
+            try {
+                client.disconnect().waitForCompletion();
+            } catch (MqttException e) {
+                logger.error("Error while disconnecting down MQTT agent", e);
+                try {
+                    client.disconnectForcibly();
+                } catch (MqttException e2) {
+                    // No reason to log this, since we already failed to disconnect once.
+                }
+            }
+        }
+        try {
+            client.close();
+        } catch (MqttException e) {
+            logger.error("Error while closing down MQTT Client", e);
+        } finally {
+            executorService.shutdown();
+            try {
+                executorService.awaitTermination(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e2) {
+                // End users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
+                // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
+                logger.warn("Interrupted while awaiting MQTT thread pool shutdown", e2);
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
 }

@@ -81,7 +81,7 @@ public final class Util {
         return path;
     }
 
-    protected static String readContents(HttpResponse response) {
+    public static String readContents(HttpResponse response) {
         String text;
         try (Scanner scanner = new Scanner(response.getEntity().getContent(), StandardCharsets.UTF_8.name())) {
             text = scanner.useDelimiter("\\A").next();

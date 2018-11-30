@@ -41,7 +41,7 @@ public final class Device {
         String filename = "/.AukletAuth";
 
         try {
-            Path fileLocation = Paths.get(Auklet.folderPath + filename);
+            Path fileLocation = Paths.get(Auklet.getFolderPath() + filename);
             byte[] data = Files.readAllBytes(fileLocation);
             logger.info("Auklet auth file content length: {}", data.length);
 
@@ -55,7 +55,7 @@ public final class Device {
             JSONObject newObject = createDevice();
             if (newObject != null) {
                 setCreds(newObject);
-                writeCreds(Auklet.folderPath + filename);
+                writeCreds(Auklet.getFolderPath() + filename);
             } else return false;
 
         } catch (Exception e) {
@@ -138,7 +138,7 @@ public final class Device {
     }
 
     public static boolean getCerts() {
-        File caFile = new File(Auklet.folderPath + "/CA");
+        File caFile = new File(Auklet.getFolderPath() + "/CA");
         boolean success = false;
         if (caFile.exists()) {
             logger.info("CA file already exists");
@@ -182,7 +182,7 @@ public final class Device {
     public static boolean initLimitsConfig() {
         String limits = Auklet.folderPath + "/limits";
         try (FileWriter writer = new FileWriter(limits)) {
-            DataRetention.setUsageFile(Auklet.folderPath + "/usage");
+            DataRetention.setUsageFile(Auklet.getFolderPath() + "/usage");
 
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet request = new HttpGet(Auklet.getBaseUrl() + String.format("/private/devices/%s/app_config/",
