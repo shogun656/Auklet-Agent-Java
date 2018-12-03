@@ -9,7 +9,7 @@ import java.util.*;
 
 public class SystemMetrics {
 
-    static private Logger logger = LoggerFactory.getLogger(SystemMetrics.class);
+    private static Logger logger = LoggerFactory.getLogger(SystemMetrics.class);
 
     private SystemMetrics() { }
 

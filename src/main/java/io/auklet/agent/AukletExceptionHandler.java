@@ -1,7 +1,5 @@
 package io.auklet.agent;
 
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +11,7 @@ import java.util.Map;
 public final class AukletExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     private Thread.UncaughtExceptionHandler defaultExceptionHandler;
-    static private Logger logger = LoggerFactory.getLogger(AukletExceptionHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(AukletExceptionHandler.class);
 
     private AukletExceptionHandler(Thread.UncaughtExceptionHandler defaultExceptionHandler) {
         this.defaultExceptionHandler = defaultExceptionHandler;
@@ -53,26 +51,18 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
             map.put("lineNumber", se.getLineNumber());
             list.add(map);
         }
-        setStackTrace(list, thrown.toString());
+        Map<String, Object> map = startMessage(list, thrown.toString());
+        byte[] bytesToSend = Messages.createMessagePack(map);
 
-        try {
-            byte[] bytesToSend = Messages.createMessagePack();
-            if (DataRetention.hasNotExceededDataLimit(bytesToSend.length)) {
-                MqttMessage message = new MqttMessage(bytesToSend);
-                message.setQos(1); // At Least Once Semantics
-                Auklet.client.publish("java/events/" + Device.getOrganization() + "/" +
-                        Device.getClient_Username(), message);
-                logger.info("Duplicate message published: {}", message.isDuplicate());
-            }
-        } catch (MqttException | NullPointerException e) {
-            logger.error("Error while publishing the MQTT message", e);
-        }
+        Auklet.client.sendEvent("java/events/", bytesToSend);
     }
 
-    private static void setStackTrace(List<Object> stackTraceList, String exceptionMessage) {
-        Messages.map.put("stackTrace", stackTraceList);
-        Messages.map.put("timestamp", System.currentTimeMillis());
-        Messages.map.put("excType", exceptionMessage);
+    private static Map<String, Object> startMessage(List<Object> stackTraceList, String exceptionMessage) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("stackTrace", stackTraceList);
+        map.put("timestamp", System.currentTimeMillis());
+        map.put("excType", exceptionMessage);
+        return map;
     }
 
 }

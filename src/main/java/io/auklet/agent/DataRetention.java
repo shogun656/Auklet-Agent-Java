@@ -1,6 +1,5 @@
 package io.auklet.agent;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +18,8 @@ public final class DataRetention {
 
     private static Logger logger = LoggerFactory.getLogger(DataRetention.class);
 
-    private final static Long MEGABYTES_TO_BYTES = 1000000L;
-    private final static Long SECONDS_TO_MILLISECONDS = 1000L;
+    private static final Long MEGABYTES_TO_BYTES = 1000000L;
+    private static final Long SECONDS_TO_MILLISECONDS = 1000L;
 
     private static boolean freshStart = true;
     private static boolean resetData = false;
@@ -31,12 +30,13 @@ public final class DataRetention {
     private static int cellPlanDate;
 
     private static String usageFile;
+    private static final Object usageFileLock = new Object();
     private static Long dataSent;
     private static int hours;
 
     private DataRetention(){ }
 
-    public static void initDataRetention(JSONObject config) throws JSONException, IOException {
+    public static void initDataRetention(JSONObject config) throws IOException {
         emissionPeriod = config.getLong("emission_period") * SECONDS_TO_MILLISECONDS;
         storageLimit = config.getJSONObject("storage").optLong("storage_limit") * MEGABYTES_TO_BYTES;
         cellularDataLimit = config.getJSONObject("data").optLong("cellular_data_limit") * MEGABYTES_TO_BYTES;
@@ -68,15 +68,12 @@ public final class DataRetention {
     }
 
     public static void writeToUsageFile(Long usage) {
-        synchronized (usageFile) {
+        synchronized (usageFileLock) {
             if (usageFile != null) {
-                try {
+                try (FileWriter writer = new FileWriter(usageFile)) {
                     JSONObject usageJson = new JSONObject();
                     usageJson.put("usage", usage);
-
-                    FileWriter writer = new FileWriter(usageFile);
                     writer.write(usageJson.toString());
-                    writer.close();
                 } catch (IOException e) {
                     logger.error("Unable to access Usage File", e);
                 }
@@ -109,7 +106,7 @@ public final class DataRetention {
         };
 
         // schedule the task to run starting now and then every hour...
-        timer.schedule (hourlyTask, 0L, 1000*60*60);
+        timer.schedule (hourlyTask, 0L, 1000L*60*60);
     }
 
     public static int getBufferSize() {
