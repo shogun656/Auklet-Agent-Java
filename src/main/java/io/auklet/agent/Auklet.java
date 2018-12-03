@@ -59,8 +59,11 @@ public final class Auklet {
     }
 
     private static void createFolderPath() {
-        folderPath = Util.createCustomFolder("user.dir");
-        if (folderPath == null){
+        folderPath = Util.createCustomFolder("auklet.config.dir");
+        if (folderPath == null) {
+            folderPath = Util.createCustomFolder("user.dir");
+        }
+        if (folderPath == null) {
             folderPath = Util.createCustomFolder("user.home");
         }
         if (folderPath == null) {

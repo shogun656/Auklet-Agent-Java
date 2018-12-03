@@ -41,6 +41,14 @@ public class Demo {
 // reconnecting in the future. It is important that you call `Auklet.shutdown()`
 // where you think the program might exit or inside your own shutdown hook.
 ```
+
+* The agent needs a dedicated folder to create and stores the configuration files on the local machine. 
+Upon every restart the agent tries to create configuration files if they don't already exist. 
+* If the user wants Auklet agent to use specific folder then it can be done using the following command: 
+`java -Dauklet.config.dir="custom/file/path/dir" MyApp`
+* If the `auklet.config.dir` sysProperty is not defined then the agent chooses the directory in the following order
+of its accessibility: working directory -> home directory -> temp directory
+
 # Authorization
 
 To authorize your application you need to provide both an API key and app ID.
