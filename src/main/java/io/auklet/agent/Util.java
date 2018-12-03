@@ -67,6 +67,9 @@ public final class Util {
     }
 
     protected static String createCustomFolder(String sysProperty) {
+        if (sysProperty == null || System.getProperty(sysProperty) == null) {
+            return null;
+        }
         String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
         File newfile = new File(path);
         if (newfile.exists()) {
