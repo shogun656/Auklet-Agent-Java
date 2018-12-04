@@ -89,6 +89,11 @@ public final class DataRetention {
             @Override
             public void run () {
                 hours++;
+                if (hours >= 24) {
+                    Device.initLimitsConfig(); // Refresh the config once a day
+                    hours = 0;
+                }
+
                 if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) == cellPlanDate) {
                     if (resetData) {
                         dataSent = 0L;
@@ -96,10 +101,6 @@ public final class DataRetention {
                     }
                 } else {
                     resetData = true;
-                }
-
-                if (hours >= 24) {
-                    Device.initLimitsConfig(); // Refresh the config once a day
                 }
             }
         };
