@@ -59,12 +59,18 @@ public final class Auklet {
     }
 
     private static void createFolderPath() {
-        folderPath = Util.createCustomFolder("user.dir");
-        if (folderPath == null){
-            folderPath = Util.createCustomFolder("user.home");
+        folderPath = Util.createCustomFolder(System.getenv("AUKLET_CONFIG_DIR"));
+        if (folderPath == null) {
+            folderPath = Util.createCustomFolder(System.getProperty("auklet.config.dir"));
         }
         if (folderPath == null) {
-            folderPath = Util.createCustomFolder("java.io.tmpdir");
+            folderPath = Util.createCustomFolder(System.getProperty("user.dir"));
+        }
+        if (folderPath == null) {
+            folderPath = Util.createCustomFolder(System.getProperty("user.home"));
+        }
+        if (folderPath == null) {
+            folderPath = Util.createCustomFolder(System.getProperty("java.io.tmpdir"));
         }
         logger.info("Directory to store creds: {}", folderPath);
     }

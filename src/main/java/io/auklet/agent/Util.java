@@ -66,15 +66,18 @@ public final class Util {
         return ipAddr;
     }
 
-    protected static String createCustomFolder(String sysProperty) {
-        String path = System.getProperty(sysProperty) + File.separator + "aukletFiles";
+    protected static String createCustomFolder(String filePath) {
+        if (filePath == null) {
+            return null;
+        }
+        String path = filePath + File.separator + "aukletFiles";
         File newfile = new File(path);
         if (newfile.exists()) {
             logger.debug("Folder already exists");
         } else if (newfile.mkdir()) {
             logger.debug("Folder created");
         } else {
-            logger.debug("Folder was not created for {}", sysProperty);
+            logger.debug("Folder was not created for {}", filePath);
             return null;
         }
 
