@@ -103,7 +103,7 @@ public class MQTTClient implements Client {
 
         options.setConnectionTimeout(60);
         options.setKeepAliveInterval(60);
-        options.setCleanSession(true);
+        options.setCleanSession(false);
         options.setAutomaticReconnect(true);
 
         options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
