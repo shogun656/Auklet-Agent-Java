@@ -86,12 +86,7 @@ public class MQTTClient implements Client {
 
             @Override
             public void deliveryComplete(IMqttDeliveryToken token) {
-                try {
-                    DataRetention.updateDataSent(token.getMessage().getPayload().length);
-                    logger.info("Message published");
-                } catch (MqttException e) {
-                    logger.error("Message was not published", e);
-                }
+                logger.info("Message published");
             }
         };
     }
@@ -108,7 +103,7 @@ public class MQTTClient implements Client {
 
         options.setConnectionTimeout(60);
         options.setKeepAliveInterval(60);
-        options.setCleanSession(false);
+        options.setCleanSession(true);
         options.setAutomaticReconnect(true);
 
         options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
@@ -186,6 +181,7 @@ public class MQTTClient implements Client {
                 message.setQos(1); // At Least Once Semantics
                 client.publish("java/events/" + Device.getOrganization() + "/" +
                         Device.getClientUsername(), message);
+                DataRetention.updateDataSent(message.getPayload().length);
                 logger.info("Duplicate message published: {}", message.isDuplicate());
             }
         } catch (MqttException | NullPointerException e) {
