@@ -85,9 +85,7 @@ public class MQTTClient implements Client {
             }
 
             @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-                logger.info("Message published");
-            }
+            public void deliveryComplete(IMqttDeliveryToken token) { }
         };
     }
 
