@@ -44,6 +44,18 @@ public class Demo {
 // reconnecting in the future. It is important that you call `Auklet.shutdown()`
 // where you think the program might exit or inside your own shutdown hook.
 ```
+
+* The agent needs a dedicated folder to create and store its configuration files. The agent will create these files 
+on startup if they do not exist, or will use files that are already available on disk.
+* By default, the agent will use the following JVM system properties, in order, to determine the location from which 
+to read/write its configuration files: `user.dir`, `user.home`, `java.io.tmpdir`. 
+The agent will use the first one of these locations that is writable.
+* If you need to use a specific location for the agent's configuration files other than what is listed above, you can 
+set the JVM system property `auklet.config.dir` or use env variable `AUKLET_CONFIG_DIR` and the agent will attempt to 
+use that value first, assuming it is writable. 
+If it is set to a non-writable directory, or if the property is not set, the agent will fallback to the 
+other properties described above.
+
 # Authorization
 
 To authorize your application you need to provide both an API key and app ID.

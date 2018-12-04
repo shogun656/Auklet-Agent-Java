@@ -95,17 +95,17 @@ public final class Device {
     }
 
     private static void setCreds(JSONObject jsonObject) {
-        clientPassword = jsonObject.getString("clientPassword");
+        clientPassword = jsonObject.getString("client_password");
         clientUsername = jsonObject.getString("id");
-        clientId = jsonObject.getString("clientId");
+        clientId = jsonObject.getString("client_id");
         organization = jsonObject.getString("organization");
     }
 
     private static void writeCreds(String filename) {
         JSONObject obj = new JSONObject();
-        obj.put("clientPassword", clientPassword);
+        obj.put("client_password", clientPassword);
         obj.put("id", clientUsername);
-        obj.put("clientId", clientId);
+        obj.put("client_id", clientId);
         obj.put("organization", organization);
 
         try (FileOutputStream file = new FileOutputStream(filename)) {
