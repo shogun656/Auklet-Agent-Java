@@ -1,4 +1,7 @@
+<p align="center"><a href="https://auklet.io"><img src="https://s3.amazonaws.com/auklet/static/github_readme_java.png" alt="Auklet - Problem Solving Software for Java"></a></p>
+
 # Auklet for Java
+[![Maintainability](https://api.codeclimate.com/v1/badges/e1ced62442c7cf49d58a/maintainability)](https://codeclimate.com/github/aukletio/Auklet-Agent-Java/maintainability)
 
 This is the official Java agent for Auklet. It officially supports Java 8+.
 It is currently tested on Oracle java Hotspot JVM. We plan on doing more
