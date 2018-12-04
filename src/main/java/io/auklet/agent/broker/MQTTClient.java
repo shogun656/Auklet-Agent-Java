@@ -81,11 +81,13 @@ public class MQTTClient implements Client {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-                // TODO handle messages received from the Auklet backend.
+                // TODO: handle messages received from the Auklet backend.
             }
 
             @Override
-            public void deliveryComplete(IMqttDeliveryToken token) { }
+            public void deliveryComplete(IMqttDeliveryToken token) {
+                // TODO: handle what happens when MQTT message delivery completes
+            }
         };
     }
 
