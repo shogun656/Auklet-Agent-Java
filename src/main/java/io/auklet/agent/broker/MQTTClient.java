@@ -81,17 +81,12 @@ public class MQTTClient implements Client {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-                // TODO handle messages received from the Auklet backend.
+                // TODO: handle messages received from the Auklet backend.
             }
 
             @Override
             public void deliveryComplete(IMqttDeliveryToken token) {
-                try {
-                    DataRetention.updateDataSent(token.getMessage().getPayload().length);
-                    logger.info("Message published");
-                } catch (MqttException e) {
-                    logger.error("Message was not published", e);
-                }
+                // TODO: handle what happens when MQTT message delivery completes
             }
         };
     }
@@ -186,6 +181,7 @@ public class MQTTClient implements Client {
                 message.setQos(1); // At Least Once Semantics
                 client.publish("java/events/" + Device.getOrganization() + "/" +
                         Device.getClientUsername(), message);
+                DataRetention.updateDataSent(message.getPayload().length);
                 logger.info("Duplicate message published: {}", message.isDuplicate());
             }
         } catch (MqttException | NullPointerException e) {

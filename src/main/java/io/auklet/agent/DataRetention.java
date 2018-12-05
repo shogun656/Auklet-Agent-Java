@@ -84,7 +84,7 @@ public final class DataRetention {
     }
 
     private static void checkDate() {
-        Timer timer = new Timer();
+        Timer timer = new Timer(true);
         TimerTask hourlyTask = new TimerTask() {
             @Override
             public void run () {
