@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 public class MQTTClient implements Client {
 
     private static Logger logger = LoggerFactory.getLogger(MQTTClient.class);
-    private MqttAsyncClient client;
+    private MqttClient client;
     private ScheduledExecutorService executorService;
 
     public MQTTClient(String apiKey) throws MqttException {
@@ -39,17 +39,15 @@ public class MQTTClient implements Client {
         }
     }
 
-    private MqttAsyncClient connectMqtt(String apiKey) throws MqttException {
+    private MqttClient connectMqtt(String apiKey) throws MqttException {
         JSONObject brokerJSON = getBroker(apiKey);
 
         if(brokerJSON != null) {
             String serverUrl = "ssl://" + brokerJSON.get("brokers") + ":" + brokerJSON.get("port");
 
             executorService = createThreadPool();
-            MqttAsyncClient mqttAsyncClient = new MqttAsyncClient(serverUrl, Device.getClientId(), new MemoryPersistence(),
-                    new TimerPingSender(), executorService);
+            MqttClient mqttAsyncClient = new MqttClient(serverUrl, Device.getClientId(), new MemoryPersistence(), executorService);
             mqttAsyncClient.setCallback(getMqttCallback());
-            mqttAsyncClient.setBufferOpts(getDisconnectBufferOptions());
 
             logger.info("Auklet starting connect the MQTT server...");
             mqttAsyncClient.connect(getMqttConnectOptions());
@@ -86,6 +84,7 @@ public class MQTTClient implements Client {
 
             @Override
             public void deliveryComplete(IMqttDeliveryToken token) {
+                logger.info("Message Published");
                 // TODO: handle what happens when MQTT message delivery completes
             }
         };
@@ -110,15 +109,6 @@ public class MQTTClient implements Client {
         options.setSocketFactory(socketFactory);
 
         return options;
-    }
-
-    private static DisconnectedBufferOptions getDisconnectBufferOptions() {
-        DisconnectedBufferOptions disconnectOptions = new DisconnectedBufferOptions();
-        disconnectOptions.setBufferEnabled(true);
-        disconnectOptions.setDeleteOldestMessages(true);
-        disconnectOptions.setPersistBuffer(true);
-        disconnectOptions.setBufferSize(DataRetention.getBufferSize());
-        return disconnectOptions;
     }
 
     private static SSLSocketFactory getSocketFactory (String caFilePath) {
@@ -182,6 +172,7 @@ public class MQTTClient implements Client {
                 client.publish("java/events/" + Device.getOrganization() + "/" +
                         Device.getClientUsername(), message);
                 DataRetention.updateDataSent(message.getPayload().length);
+                logger.info("Exception message payload size: {}", message.getPayload().length);
                 logger.info("Duplicate message published: {}", message.isDuplicate());
             }
         } catch (MqttException | NullPointerException e) {
@@ -193,7 +184,7 @@ public class MQTTClient implements Client {
     public void shutdown() {
         if (client.isConnected()) {
             try {
-                client.disconnect().waitForCompletion();
+                client.disconnect();
             } catch (MqttException e) {
                 logger.error("Error while disconnecting down MQTT agent", e);
                 try {

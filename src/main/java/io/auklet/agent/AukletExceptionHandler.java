@@ -52,6 +52,7 @@ public final class AukletExceptionHandler implements Thread.UncaughtExceptionHan
             list.add(map);
         }
         Map<String, Object> map = startMessage(list, thrown.toString());
+        logger.info("Exception Message: {}", map);
         byte[] bytesToSend = Messages.createMessagePack(map);
 
         Auklet.client.sendEvent("java/events/", bytesToSend);
