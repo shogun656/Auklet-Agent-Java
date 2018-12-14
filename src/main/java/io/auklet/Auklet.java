@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
@@ -167,6 +168,7 @@ public final class Auklet {
                 if (Auklet.agent != null) {
                     try {
                         Auklet.agent.doShutdown(true);
+                        Auklet.agent = null;
                     } catch (Exception e) {
                         LOGGER.warn("Error while shutting down Auklet agent", e);
                     }
@@ -199,6 +201,7 @@ public final class Auklet {
         synchronized (Auklet.AGENT_LOCK) {
             if (Auklet.agent == null) return;
             Auklet.agent.doShutdown(false);
+            Auklet.agent = null;
         }
     }
 
@@ -237,8 +240,8 @@ public final class Auklet {
             if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty");
             this.apiKey = Util.getValue(config.apiKey, "AUKLET_API_KEY", "auklet.api.key");
             if (Util.isNullOrEmpty(this.apiKey)) throw new AukletException("API key is null or empty");
-            String baseUrl = Util.getValue(config.baseUrl, "AUKLET_BASE_URL", "auklet.base.url");
-            this.baseUrl = Util.defaultValue(Util.removeTrailingSlash(baseUrl), "https://api.auklet.io");
+            String baseUrlMaybeNull = Util.getValue(config.baseUrl, "AUKLET_BASE_URL", "auklet.base.url");
+            this.baseUrl = Util.defaultValue(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
             this.autoShutdown = Util.getValue(config.autoShutdown, "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
             this.uncaughtExceptionHandler = Util.getValue(config.uncaughtExceptionHandler, "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
             this.serialPort = Util.getValue(config.serialPort, "AUKLET_SERIAL_PORT", "auklet.serial.port");
@@ -377,7 +380,7 @@ public final class Auklet {
         );
         // Drop any env vars/sysprops whose value is null, and append the auklet subdir to each remaining value.
         possibleConfigDirs = possibleConfigDirs.stream()
-                .filter(d -> d != null)
+                .filter(Objects::nonNull)
                 .map(d -> d.replaceAll("/$", "") + "/aukletFiles")
                 .collect(Collectors.toList());
         // If a directory contains the auth file, use that directory.
@@ -395,10 +398,10 @@ public final class Auklet {
         }
         // No existing config files were found. Use the first directory that we can create.
         for (String dir : possibleConfigDirs) {
-            File configDir = new File(dir);
+            File possibleConfigDir = new File(dir);
             try {
-                Path configPath = configDir.toPath();
-                boolean alreadyExists = Files.isDirectory(configPath);
+                Path possibleConfigPath = possibleConfigDir.toPath();
+                boolean alreadyExists = possibleConfigDir.exists();
                 // Per Javadocs, Files.createDirectories() no-ops with no exception if the given
                 // path already exists *as a directory*. However, this result does not imply
                 // that the JVM has write permissions *inside* the directory, which would be the
@@ -406,22 +409,15 @@ public final class Auklet {
                 //
                 // To alleviate this, we do a test file write inside the directory *only if the
                 // directory existed beforehand*.
-                Files.createDirectories(configPath);
+                Files.createDirectories(possibleConfigPath);
                 if (alreadyExists) {
-                    Path tempFile = Files.createTempFile(configPath, null, null);
+                    Path tempFile = Files.createTempFile(possibleConfigPath, null, null);
                     LOGGER.info("Using existing config directory: {}", dir);
-                    // Cleanup the temp file and warn if we can't. We handle these exceptions separately
-                    // so that we don't consider this config dir unusable. This is a fairly pathological
-                    // scenario and should rarely happen, if ever.
-                    try {
-                        Files.delete(tempFile);
-                    } catch (IOException | SecurityException e) {
-                        LOGGER.warn("Cannot clean up temp file in config dir {}; the Auklet agent should continue to work, but this may signify a filesystem permissions issue", dir, e);
-                    }
+                    Util.deleteQuietly(tempFile);
                 } else {
                     LOGGER.info("Created new config directory: {}", dir);
                 }
-                return configDir;
+                return possibleConfigDir;
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
                 LOGGER.warn("Skipping directory {} due to an error", dir, e);
             }
@@ -441,7 +437,7 @@ public final class Auklet {
         else if (Auklet.HTTP_LOGGER.isDebugEnabled()) level = HttpLoggingInterceptor.Level.HEADERS;
         else if (Auklet.HTTP_LOGGER.isInfoEnabled()) level = HttpLoggingInterceptor.Level.BASIC;
         else level = HttpLoggingInterceptor.Level.NONE;
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor((message) -> HTTP_LOGGER.info(message));
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(HTTP_LOGGER::info);
         logging.setLevel(level);
         return logging;
     }
@@ -473,8 +469,6 @@ public final class Auklet {
         } catch (IOException e) {
             LOGGER.warn("Error while shutting down Auklet API", e);
         }
-        // Drop the previous agent object reference, allowing the end user to re-initialize if desired.
-        Auklet.agent = null;
     }
 
     /**
@@ -615,8 +609,6 @@ public final class Auklet {
         private Boolean autoShutdown = null;
         private Boolean uncaughtExceptionHandler = null;
         private String serialPort = null;
-
-        public Config() {}
 
         /**
          * <p>Sets the Auklet agent's app ID.</p>

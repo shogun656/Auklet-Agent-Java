@@ -15,7 +15,7 @@ import java.security.cert.X509Certificate;
 /**
  * <p>This is the CA certificate for establishing SSL connections to the {@code auklet.io} data pipeline.</p>
  */
-public final class AukletIoCert extends AbstractConfigFileFromApi<X509Certificate, String> {
+public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoCert.class);
 

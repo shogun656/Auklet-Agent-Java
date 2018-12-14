@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  * <p>This file contains MQTT connection information for sending data to {@code auklet.io}.</p>
  */
-public final class AukletIoBrokers extends AbstractConfigFileFromApi<AukletIoBrokers, Json> {
+public final class AukletIoBrokers extends AbstractConfigFileFromApi<Json> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoBrokers.class);
 

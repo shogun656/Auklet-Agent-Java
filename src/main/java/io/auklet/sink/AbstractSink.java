@@ -64,10 +64,10 @@ public abstract class AbstractSink implements Sink {
             try {
                 this.msgpack.flush();
                 byte[] payload = this.msgpack.toByteArray();
+                if (payload == null) payload = new byte[0];
                 int payloadSize = payload.length;
-                boolean payloadIsNotEmpty = payload != null && payloadSize > 0;
                 boolean payloadWillExceedLimit = this.agent.getUsageMonitor().willExceedLimit(payloadSize);
-                if (payloadIsNotEmpty && !payloadWillExceedLimit) {
+                if (!payloadWillExceedLimit) {
                     this.send(payload);
                     this.agent.getUsageMonitor().addMoreData(payloadSize);
                 }
@@ -107,15 +107,14 @@ public abstract class AbstractSink implements Sink {
     private void initMessage(int mapSize) throws SinkException {
         if (mapSize < 7) throw new SinkException("Message size is too small.");
         try {
-            MessagePacker msgpack = this.msgpack;
-            msgpack.packMapHeader(mapSize)
+            this.msgpack.packMapHeader(mapSize)
                     .packString("id").packString(UUID.randomUUID().toString())
                     .packString("application").packString(this.agent.getAppId())
                     .packString("macAddressHash").packString(this.agent.getMacHash())
                     .packString("publicIP").packString(this.agent.getIpAddress())
                     .packString("systemMetrics");
-            this.addSystemMetrics(msgpack);
-            msgpack.packString("agentVersion").packString(Auklet.getVersion())
+            this.addSystemMetrics();
+            this.msgpack.packString("agentVersion").packString(Auklet.getVersion())
                     .packString("device").packString(this.agent.getDeviceAuth().getClientUsername());
         } catch (IOException | IllegalArgumentException e) {
             throw new SinkException("Error while assembling msgpack payload", e);
@@ -128,10 +127,9 @@ public abstract class AbstractSink implements Sink {
      * @throws IllegalArgumentException if the MessagePacker is {@code null}.
      * @throws SinkException if an error occurs while assembling the message.
      */
-    private static void addSystemMetrics(MessagePacker msgpack) throws SinkException {
-        if (msgpack == null) throw new IllegalArgumentException("msgpack is null");
+    private void addSystemMetrics() throws SinkException {
         try {
-            msgpack.packMapHeader(4);
+            this.msgpack.packMapHeader(4);
             // Calculate memory usage.
             Optional<Long> freeMem = OSMX.BEAN.getFreePhysicalMemorySize();
             Optional<Long> totalMem = OSMX.BEAN.getTotalPhysicalMemorySize();
@@ -141,7 +139,7 @@ public abstract class AbstractSink implements Sink {
             } else {
                 memUsage = 0;
             }
-            msgpack.packString("memoryUsage").packDouble(memUsage);
+            this.msgpack.packString("memoryUsage").packDouble(memUsage);
             // Calculate CPU usage.
             double cpuUsage;
             Optional<Double> sysLoadAvg = OSMX.BEAN.getSystemLoadAverage();
@@ -150,10 +148,10 @@ public abstract class AbstractSink implements Sink {
             } else {
                 cpuUsage = 0;
             }
-            msgpack.packString("cpuUsage").packDouble(cpuUsage);
+            this.msgpack.packString("cpuUsage").packDouble(cpuUsage);
             // Add other system metrics.
-            msgpack.packString("outboundNetwork").packDouble(0);
-            msgpack.packString("inboundNetwork").packDouble(0);
+            this.msgpack.packString("outboundNetwork").packDouble(0);
+            this.msgpack.packString("inboundNetwork").packDouble(0);
         } catch (IOException e) {
             throw new SinkException("Error while assembling msgpack payload", e);
         }

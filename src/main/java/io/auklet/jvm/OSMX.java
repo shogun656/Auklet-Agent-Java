@@ -23,7 +23,7 @@ public enum OSMX {
 
     BEAN;
 
-    private static Logger LOGGER = LoggerFactory.getLogger(OSMX.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OSMX.class);
     private static java.lang.management.OperatingSystemMXBean realBean;
     private static boolean isSun;
     private static boolean isSunUnix;
@@ -36,13 +36,13 @@ public enum OSMX {
         boolean sun = false;
         boolean sunUnix = false;
         try {
-            sun = OSMX.realBean instanceof com.sun.management.OperatingSystemMXBean;
+            sun = OSMX.realBean instanceof com.sun.management.OperatingSystemMXBean; // NOSONAR
         } catch (NoClassDefFoundError e) {
             LOGGER.warn("com.sun.management.OperatingSystemMXBean does not exist; system memory and JVM CPU usage stats will be available.");
         }
         if (sun) {
             try {
-                sunUnix = OSMX.realBean instanceof com.sun.management.UnixOperatingSystemMXBean;
+                sunUnix = OSMX.realBean instanceof com.sun.management.UnixOperatingSystemMXBean; // NOSONAR
             } catch (NoClassDefFoundError e) {
                 // No need to log; presumably the end user knows if they're running on Unix or not.
             }

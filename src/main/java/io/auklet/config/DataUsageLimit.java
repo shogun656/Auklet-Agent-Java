@@ -14,7 +14,7 @@ import java.io.IOException;
  * <p>The <i>data usage limit file</i> contains the configuration values, for this agent's app ID,
  * that control how much data the agent emits to the sink.</p>
  */
-public final class DataUsageLimit extends AbstractConfigFileFromApi<DataUsageLimit, Json> {
+public final class DataUsageLimit extends AbstractConfigFileFromApi<Json> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataUsageLimit.class);
     private static final Long MEGABYTES_TO_BYTES = 1000000L;

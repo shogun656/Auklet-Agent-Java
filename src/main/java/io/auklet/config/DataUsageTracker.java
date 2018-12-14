@@ -12,9 +12,11 @@ import java.nio.file.Files;
  * <p>The <i>data usage tracker file</i> is used to persist between restarts the amount of data that has
  * been sent by the Auklet agent to the sink.</p>
  */
-public class DataUsageTracker extends AbstractConfigFile<DataUsageTracker> {
+public class DataUsageTracker extends AbstractConfigFile {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataUsageTracker.class);
+    private static final String USAGE_FILE = "usage";
+    private static final String USAGE_KEY = "usage";
 
     private final Object lock = new Object();
     private long bytesSent = 0L;
@@ -36,14 +38,14 @@ public class DataUsageTracker extends AbstractConfigFile<DataUsageTracker> {
             String usageString = new String(usageBytes, "UTF-8");
             // Parse the JSON and set relevant fields.
             Json usageJson = Json.make(usageString);
-            this.bytesSent = usageJson.at("usage").asLong();
+            this.bytesSent = usageJson.at(DataUsageTracker.USAGE_KEY).asLong();
         } catch (IOException | SecurityException | IllegalArgumentException e) {
             LOGGER.warn("Could not read data usage tracker file from disk, assuming zero usage", e);
         }
     }
 
     @Override
-    public String getName() { return "usage"; }
+    public String getName() { return DataUsageTracker.USAGE_FILE; }
 
     /**
      * <p>Return the number of bytes sent so far.</p>
@@ -97,10 +99,10 @@ public class DataUsageTracker extends AbstractConfigFile<DataUsageTracker> {
      * @throws IOException if an error occurs while writing the file.
      * @throws SecurityException if an error occurs while writing the file.
      */
-    private void writeToDisk(long usage) throws IOException, SecurityException {
+    private void writeToDisk(long usage) throws IOException {
         synchronized (this.lock) {
             Json usageJson = Json.object();
-            usageJson.set("usage", usage);
+            usageJson.set(DataUsageTracker.USAGE_KEY, usage);
             Files.write(this.file.toPath(), usageJson.toString().getBytes("UTF-8"));
         }
     }

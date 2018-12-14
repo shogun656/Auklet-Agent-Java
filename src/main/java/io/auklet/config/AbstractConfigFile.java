@@ -7,10 +7,8 @@ import java.io.File;
 /**
  * <p>Implementations of this interface represent a configuration file located inside the Auklet agent's
  * configuration directory.</p>
- *
- * <p>Type {@code T} represents the data type that is used by the rest of the Auklet agent code.</p>
  */
-public abstract class AbstractConfigFile<T> {
+public abstract class AbstractConfigFile {
 
     protected final Auklet agent;
     protected final File file;

@@ -11,10 +11,10 @@ import java.nio.file.Files;
 /**
  * <p>Base class of all Auklet agent config files that are sourced from the API.</p>
  *
- * <p>Type {@code A} represents the data type that is returned by the Auklet API. This can be the same
- * as type {@code T}.</p>
+ * <p>Type {@code T} represents the data type that is returned by the Auklet API, and is also what
+ * is used to persist the config file to disk.</p>
  */
-public abstract class AbstractConfigFileFromApi<T, A> extends AbstractConfigFile<T> {
+public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfigFileFromApi.class);
 
@@ -35,8 +35,8 @@ public abstract class AbstractConfigFileFromApi<T, A> extends AbstractConfigFile
      * @throws AukletException if the config cannot be read from disk or fetched from the API, or if it
      * cannot be written to disk.
      */
-    protected final A loadConfig() throws AukletException {
-        A config = this.readFromDisk();
+    protected final T loadConfig() throws AukletException {
+        T config = this.readFromDisk();
         if (config == null) {
             config = this.fetchFromApi();
             this.writeToDisk(config);
@@ -49,7 +49,7 @@ public abstract class AbstractConfigFileFromApi<T, A> extends AbstractConfigFile
      *
      * @return {@code null} if and only if the file does not exist on disk or could not be read.
      */
-    protected abstract A readFromDisk();
+    protected abstract T readFromDisk();
 
     /**
      * <p>Fetches the config file from the Auklet API.</p>
@@ -57,7 +57,7 @@ public abstract class AbstractConfigFileFromApi<T, A> extends AbstractConfigFile
      * @return never {@code null}.
      * @throws AukletException if there is a problem communicating with the API.
      */
-    protected abstract A fetchFromApi() throws AukletException;
+    protected abstract T fetchFromApi() throws AukletException;
 
     /**
      * <p>Writes the config file to disk.</p>
@@ -65,7 +65,7 @@ public abstract class AbstractConfigFileFromApi<T, A> extends AbstractConfigFile
      * @param contents never {@code null}.
      * @throws AukletException if an error occurs while writing the file.
      */
-    protected abstract void writeToDisk(A contents) throws AukletException;
+    protected abstract void writeToDisk(T contents) throws AukletException;
 
     /**
      * <p>Loads the config file from disk into a string, using the UTF-8 charset.</p>

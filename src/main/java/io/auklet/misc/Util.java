@@ -3,13 +3,12 @@ package io.auklet.misc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
@@ -18,6 +17,7 @@ import java.util.Enumeration;
 public final class Util {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
+    private static final String UNKNOWN_VALUE = "unknown";
 
     private Util() {}
 
@@ -54,6 +54,20 @@ public final class Util {
             s = s.substring(0, s.length() - 1);
         }
         return s;
+    }
+
+    /**
+     * <p>Deletes the given file and logs any exceptions that occur.</p>
+     *
+     * @param file no-op if {@code null}.
+     */
+    public static void deleteQuietly(Path file) {
+        if (file == null) return;
+        try {
+            Files.delete(file);
+        } catch (IOException | SecurityException e) {
+            LOGGER.warn("Cannot delete file {}", file.toFile().getAbsolutePath(), e);
+        }
     }
 
     /**
@@ -125,15 +139,14 @@ public final class Util {
             Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
             while (n.hasMoreElements()) {
                 NetworkInterface e = n.nextElement();
-                if (e.isLoopback()) continue;
-                if (e.getHardwareAddress() != null) {
+                if (!e.isLoopback() && e.getHardwareAddress() != null) {
                     networkInterface = e;
                     break;
                 }
             }
             if (networkInterface == null) {
                 LOGGER.warn("Could not find a non-loopback interface with an available MAC address.");
-                return "unknown";
+                return Util.UNKNOWN_VALUE;
             }
             // Convert bytes of hardware address into human-readable form.
             byte[] mac = networkInterface.getHardwareAddress();
@@ -153,7 +166,7 @@ public final class Util {
             return hexString.toString();
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
             LOGGER.warn("Error while calculating MAC address hash", e);
-            return "unknown";
+            return Util.UNKNOWN_VALUE;
         }
     }
 
@@ -166,10 +179,10 @@ public final class Util {
      */
     public static String getIpAddress() {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL("http://checkip.amazonaws.com").openStream()))) {
-            return Util.defaultValue(in.readLine(), "unknown");
+            return Util.defaultValue(in.readLine(), Util.UNKNOWN_VALUE);
         } catch (IOException e) {
             LOGGER.warn("Could not get public IP address", e);
-            return "unknown";
+            return Util.UNKNOWN_VALUE;
         }
     }
 
