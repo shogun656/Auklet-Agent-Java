@@ -14,7 +14,7 @@ import java.io.IOException;
  * <p>The <i>data usage limit file</i> contains the configuration values, for this agent's app ID,
  * that control how much data the agent emits to the sink.</p>
  */
-public final class DataUsageLimit extends AbstractConfigFileFromApi<Json> {
+public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataUsageLimit.class);
     private static final Long MEGABYTES_TO_BYTES = 1000000L;
@@ -102,22 +102,11 @@ public final class DataUsageLimit extends AbstractConfigFileFromApi<Json> {
 
     @Override
     protected Json fetchFromApi() throws AukletException {
-        try {
-            String apiSuffix = String.format("/private/devices/%s/app_config/", this.agent.getAppId());
-            Request.Builder request = new Request.Builder()
-                    .url(this.agent.getBaseUrl() + apiSuffix).get()
-                    .header("Content-Type", "application/json; charset=utf-8");
-            try (Response response = this.agent.api(request)) {
-                String responseJson = response.body().string();
-                if (response.isSuccessful()) {
-                    return Json.make(responseJson);
-                } else {
-                    throw new AukletException(String.format("Error while getting data usage limits: %s: %s", response.message(), responseJson));
-                }
-            }
-        } catch (IOException | IllegalArgumentException e) {
-            throw new AukletException("Could not get data usage limits", e);
-        }
+        String apiSuffix = String.format("/private/devices/%s/app_config/", this.agent.getAppId());
+        Request.Builder request = new Request.Builder()
+                .url(this.agent.getBaseUrl() + apiSuffix).get()
+                .header("Content-Type", "application/json; charset=utf-8");
+        return this.makeJsonRequest(request).at("config");
     }
 
     @Override

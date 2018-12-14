@@ -1,6 +1,6 @@
 package io.auklet.sink;
 
-/** <p>A location to which the Auklet agent will send data.</p> */
+/** <p>A location to which the Auklet agent will write data.</p> */
 public interface Sink {
 
     /**

@@ -47,7 +47,7 @@ public final class SerialPortSink extends AbstractSink {
         try {
             this.msgpack.packMapHeader(2)
                     .packString("topic").packString(this.agent.getDeviceAuth().getMqttEventsTopic())
-                    .packString("payload"); // The value will be set by calling super.send().
+                    .packString("payload"); // The value will be set by calling super.write().
         } catch (IOException e) {
             throw new SinkException("Could not assemble event message", e);
         }
@@ -55,7 +55,7 @@ public final class SerialPortSink extends AbstractSink {
     }
 
     @Override
-    public void send(byte[] bytes) throws SinkException {
+    public void write(byte[] bytes) throws SinkException {
         try {
             this.out.write(bytes);
             this.out.flush();

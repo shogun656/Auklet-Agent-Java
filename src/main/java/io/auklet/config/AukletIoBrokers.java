@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  * <p>This file contains MQTT connection information for sending data to {@code auklet.io}.</p>
  */
-public final class AukletIoBrokers extends AbstractConfigFileFromApi<Json> {
+public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoBrokers.class);
 
@@ -56,21 +56,10 @@ public final class AukletIoBrokers extends AbstractConfigFileFromApi<Json> {
 
     @Override
     protected Json fetchFromApi() throws AukletException {
-        try {
-            Request.Builder request = new Request.Builder()
-                    .url(this.agent.getBaseUrl() + "/private/devices/config/").get()
-                    .header("Content-Type", "application/json; charset=utf-8");
-            try (Response response = this.agent.api(request)) {
-                String responseJson = response.body().string();
-                if (response.isSuccessful()) {
-                    return Json.make(responseJson);
-                } else {
-                    throw new AukletException(String.format("Error while getting broker config: %s: %s", response.message(), responseJson));
-                }
-            }
-        } catch (IOException | IllegalArgumentException e) {
-            throw new AukletException("Could not get broker config", e);
-        }
+        Request.Builder request = new Request.Builder()
+                .url(this.agent.getBaseUrl() + "/private/devices/config/").get()
+                .header("Content-Type", "application/json; charset=utf-8");
+        return this.makeJsonRequest(request);
     }
 
     @Override

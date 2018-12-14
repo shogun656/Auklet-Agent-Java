@@ -61,7 +61,7 @@ public final class AukletIoSink extends AbstractSink {
     }
 
     @Override
-    public void send(byte[] bytes) throws SinkException {
+    public void write(byte[] bytes) throws SinkException {
         try {
             MqttMessage message = new MqttMessage(bytes);
             // TODO does MqttMessage add more data beyond what's in the bytes array?

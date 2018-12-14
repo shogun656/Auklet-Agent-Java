@@ -25,7 +25,7 @@ import java.security.NoSuchAlgorithmException;
  * <p>The <i>device authentication file</i> contains the Auklet organization ID to which the application ID
  * belongs, as well as the credentials used to authenticate to the {@code auklet.io} data pipeline.</p>
  */
-public final class DeviceAuth extends AbstractConfigFileFromApi<Json> {
+public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceAuth.class);
     public static final String FILENAME = "AukletAuth";
@@ -130,25 +130,14 @@ public final class DeviceAuth extends AbstractConfigFileFromApi<Json> {
 
     @Override
     protected Json fetchFromApi() throws AukletException {
-        try {
-            Json requestJson = Json.object();
-            requestJson.set("mac_address_hash", this.agent.getMacHash());
-            requestJson.set("application", this.agent.getAppId());
-            Request.Builder request = new Request.Builder()
-                    .url(this.agent.getBaseUrl() + "/private/devices/")
-                    .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJson.toString()))
-                    .header("Content-Type", "application/json; charset=utf-8");
-            try (Response response = this.agent.api(request)) {
-                String responseJson = response.body().string();
-                if (response.isSuccessful()) {
-                    return Json.make(responseJson);
-                } else {
-                    throw new AukletException(String.format("Error while creating device: %s: %s", response.message(), responseJson));
-                }
-            }
-        } catch (IOException | IllegalArgumentException e) {
-            throw new AukletException("Could not register device", e);
-        }
+        Json requestJson = Json.object();
+        requestJson.set("mac_address_hash", this.agent.getMacHash());
+        requestJson.set("application", this.agent.getAppId());
+        Request.Builder request = new Request.Builder()
+                .url(this.agent.getBaseUrl() + "/private/devices/")
+                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJson.toString()))
+                .header("Content-Type", "application/json; charset=utf-8");
+        return this.makeJsonRequest(request);
     }
 
     @Override

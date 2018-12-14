@@ -583,7 +583,7 @@ public final class Auklet {
      *           <li>JVM system property {@code auklet.serial.port}</li>
      *         </ol>
      *       </td>
-     *       <td>{@code null} (Auklet will not send data to any serial port)</td>
+     *       <td>{@code null} (Auklet will not write data to any serial port)</td>
      *     </tr>
      *   </tbody>
      * </table>

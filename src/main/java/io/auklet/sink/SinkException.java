@@ -2,7 +2,7 @@ package io.auklet.sink;
 
 import io.auklet.AukletException;
 
-/** <p>This exception is thrown {@link Sink} implementations when attempting to send data or close the sink.</p> */
+/** <p>This exception is thrown {@link Sink} implementations when attempting to write data or close the sink.</p> */
 public class SinkException extends AukletException {
 
     public static final long serialVersionUID = 0L;

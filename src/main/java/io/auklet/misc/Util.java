@@ -90,7 +90,7 @@ public final class Util {
             try {
                 fromEnv = System.getenv(envVar);
             } catch (SecurityException e) {
-                LOGGER.warn("Could not check env var {}", envVar, e);
+                LOGGER.warn("Could not get env var {}", envVar, e);
                 // Skip this and try the JVM sysprop.
             }
         }
@@ -100,7 +100,7 @@ public final class Util {
             try {
                 fromProp = System.getProperty(sysProp);
             } catch (SecurityException e) {
-                LOGGER.warn("Could not check JVM sys prop {}", sysProp, e);
+                LOGGER.warn("Could not get JVM sys prop {}", sysProp, e);
             }
         }
         return fromProp;

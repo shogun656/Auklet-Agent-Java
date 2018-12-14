@@ -59,21 +59,32 @@ public abstract class AbstractSink implements Sink {
             } catch (IOException e) {
                 throw new SinkException("Could not assemble event message", e);
             }
-            // If the message is not empty, and if it will not push the device over the limit,
-            // send the message and update the usage monitor.
-            try {
-                this.msgpack.flush();
-                byte[] payload = this.msgpack.toByteArray();
-                if (payload == null) payload = new byte[0];
-                int payloadSize = payload.length;
-                boolean payloadWillExceedLimit = this.agent.getUsageMonitor().willExceedLimit(payloadSize);
-                if (!payloadWillExceedLimit) {
-                    this.send(payload);
-                    this.agent.getUsageMonitor().addMoreData(payloadSize);
-                }
-            } catch (IOException e) {
-                throw new SinkException("Could not send event message", e);
+            this.writeToSink();
+        }
+    }
+
+    /**
+     * <p>Writes the contents of the MessagePacker to the underlying sink, unless it is empty and unless
+     * it is so large that it would exceed the data usage limit.</p>
+     *
+     * @throws SinkException if an error occurs while writing the data. This exception is <i>not</i> thrown
+     * if the data usage limit would be exceeded; in that case, this method no-ops.
+     */
+    private final void writeToSink() throws SinkException {
+        // If the message is not empty, and if it will not push the device over the limit,
+        // write the message and update the usage monitor.
+        try {
+            this.msgpack.flush();
+            byte[] payload = this.msgpack.toByteArray();
+            if (payload == null) payload = new byte[0];
+            int payloadSize = payload.length;
+            boolean payloadWillExceedLimit = this.agent.getUsageMonitor().willExceedLimit(payloadSize);
+            if (!payloadWillExceedLimit) {
+                this.write(payload);
+                this.agent.getUsageMonitor().addMoreData(payloadSize);
             }
+        } catch (IOException e) {
+            throw new SinkException("Could not write event message", e);
         }
     }
 
@@ -83,7 +94,7 @@ public abstract class AbstractSink implements Sink {
      * @param bytes no-op if null or empty.
      * @throws SinkException if the data cannot be written.
      */
-    protected abstract void send(byte[] bytes) throws SinkException;
+    protected abstract void write(byte[] bytes) throws SinkException;
 
     @Override
     public void shutdown() throws SinkException {

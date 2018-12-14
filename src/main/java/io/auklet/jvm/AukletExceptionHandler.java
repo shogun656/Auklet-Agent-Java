@@ -16,7 +16,7 @@ public class AukletExceptionHandler implements Thread.UncaughtExceptionHandler {
             try {
                 Auklet.send(e);
             } catch (AukletException ae) {
-                LOGGER.error("Failed to send uncaught exception {} from thread {} to Auklet due to error", e.getClass().getName(), t.getName(), ae);
+                LOGGER.error("Failed to write uncaught exception {} from thread {} to Auklet due to error", e.getClass().getName(), t.getName(), ae);
                 // We don't want this exception to just disappear, so log it to SLF4J as a last resort.
                 // We can't rethrow it because it will be ignored by the JVM.
                 LOGGER.error("Uncaught exception received by Auklet handler that could not be sent to Auklet is: ", e);
