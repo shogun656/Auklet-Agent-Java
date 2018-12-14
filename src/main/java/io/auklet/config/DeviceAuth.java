@@ -1,14 +1,12 @@
 package io.auklet.config;
 
-import com.github.cliftonlabs.json_simple.JsonException;
-import com.github.cliftonlabs.json_simple.Jsoner;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
+import mjson.Json;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import com.github.cliftonlabs.json_simple.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +25,7 @@ import java.security.NoSuchAlgorithmException;
  * <p>The <i>device authentication file</i> contains the Auklet organization ID to which the application ID
  * belongs, as well as the credentials used to authenticate to the {@code auklet.io} data pipeline.</p>
  */
-public final class DeviceAuth extends AbstractConfigFileFromApi<DeviceAuth, JsonObject> {
+public final class DeviceAuth extends AbstractConfigFileFromApi<DeviceAuth, Json> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceAuth.class);
     public static final String FILENAME = "AukletAuth";
@@ -58,11 +56,11 @@ public final class DeviceAuth extends AbstractConfigFileFromApi<DeviceAuth, Json
         // This way, if the app ID changes, we will obtain new credentials.
         this.aesKey = new SecretKeySpec(this.agent.getAppId().substring(0,16).getBytes(), "AES");
         // Read/parse the config.
-        JsonObject config = this.loadConfig();
-        this.organizationId = (String) config.get("organization");
-        this.clientId = (String) config.get("client_id");
-        this.clientUsername = (String) config.get("id");
-        this.clientPassword = (String) config.get("client_password");
+        Json config = this.loadConfig();
+        this.organizationId = config.at("organization").asString();
+        this.clientId = config.at("client_id").asString();
+        this.clientUsername = config.at("id").asString();
+        this.clientPassword = config.at("client_password").asString();
     }
 
     @Override
@@ -116,49 +114,49 @@ public final class DeviceAuth extends AbstractConfigFileFromApi<DeviceAuth, Json
     }
 
     @Override
-    protected JsonObject readFromDisk() {
+    protected Json readFromDisk() {
         try {
             // Read and decrypt the device auth file from disk.
             byte[] authFileBytes = Files.readAllBytes(this.file.toPath());
             this.aesCipher.init(Cipher.DECRYPT_MODE, this.aesKey);
             String authFileDecrypted = new String(this.aesCipher.doFinal(authFileBytes));
             // Parse the JSON and set relevant fields.
-            return (JsonObject) Jsoner.deserialize(authFileDecrypted);
-        } catch (IOException | SecurityException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | JsonException e) {
+            return Json.make(authFileDecrypted);
+        } catch (IOException | SecurityException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException e) {
             LOGGER.warn("Could not read device auth file from disk, will re-register device with API", e);
             return null;
         }
     }
 
     @Override
-    protected JsonObject fetchFromApi() throws AukletException {
+    protected Json fetchFromApi() throws AukletException {
         try {
-            JsonObject requestJson = new JsonObject();
-            requestJson.put("mac_address_hash", this.agent.getMacHash());
-            requestJson.put("application", this.agent.getAppId());
+            Json requestJson = Json.object();
+            requestJson.set("mac_address_hash", this.agent.getMacHash());
+            requestJson.set("application", this.agent.getAppId());
             Request.Builder request = new Request.Builder()
                     .url(this.agent.getBaseUrl() + "/private/devices/")
-                    .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJson.toJson()))
+                    .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJson.toString()))
                     .header("Content-Type", "application/json; charset=utf-8");
             try (Response response = this.agent.api(request)) {
                 String responseJson = response.body().string();
                 if (response.isSuccessful()) {
-                    return (JsonObject) Jsoner.deserialize(responseJson);
+                    return Json.make(responseJson);
                 } else {
                     throw new AukletException(String.format("Error while creating device: %s: %s", response.message(), responseJson));
                 }
             }
-        } catch (IOException | JsonException e) {
+        } catch (IOException | IllegalArgumentException e) {
             throw new AukletException("Could not register device", e);
         }
     }
 
     @Override
-    protected void writeToDisk(JsonObject contents) throws AukletException {
+    protected void writeToDisk(Json contents) throws AukletException {
         try {
             // Encrypt and save the JSON string to disk.
             this.aesCipher.init(Cipher.ENCRYPT_MODE, this.aesKey);
-            byte[] encrypted = this.aesCipher.doFinal(contents.toJson().getBytes("UTF-8"));
+            byte[] encrypted = this.aesCipher.doFinal(contents.toString().getBytes("UTF-8"));
             Files.write(this.file.toPath(), encrypted);
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IOException e) {
             throw new AukletException("Could not encrypt/save device data to disk", e);

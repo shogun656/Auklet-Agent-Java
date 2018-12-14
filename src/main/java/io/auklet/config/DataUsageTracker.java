@@ -1,9 +1,7 @@
 package io.auklet.config;
 
-import com.github.cliftonlabs.json_simple.JsonException;
-import com.github.cliftonlabs.json_simple.Jsoner;
 import io.auklet.Auklet;
-import com.github.cliftonlabs.json_simple.JsonObject;
+import mjson.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +35,9 @@ public class DataUsageTracker extends AbstractConfigFile<DataUsageTracker> {
             byte[] usageBytes = Files.readAllBytes(this.file.toPath());
             String usageString = new String(usageBytes, "UTF-8");
             // Parse the JSON and set relevant fields.
-            JsonObject usageJson = (JsonObject) Jsoner.deserialize(usageString);
-            this.bytesSent = (long) usageJson.get("usage");
-        } catch (IOException | SecurityException | JsonException e) {
+            Json usageJson = Json.make(usageString);
+            this.bytesSent = usageJson.at("usage").asLong();
+        } catch (IOException | SecurityException | IllegalArgumentException e) {
             LOGGER.warn("Could not read data usage tracker file from disk, assuming zero usage", e);
         }
     }
@@ -101,9 +99,9 @@ public class DataUsageTracker extends AbstractConfigFile<DataUsageTracker> {
      */
     private void writeToDisk(long usage) throws IOException, SecurityException {
         synchronized (this.lock) {
-            JsonObject usageJson = new JsonObject();
-            usageJson.put("usage", usage);
-            Files.write(this.file.toPath(), usageJson.toJson().getBytes("UTF-8"));
+            Json usageJson = Json.object();
+            usageJson.set("usage", usage);
+            Files.write(this.file.toPath(), usageJson.toString().getBytes("UTF-8"));
         }
     }
 

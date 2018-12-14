@@ -31,7 +31,10 @@ repositories {
 dependencies {
     compile "com.squareup.okhttp3:okhttp:3.12.0"
     compile "com.squareup.okhttp3:logging-interceptor:3.12.0"
-    compile "com.github.cliftonlabs:json-simple:3.0.2"
+    compile("org.sharegov:mjson:1.4.1") {
+        // Junit is an accidental non-test-scoped dependency, so we need to exclude it.
+        exclude group: "junit"
+    }
     compile "org.msgpack:msgpack-core:0.8.16"
     compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
     compile "org.slf4j:slf4j-api:1.7.25"
