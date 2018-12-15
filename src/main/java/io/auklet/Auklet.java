@@ -5,15 +5,12 @@ import io.auklet.jvm.AukletExceptionHandler;
 import io.auklet.config.DataUsageLimit;
 import io.auklet.config.DataUsageTracker;
 import io.auklet.config.DeviceAuth;
+import io.auklet.misc.AukletApi;
 import io.auklet.misc.Util;
 import io.auklet.sink.AukletIoSink;
 import io.auklet.sink.SerialPortSink;
 import io.auklet.sink.Sink;
 import io.auklet.sink.SinkException;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.logging.HttpLoggingInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,25 +41,12 @@ import java.util.stream.Collectors;
  *
  * <p><b>Unless instructed to do so by Auklet support, do not use any classes/fields/methods other than
  * those described above.</b></p>
- *
- * <p>In addition to configuring the logging levels for individual classes in the Auklet agent, you can
- * configure HTTP request/response logging via the logger named {@code io.auklet.http}:</p>
- *
- * <ul>
- *     <li>Set the logger level to {@code TRACE} to log req/resp lines/headers/bodies.</li>
- *     <li>Set the logger level to {@code DEBUG} to log req/resp lines/headers.</li>
- *     <li>Set the logger level to {@code INFO} to log req/resp lines.</li>
- *     <li>Any other logger level disables HTTP logging.</li>
- *     <li>Due to a technical limitation, all messages logged to this logger will be logged at
- *     level {@code INFO}, taking into consideration the behavior of the levels described above.</li>
- * </ul>
  */
 public final class Auklet {
 
     /* Static fields/methods/API, including the static initializer. */
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
-    private static final Logger HTTP_LOGGER = LoggerFactory.getLogger("io.auklet.http");
     private static final Object AGENT_LOCK = new Object();
     private static String agentVersion = "unknown";
     private static Auklet agent = null;
@@ -208,7 +192,6 @@ public final class Auklet {
     /* Object-level fields/methods. */
 
     private final String appId;
-    private final String apiKey;
     private final String baseUrl;
     private final File configDir;
     private final boolean autoShutdown;
@@ -216,7 +199,7 @@ public final class Auklet {
     private final String serialPort;
     private final String macHash;
     private final String ipAddress;
-    private final OkHttpClient http;
+    private final AukletApi api;
     private DeviceAuth deviceAuth;
     private Sink sink;
     private DataUsageLimit usageLimit;
@@ -238,8 +221,8 @@ public final class Auklet {
             if (config == null) config = new Config();
             this.appId = Util.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
             if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty");
-            this.apiKey = Util.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
-            if (Util.isNullOrEmpty(this.apiKey)) throw new AukletException("API key is null or empty");
+            String apiKey = Util.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
+            if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty");
             String baseUrlMaybeNull = Util.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
             this.baseUrl = Util.defaultValue(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
             this.autoShutdown = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
@@ -251,10 +234,7 @@ public final class Auklet {
             // Setup other required internal fields.
             this.macHash = Util.getMacAddressHash();
             this.ipAddress = Util.getIpAddress();
-            this.http = new OkHttpClient.Builder()
-                    .addInterceptor(Auklet.createOkHttpLogger())
-                    .build();
-
+            this.api = new AukletApi(apiKey);
         }
     }
 
@@ -313,6 +293,13 @@ public final class Auklet {
     }
 
     /**
+     * <p>Returns the API object for this instance of the agent.</p>
+     *
+     * @return never {@code null}.
+     */
+    public AukletApi getApi() { return this.api; }
+
+    /**
      * <p>Returns the device auth for this instance of the agent.</p>
      *
      * @return never {@code null}.
@@ -337,23 +324,6 @@ public final class Auklet {
      */
     public DataUsageMonitor getUsageMonitor() {
         return this.usageMonitor;
-    }
-
-    /**
-     * <p>Makes an authenticated request to the Auklet API.</p>
-     *
-     * @param request never {@code null}.
-     * @return never {@code null}.
-     * @throws AukletException if an error occurs with the request.
-     */
-    public Response api(Request.Builder request) throws AukletException {
-        request.header("Authorization", "JWT " + this.apiKey);
-        Request req = request.build();
-        try {
-            return this.http.newCall(req).execute();
-        } catch (IOException e) {
-            throw new AukletException("Error while making HTTP request", e);
-        }
     }
 
     /**
@@ -426,23 +396,6 @@ public final class Auklet {
     }
 
     /**
-     * <p>Creates an OkHttp logging interceptor that sends all HTTP logs to the SLF4J logger named
-     * {@code io.auklet.http}.</p>
-     *
-     * @return never {@code null}.
-     */
-    private static HttpLoggingInterceptor createOkHttpLogger() {
-        HttpLoggingInterceptor.Level level;
-        if (Auklet.HTTP_LOGGER.isTraceEnabled()) level = HttpLoggingInterceptor.Level.BODY;
-        else if (Auklet.HTTP_LOGGER.isDebugEnabled()) level = HttpLoggingInterceptor.Level.HEADERS;
-        else if (Auklet.HTTP_LOGGER.isInfoEnabled()) level = HttpLoggingInterceptor.Level.BASIC;
-        else level = HttpLoggingInterceptor.Level.NONE;
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(HTTP_LOGGER::info);
-        logging.setLevel(level);
-        return logging;
-    }
-
-    /**
      * <p>Shuts down the Auklet agent.</p>
      *
      * @param viaJvmHook {@code true} if shutdown is occurring due to a JVM hook, {@code false} otherwise.
@@ -462,13 +415,7 @@ public final class Auklet {
             LOGGER.warn("Error while shutting down Auklet data sink", e);
         }
         this.usageMonitor.shutdown();
-        try {
-            this.http.dispatcher().executorService().shutdown();
-            this.http.connectionPool().evictAll();
-            this.http.cache().close();
-        } catch (IOException e) {
-            LOGGER.warn("Error while shutting down Auklet API", e);
-        }
+        this.api.shutdown();
     }
 
 }

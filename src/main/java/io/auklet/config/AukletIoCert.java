@@ -67,7 +67,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
         try {
             Request.Builder request = new Request.Builder()
                     .url(this.agent.getBaseUrl() + "/private/devices/certificates/").get();
-            try (Response response = this.agent.api(request)) {
+            try (Response response = this.agent.getApi().doRequest(request)) {
                 String responseString = response.body().string();
                 if (response.isSuccessful()) {
                     return responseString;

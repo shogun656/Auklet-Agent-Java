@@ -23,7 +23,7 @@ public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFr
     }
 
     protected final Json makeJsonRequest(Request.Builder request) throws AukletException {
-        try (Response response = this.agent.api(request)) {
+        try (Response response = this.agent.getApi().doRequest(request)) {
             String responseString = response.body().string();
             if (response.isSuccessful()) {
                 return Json.make(responseString);
