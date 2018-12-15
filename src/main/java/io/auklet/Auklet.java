@@ -127,9 +127,9 @@ public final class Auklet {
             this.usageTracker = new DataUsageTracker();
             this.usageMonitor = new DataUsageMonitor(this.usageLimit, this.usageTracker);
             if (this.autoShutdown) {
-                Thread shutdownHook = createShutdownHook();
-                this.shutdownHook = shutdownHook;
-                Runtime.getRuntime().addShutdownHook(shutdownHook);
+                Thread hook = createShutdownHook();
+                this.shutdownHook = hook;
+                Runtime.getRuntime().addShutdownHook(hook);
             } else {
                 this.shutdownHook = null;
             }

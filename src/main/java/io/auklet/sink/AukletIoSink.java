@@ -18,6 +18,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -27,8 +28,6 @@ public final class AukletIoSink extends AbstractSink {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoSink.class);
     private ScheduledExecutorService executorService;
-    private AukletIoCert cert;
-    private AukletIoBrokers brokers;
     private MqttAsyncClient client;
 
     /**
@@ -40,10 +39,10 @@ public final class AukletIoSink extends AbstractSink {
     public void setAgent(Auklet agent) throws AukletException {
         super.setAgent(agent);
         try {
-            this.cert = new AukletIoCert();
-            this.cert.setAgent(agent);
-            this.brokers = new AukletIoBrokers();
-            this.brokers.setAgent(agent);
+            AukletIoCert cert = new AukletIoCert();
+            cert.setAgent(agent);
+            AukletIoBrokers brokers = new AukletIoBrokers();
+            brokers.setAgent(agent);
             // Workaround to ensure that MQTT client threads do not stop JVM shutdown.
             // https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
             this.executorService = Executors.newScheduledThreadPool(10,
@@ -52,10 +51,10 @@ public final class AukletIoSink extends AbstractSink {
                         t.setDaemon(true);
                         return t;
                     });
-            this.client = new MqttAsyncClient(this.brokers.getUrl(), agent.getDeviceAuth().getClientId(), new MemoryPersistence(), new TimerPingSender(), executorService);
+            this.client = new MqttAsyncClient(brokers.getUrl(), agent.getDeviceAuth().getClientId(), new MemoryPersistence(), new TimerPingSender(), executorService);
             this.client.setCallback(this.getCallback());
             this.client.setBufferOpts(this.getDisconnectBufferOptions(agent));
-            this.client.connect(this.getConnectOptions(agent));
+            this.client.connect(this.getConnectOptions(agent, cert.getCert()));
         } catch (MqttException e) {
             this.shutdownThreadPool();
             throw new AukletException("Could not initialize MQTT sink", e);
@@ -130,7 +129,7 @@ public final class AukletIoSink extends AbstractSink {
         return disconnectOptions;
     }
 
-    private MqttConnectOptions getConnectOptions(Auklet agent) throws AukletException {
+    private MqttConnectOptions getConnectOptions(Auklet agent, X509Certificate cert) throws AukletException {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setUserName(agent.getDeviceAuth().getClientUsername());
         options.setPassword(agent.getDeviceAuth().getClientPassword().toCharArray());
@@ -139,16 +138,16 @@ public final class AukletIoSink extends AbstractSink {
         options.setKeepAliveInterval(60);
         options.setCleanSession(false);
         options.setAutomaticReconnect(true);
-        options.setSocketFactory(this.getSocketFactory());
+        options.setSocketFactory(this.getSocketFactory(cert));
         return options;
     }
 
-    private SSLSocketFactory getSocketFactory() throws AukletException {
+    private SSLSocketFactory getSocketFactory(X509Certificate cert) throws AukletException {
         try {
             // Prepare a keystore that contains the CA cert.
             KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
             caKs.load(null, null);
-            caKs.setCertificateEntry("ca-certificate", this.cert.getCert());
+            caKs.setCertificateEntry("ca-certificate", cert);
             // Define and return the SSL context.
             TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
             tmf.init(caKs);
