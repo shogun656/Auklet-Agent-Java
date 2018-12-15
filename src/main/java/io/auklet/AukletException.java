@@ -8,7 +8,7 @@ package io.auklet;
  *
  * <ul>
  *   <li>All {@code public static} methods in the {@link Auklet} class.</li>
- *   <li>All {@code public} methods in the {@link Auklet.Config} class.</li>
+ *   <li>The {@link Config} class.</li>
  *   <li>The {@link AukletException} class.</li>
  * </ul>
  *
