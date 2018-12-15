@@ -19,15 +19,6 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfigFileFromApi.class);
 
     /**
-     * <p>Constructor.</p>
-     *
-     * @param agent the Auklet agent object.
-     */
-    protected AbstractConfigFileFromApi(Auklet agent) {
-        super(agent);
-    }
-
-    /**
      * <p>Loads the config for this object, either from disk or from the API. If the latter, this method
      * persists the API response to disk prior to returning.</p>
      *

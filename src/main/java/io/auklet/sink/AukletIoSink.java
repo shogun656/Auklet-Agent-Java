@@ -26,22 +26,24 @@ import java.util.concurrent.TimeUnit;
 public final class AukletIoSink extends AbstractSink {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoSink.class);
-    private final AukletIoCert cert;
-    private final AukletIoBrokers brokers;
-    private final MqttAsyncClient client;
-    private final ScheduledExecutorService executorService;
+    private ScheduledExecutorService executorService;
+    private AukletIoCert cert;
+    private AukletIoBrokers brokers;
+    private MqttAsyncClient client;
 
     /**
-     * Constructs the serial data sink and opens the underlying serial port.
+     * <p>Constructs the underlying MQTT client.</p>
      *
-     * @param agent the Auklet agent object.
-     * @throws SinkInitializationException if any error occurs while establishing the MQTT connection.
+     * @throws AukletException if the underlying MQTT client cannot be constructed or started.
      */
-    public AukletIoSink(Auklet agent) throws SinkInitializationException {
-        super(agent);
+    @Override
+    public void setAgent(Auklet agent) throws AukletException {
+        super.setAgent(agent);
         try {
-            this.cert = new AukletIoCert(agent);
-            this.brokers = new AukletIoBrokers(agent);
+            this.cert = new AukletIoCert();
+            this.cert.setAgent(agent);
+            this.brokers = new AukletIoBrokers();
+            this.brokers.setAgent(agent);
             // Workaround to ensure that MQTT client threads do not stop JVM shutdown.
             // https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
             this.executorService = Executors.newScheduledThreadPool(10,
@@ -54,9 +56,9 @@ public final class AukletIoSink extends AbstractSink {
             this.client.setCallback(this.getCallback());
             this.client.setBufferOpts(this.getDisconnectBufferOptions(agent));
             this.client.connect(this.getConnectOptions(agent));
-        } catch (AukletException | MqttException e) {
+        } catch (MqttException e) {
             this.shutdownThreadPool();
-            throw new SinkInitializationException("Could not initialize MQTT sink", e);
+            throw new AukletException("Could not initialize MQTT sink", e);
         }
     }
 
@@ -67,8 +69,8 @@ public final class AukletIoSink extends AbstractSink {
             // TODO does MqttMessage add more data beyond what's in the bytes array?
             // if so, we need to change how we report/track data usage
             message.setQos(1);
-            client.publish(this.agent.getDeviceAuth().getMqttEventsTopic(), message);
-        } catch (MqttException e) {
+            client.publish(this.getAgent().getDeviceAuth().getMqttEventsTopic(), message);
+        } catch (AukletException | MqttException e) {
             throw new SinkException("Error while publishing MQTT message", e);
         }
     }

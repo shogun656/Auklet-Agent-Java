@@ -23,11 +23,8 @@ public class DataUsageTracker extends AbstractConfigFile {
 
     /**
      * <p>Constructor.</p>
-     *
-     * @param agent the Auklet agent object.
      */
-    public DataUsageTracker(Auklet agent) {
-        super(agent);
+    public DataUsageTracker() {
         try {
             // If the file doesn't exist, create it.
             if (!this.file.exists()) {

@@ -27,12 +27,10 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
     /**
      * <p>Constructor.</p>
      *
-     * @param agent the Auklet agent object.
      * @throws AukletException if the underlying config file cannot be obtained from the filesystem/API,
      * or if it cannot be written to disk.
      */
-    public DataUsageLimit(Auklet agent) throws AukletException {
-        super(agent);
+    public DataUsageLimit() throws AukletException {
         Json config = this.loadConfig();
         this.updateConfig(config);
     }
@@ -101,9 +99,9 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
 
     @Override
     protected Json fetchFromApi() throws AukletException {
-        String apiSuffix = String.format("/private/devices/%s/app_config/", this.agent.getAppId());
+        String apiSuffix = String.format("/private/devices/%s/app_config/", this.getAgent().getAppId());
         Request.Builder request = new Request.Builder()
-                .url(this.agent.getBaseUrl() + apiSuffix).get()
+                .url(this.getAgent().getBaseUrl() + apiSuffix).get()
                 .header("Content-Type", "application/json; charset=utf-8");
         return this.makeJsonRequest(request).at("config");
     }

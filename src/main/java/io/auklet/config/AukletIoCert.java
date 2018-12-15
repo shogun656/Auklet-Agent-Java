@@ -24,12 +24,10 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
     /**
      * <p>Constructor.</p>
      *
-     * @param agent the Auklet agent object.
      * @throws AukletException if the underlying config file cannot be obtained from the filesystem/API,
      * or if it cannot be written to disk.
      */
-    public AukletIoCert(Auklet agent) throws AukletException {
-        super(agent);
+    public AukletIoCert() throws AukletException {
         String certString = this.loadConfig();
         // Load the cert file from disk and convert it to an X509 object.
         try (BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(certString.getBytes("UTF-8")))) {
@@ -66,8 +64,8 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
     protected String fetchFromApi() throws AukletException {
         try {
             Request.Builder request = new Request.Builder()
-                    .url(this.agent.getBaseUrl() + "/private/devices/certificates/").get();
-            try (Response response = this.agent.getApi().doRequest(request)) {
+                    .url(this.getAgent().getBaseUrl() + "/private/devices/certificates/").get();
+            try (Response response = this.getAgent().getApi().doRequest(request)) {
                 String responseString = response.body().string();
                 if (response.isSuccessful()) {
                     return responseString;

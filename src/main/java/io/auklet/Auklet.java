@@ -7,10 +7,7 @@ import io.auklet.config.DataUsageTracker;
 import io.auklet.config.DeviceAuth;
 import io.auklet.misc.AukletApi;
 import io.auklet.misc.Util;
-import io.auklet.sink.AukletIoSink;
-import io.auklet.sink.SerialPortSink;
-import io.auklet.sink.Sink;
-import io.auklet.sink.SinkException;
+import io.auklet.sink.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,31 +41,48 @@ import java.util.stream.Collectors;
  */
 public final class Auklet {
 
-    /* Static fields/methods/API, including the static initializer. */
-
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
-    private static final Object AGENT_LOCK = new Object();
-    private static String agentVersion = "unknown";
+    private static final Object LOCK = new Object();
+    /** <p>The version of the Auklet agent JAR.</p> */
+    public static final String VERSION;
     private static Auklet agent = null;
+
+    private final String appId;
+    private final String baseUrl;
+    private final File configDir;
+    private final boolean autoShutdown;
+    private final boolean uncaughtExceptionHandler;
+    private final String serialPort;
+    private final String macHash;
+    private final String ipAddress;
+    private final AukletApi api;
+    private final DeviceAuth deviceAuth;
+    private final AbstractSink sink;
+    private final DataUsageLimit usageLimit;
+    private final DataUsageTracker usageTracker;
+    private final DataUsageMonitor usageMonitor;
+    private final Thread shutdownHook;
 
     static {
         // Extract Auklet agent version from the manifest.
+        String version = "unknown";
         try {
             InputStream manifestStream = Auklet.class.getClassLoader().getResourceAsStream("META-INF/MANIFEST.MF");
             if (manifestStream != null) {
                 Manifest manifest = new Manifest(manifestStream);
-                String version = manifest.getMainAttributes().getValue("Implementation-Version");
-                Auklet.agentVersion = Util.defaultValue(version, "unknown");
+                version = manifest.getMainAttributes().getValue("Implementation-Version");
+                version = Util.defaultValue(version, "unknown");
             }
         } catch (SecurityException | IOException e) {
             LOGGER.warn("Could not obtain Auklet agent version from manifest", e);
         }
+        VERSION = version;
         // Initialize the Auklet agent if requested via env var or JVM sysprop.
         String fromEnv = System.getenv("AUKLET_AUTO_START");
         String fromProp = System.getProperty("auklet.auto.start");
         if (Boolean.valueOf(fromEnv) || Boolean.valueOf(fromProp)) {
             try {
-                Auklet.init(null);
+                init(null);
             } catch (AukletException e) {
                 LOGGER.error("Could not auto-start Auklet agent", e);
             }
@@ -76,11 +90,62 @@ public final class Auklet {
     }
 
     /**
-     * <p>Returns the version of the Auklet agent.</p>
+     * <p>Auklet agent constructor, called via {@link #init(Config)}.</p>
      *
-     * @return never {@code null}. May be the string literal {@code unknown}.
+     * @param config possibly {@code null}.
+     * @throws AukletException if the agent cannot be initialized.
      */
-    public static String getVersion() { return Auklet.agentVersion; }
+    private Auklet(Config config) throws AukletException {
+        synchronized (LOCK) {
+            // We check this in the init method to provide a proper message, in case the user accidentally
+            // attempted to init twice. We check again here to prevent instantiation via reflection.
+            if (agent != null) throw new AukletException("Use Auklet.init() to initialize the agent");
+
+            if (config == null) config = new Config();
+            this.appId = Util.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
+            if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty");
+            String apiKey = Util.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
+            if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty");
+            String baseUrlMaybeNull = Util.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
+            this.baseUrl = Util.defaultValue(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
+            this.autoShutdown = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
+            this.uncaughtExceptionHandler = Util.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
+            this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
+
+            // Finalizing the config dir may cause changes to the filesystem, so we wait to do this
+            // until we've validated the rest of the config, in case there is a config error; this
+            // approach avoids unnecessary filesystem changes for bad configs.
+            this.configDir = obtainConfigDir(config.getConfigDir());
+            if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
+
+            this.macHash = Util.getMacAddressHash();
+            this.ipAddress = Util.getIpAddress();
+
+            this.api = new AukletApi(apiKey);
+            this.deviceAuth = new DeviceAuth();
+            this.usageLimit = new DataUsageLimit();
+            this.usageTracker = new DataUsageTracker();
+            this.usageMonitor = new DataUsageMonitor(this.usageLimit, this.usageTracker);
+            if (this.autoShutdown) {
+                Thread shutdownHook = createShutdownHook();
+                this.shutdownHook = shutdownHook;
+                Runtime.getRuntime().addShutdownHook(shutdownHook);
+            } else {
+                this.shutdownHook = null;
+            }
+            if (this.uncaughtExceptionHandler) {
+                Thread.setDefaultUncaughtExceptionHandler(new AukletExceptionHandler());
+            }
+            // Same as with finalzing the config dir, creating the sink may establish I/O with
+            // external systems, so we do it last.
+            // In the future we may want to make this some kind of SinkFactory.
+            if (this.serialPort != null) {
+                this.sink = new SerialPortSink();
+            } else {
+                this.sink = new AukletIoSink();
+            }
+        }
+    }
 
     /**
      * <p>Initializes the agent with all configuration options specified via environment variables
@@ -94,7 +159,7 @@ public final class Auklet {
      * no config directory cannot be obtained.
      */
     public static void init() throws AukletException {
-        Auklet.init(null);
+        init(null);
     }
 
     /**
@@ -108,57 +173,13 @@ public final class Auklet {
      * @throws AukletException if the agent cannot be initialized.
      */
     public static void init(Config config) throws AukletException {
-        synchronized (Auklet.AGENT_LOCK) {
+        synchronized (LOCK) {
             // We check this here to provide a proper message, in case the user accidentally attempted to
             // init twice. We check again in the constructor to prevent instantiation via reflection.
-            if (Auklet.agent != null) throw new AukletException("Agent is already initialized; use Auklet.shutdown() first");
-            // Construct the agent object, which finalizes the agent configuration.
-            Auklet agent = new Auklet(config);
-            // Get the device auth file.
-            agent.deviceAuth = new DeviceAuth(agent);
-            // Construct the child objects.
-            if (agent.getSerialPort() != null) {
-                agent.sink = new SerialPortSink(agent);
-            } else {
-                agent.sink = new AukletIoSink(agent);
-            }
-            // Start the data usage monitor.
-            agent.usageLimit = new DataUsageLimit(agent);
-            DataUsageTracker usageTracker = new DataUsageTracker(agent);
-            agent.usageMonitor = new DataUsageMonitor(agent.usageLimit, usageTracker);
-            // Define the JVM shutdown hook, if requested.
-            if (agent.autoShutdown) {
-                Thread shutdownHook = Auklet.createShutdownHook();
-                agent.shutdownHook = shutdownHook;
-                Runtime.getRuntime().addShutdownHook(shutdownHook);
-            }
-            // Enable the uncaught exception handler, if requested.
-            if (agent.uncaughtExceptionHandler) {
-                Thread.setDefaultUncaughtExceptionHandler(new AukletExceptionHandler());
-            }
-            // Set the global agent object.
-            Auklet.agent = agent;
+            if (agent != null) throw new AukletException("Agent is already initialized; use Auklet.shutdown() first");
+            agent = new Auklet(config);
+            agent.propagate();
         }
-    }
-
-    /**
-     * <p>Creates a JVM shutdown thread that shuts down the Auklet agent.</p>
-     *
-     * @return never {@code null}.
-     */
-    private static Thread createShutdownHook() {
-        return new Thread(() -> {
-            synchronized (Auklet.AGENT_LOCK) {
-                if (Auklet.agent != null) {
-                    try {
-                        Auklet.agent.doShutdown(true);
-                        Auklet.agent = null;
-                    } catch (Exception e) {
-                        LOGGER.warn("Error while shutting down Auklet agent", e);
-                    }
-                }
-            }
-        });
     }
 
     /**
@@ -169,9 +190,9 @@ public final class Auklet {
      */
     public static void send(Throwable throwable) throws AukletException {
         if (throwable == null) return;
-        synchronized (Auklet.AGENT_LOCK) {
-            if (Auklet.agent == null) return;
-            Auklet.agent.sink.send(throwable);
+        synchronized (LOCK) {
+            if (agent == null) return;
+            agent.sink.send(throwable);
         }
     }
 
@@ -182,59 +203,10 @@ public final class Auklet {
      * than JVM shutdown.</p>
      */
     public static void shutdown() {
-        synchronized (Auklet.AGENT_LOCK) {
-            if (Auklet.agent == null) return;
-            Auklet.agent.doShutdown(false);
-            Auklet.agent = null;
-        }
-    }
-
-    /* Object-level fields/methods. */
-
-    private final String appId;
-    private final String baseUrl;
-    private final File configDir;
-    private final boolean autoShutdown;
-    private final boolean uncaughtExceptionHandler;
-    private final String serialPort;
-    private final String macHash;
-    private final String ipAddress;
-    private final AukletApi api;
-    private DeviceAuth deviceAuth;
-    private Sink sink;
-    private DataUsageLimit usageLimit;
-    private DataUsageMonitor usageMonitor;
-    private Thread shutdownHook;
-
-    /**
-     * <p>Auklet agent constructor, called via {@link #init(Config)}.</p>
-     *
-     * @param config possibly {@code null}.
-     * @throws AukletException if the agent cannot be initialized.
-     */
-    private Auklet(Config config) throws AukletException {
-        synchronized (Auklet.AGENT_LOCK) {
-            // We check this in the init method to provide a proper message, in case the user accidentally
-            // attempted to init twice. We check again here to prevent instantiation via reflection.
-            if (Auklet.agent != null) throw new AukletException("Use Auklet.init() to initialize the agent");
-            // Validate/extract config.
-            if (config == null) config = new Config();
-            this.appId = Util.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
-            if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty");
-            String apiKey = Util.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
-            if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty");
-            String baseUrlMaybeNull = Util.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
-            this.baseUrl = Util.defaultValue(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
-            this.autoShutdown = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
-            this.uncaughtExceptionHandler = Util.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
-            this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
-            // Select/create/obtain the agent's config dir.
-            this.configDir = this.obtainConfigDir(config.getConfigDir());
-            if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
-            // Setup other required internal fields.
-            this.macHash = Util.getMacAddressHash();
-            this.ipAddress = Util.getIpAddress();
-            this.api = new AukletApi(apiKey);
+        synchronized (LOCK) {
+            if (agent == null) return;
+            agent.doShutdown(false);
+            agent = null;
         }
     }
 
@@ -327,6 +299,26 @@ public final class Auklet {
     }
 
     /**
+     * <p>Creates a JVM shutdown thread that shuts down the Auklet agent.</p>
+     *
+     * @return never {@code null}.
+     */
+    private static Thread createShutdownHook() {
+        return new Thread(() -> {
+            synchronized (LOCK) {
+                if (agent != null) {
+                    try {
+                        agent.doShutdown(true);
+                        agent = null;
+                    } catch (Exception e) {
+                        LOGGER.warn("Error while shutting down Auklet agent", e);
+                    }
+                }
+            }
+        });
+    }
+
+    /**
      * <p>Returns the directory the Auklet agent will use to store its configuration files.</p>
      *
      * <p>Unlike other getter methods in this class, this method creates/tests write access to the
@@ -338,7 +330,7 @@ public final class Auklet {
      * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
      * initialization and all data sent to the agent must be silently discarded.
      */
-    private File obtainConfigDir(String fromConfigObject) {
+    private static File obtainConfigDir(String fromConfigObject) {
         // Consider config dir settings in this order.
         List<String> possibleConfigDirs = Arrays.asList(
                 fromConfigObject,
@@ -396,6 +388,18 @@ public final class Auklet {
     }
 
     /**
+     * <p>Passes the Auklet agent reference down to internal objects that need it.</p>
+     *
+     * @throws AukletException if this has already been done once for this agent.
+     */
+    private void propagate() throws AukletException {
+        this.deviceAuth.setAgent(this);
+        this.sink.setAgent(this);
+        this.usageLimit.setAgent(this);
+        this.usageTracker.setAgent(this);
+    }
+
+    /**
      * <p>Shuts down the Auklet agent.</p>
      *
      * @param viaJvmHook {@code true} if shutdown is occurring due to a JVM hook, {@code false} otherwise.
@@ -403,12 +407,7 @@ public final class Auklet {
     private void doShutdown(boolean viaJvmHook) {
         LOGGER.info("Auklet agent is shutting down.");
         boolean jvmHookIsShuttingDown = this.shutdownHook != null && !viaJvmHook;
-        // Remove the JVM shutdown hook if one is present, unless the hook is
-        // the reason we're shutting down.
-        if (!jvmHookIsShuttingDown) {
-            Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
-        }
-        // Shutdown the sink, data usage monitor and API.
+        if (!jvmHookIsShuttingDown) Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
         try {
             this.sink.shutdown();
         } catch (SinkException e) {

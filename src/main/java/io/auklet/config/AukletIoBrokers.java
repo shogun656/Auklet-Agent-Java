@@ -21,12 +21,10 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
     /**
      * <p>Constructor.</p>
      *
-     * @param agent the Auklet agent object.
      * @throws AukletException if the underlying config file cannot be obtained from the filesystem/API,
      * or if it cannot be written to disk.
      */
-    public AukletIoBrokers(Auklet agent) throws AukletException {
-        super(agent);
+    public AukletIoBrokers() throws AukletException {
         Json config = this.loadConfig();
         this.url = "ssl://" + config.at("brokers").asString() + ":" + config.at("port").asString();
     }
@@ -56,7 +54,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
     @Override
     protected Json fetchFromApi() throws AukletException {
         Request.Builder request = new Request.Builder()
-                .url(this.agent.getBaseUrl() + "/private/devices/config/").get()
+                .url(this.getAgent().getBaseUrl() + "/private/devices/config/").get()
                 .header("Content-Type", "application/json; charset=utf-8");
         return this.makeJsonRequest(request);
     }

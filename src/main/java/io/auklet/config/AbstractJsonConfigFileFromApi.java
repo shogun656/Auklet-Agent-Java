@@ -13,17 +13,8 @@ import java.io.IOException;
  */
 public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFromApi<Json> {
 
-    /**
-     * <p>Constructor.</p>
-     *
-     * @param agent the Auklet agent object.
-     */
-    protected AbstractJsonConfigFileFromApi(Auklet agent) {
-        super(agent);
-    }
-
     protected final Json makeJsonRequest(Request.Builder request) throws AukletException {
-        try (Response response = this.agent.getApi().doRequest(request)) {
+        try (Response response = this.getAgent().getApi().doRequest(request)) {
             String responseString = response.body().string();
             if (response.isSuccessful()) {
                 return Json.make(responseString);

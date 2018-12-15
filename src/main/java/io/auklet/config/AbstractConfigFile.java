@@ -1,6 +1,8 @@
 package io.auklet.config;
 
 import io.auklet.Auklet;
+import io.auklet.AukletException;
+import io.auklet.misc.HasAgent;
 
 import java.io.File;
 
@@ -8,19 +10,14 @@ import java.io.File;
  * <p>Implementations of this interface represent a configuration file located inside the Auklet agent's
  * configuration directory.</p>
  */
-public abstract class AbstractConfigFile {
+public abstract class AbstractConfigFile extends HasAgent {
 
-    protected final Auklet agent;
-    protected final File file;
+    protected File file;
 
-    /**
-     * <p>Constructor.</p>
-     *
-     * @param agent the Auklet agent object.
-     */
-    protected AbstractConfigFile(Auklet agent) {
-        this.agent = agent;
-        this.file = new File(this.agent.getConfigDir(), this.getName());
+    @Override
+    public void setAgent(Auklet agent) throws AukletException {
+        super.setAgent(agent);
+        this.file = new File(agent.getConfigDir(), this.getName());
     }
 
     /**

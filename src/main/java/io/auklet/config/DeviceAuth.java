@@ -29,22 +29,16 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceAuth.class);
     public static final String FILENAME = "AukletAuth";
 
-    private final Cipher aesCipher;
-    private final Key aesKey;
-    private final String organizationId;
-    private final String clientId;
-    private final String clientUsername;
-    private final String clientPassword;
+    private Cipher aesCipher;
+    private Key aesKey;
+    private String organizationId;
+    private String clientId;
+    private String clientUsername;
+    private String clientPassword;
 
-    /**
-     * <p>Constructor.</p>
-     *
-     * @param agent the Auklet agent object.
-     * @throws AukletException if the underlying config file cannot be obtained from the filesystem/API,
-     * or if it cannot be written to disk.
-     */
-    public DeviceAuth(Auklet agent) throws AukletException {
-        super(agent);
+    @Override
+    public void setAgent(Auklet agent) throws AukletException {
+        super.setAgent(agent);
         // Setup AES cipher.
         try {
             this.aesCipher = Cipher.getInstance("AES");
@@ -53,7 +47,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
         }
         // MQTT credentials are derived from the app ID, so use that as the encryption key.
         // This way, if the app ID changes, we will obtain new credentials.
-        this.aesKey = new SecretKeySpec(this.agent.getAppId().substring(0,16).getBytes(), "AES");
+        this.aesKey = new SecretKeySpec(agent.getAppId().substring(0,16).getBytes(), "AES");
         // Read/parse the config.
         Json config = this.loadConfig();
         this.organizationId = config.at("organization").asString();
@@ -130,10 +124,10 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
     @Override
     protected Json fetchFromApi() throws AukletException {
         Json requestJson = Json.object();
-        requestJson.set("mac_address_hash", this.agent.getMacHash());
-        requestJson.set("application", this.agent.getAppId());
+        requestJson.set("mac_address_hash", this.getAgent().getMacHash());
+        requestJson.set("application", this.getAgent().getAppId());
         Request.Builder request = new Request.Builder()
-                .url(this.agent.getBaseUrl() + "/private/devices/")
+                .url(this.getAgent().getBaseUrl() + "/private/devices/")
                 .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJson.toString()))
                 .header("Content-Type", "application/json; charset=utf-8");
         return this.makeJsonRequest(request);

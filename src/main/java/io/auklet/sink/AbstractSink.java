@@ -1,6 +1,8 @@
 package io.auklet.sink;
 
 import io.auklet.Auklet;
+import io.auklet.AukletException;
+import io.auklet.misc.HasAgent;
 import io.auklet.misc.Util;
 import io.auklet.jvm.OSMX;
 import org.msgpack.core.MessageBufferPacker;
@@ -18,21 +20,11 @@ import java.util.UUID;
  * is used to construct MessagePack payloads that are then sent to the underlying output in the
  * {@link MessagePacker} object (e.g. an {@code OutputStream}).</p>
  */
-public abstract class AbstractSink implements Sink {
+public abstract class AbstractSink extends HasAgent implements Sink {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSink.class);
     private final Object lock = new Object();
-    protected final Auklet agent;
     protected final MessageBufferPacker msgpack = MessagePack.newDefaultBufferPacker();
-
-    /**
-     * <p>Constructor.</p>
-     *
-     * @param agent the Auklet agent object.
-     */
-    protected AbstractSink(Auklet agent) {
-        this.agent = agent;
-    }
 
     @Override
     public void send(Throwable throwable) throws SinkException {
@@ -78,12 +70,12 @@ public abstract class AbstractSink implements Sink {
             byte[] payload = this.msgpack.toByteArray();
             if (payload == null) payload = new byte[0];
             int payloadSize = payload.length;
-            boolean payloadWillExceedLimit = this.agent.getUsageMonitor().willExceedLimit(payloadSize);
+            boolean payloadWillExceedLimit = this.getAgent().getUsageMonitor().willExceedLimit(payloadSize);
             if (!payloadWillExceedLimit) {
                 this.write(payload);
-                this.agent.getUsageMonitor().addMoreData(payloadSize);
+                this.getAgent().getUsageMonitor().addMoreData(payloadSize);
             }
-        } catch (IOException e) {
+        } catch (AukletException | IOException e) {
             throw new SinkException("Could not write event message", e);
         }
     }
@@ -120,14 +112,14 @@ public abstract class AbstractSink implements Sink {
         try {
             this.msgpack.packMapHeader(mapSize)
                     .packString("id").packString(UUID.randomUUID().toString())
-                    .packString("application").packString(this.agent.getAppId())
-                    .packString("macAddressHash").packString(this.agent.getMacHash())
-                    .packString("publicIP").packString(this.agent.getIpAddress())
+                    .packString("application").packString(this.getAgent().getAppId())
+                    .packString("macAddressHash").packString(this.getAgent().getMacHash())
+                    .packString("publicIP").packString(this.getAgent().getIpAddress())
                     .packString("systemMetrics");
             this.addSystemMetrics();
-            this.msgpack.packString("agentVersion").packString(Auklet.getVersion())
-                    .packString("device").packString(this.agent.getDeviceAuth().getClientUsername());
-        } catch (IOException | IllegalArgumentException e) {
+            this.msgpack.packString("agentVersion").packString(Auklet.VERSION)
+                    .packString("device").packString(this.getAgent().getDeviceAuth().getClientUsername());
+        } catch (AukletException | IOException | IllegalArgumentException e) {
             throw new SinkException("Error while assembling msgpack payload", e);
         }
     }
