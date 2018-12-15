@@ -64,7 +64,7 @@ public class DataUsageTracker extends AbstractConfigFile {
         if (moreBytes < 1) return;
         synchronized (this.lock) {
             this.bytesSent += moreBytes;
-            this.saveUsage();
+            this.saveUsage(this.bytesSent);
         }
     }
 
@@ -72,19 +72,21 @@ public class DataUsageTracker extends AbstractConfigFile {
     public void reset() {
         synchronized (this.lock) {
             this.bytesSent = 0L;
-            this.saveUsage();
+            this.saveUsage(this.bytesSent);
         }
     }
 
-    /** <p>Asynchronously saves the current usage value to disk.</p> */
-    private void saveUsage() {
+    /**
+     * <p>Asynchronously saves the current usage value to disk.</p>
+     *
+     * @param usage the current usage value.
+     */
+    private void saveUsage(long usage) {
         new Thread(() -> {
-            synchronized (this.lock) {
-                try {
-                    this.writeToDisk(this.bytesSent);
-                } catch (IOException | SecurityException e) {
-                    LOGGER.warn("Could not save data usage to disk", e);
-                }
+            try {
+                this.writeToDisk(usage);
+            } catch (IOException | SecurityException e) {
+                LOGGER.warn("Could not save data usage to disk", e);
             }
         }).start();
     }
@@ -97,11 +99,9 @@ public class DataUsageTracker extends AbstractConfigFile {
      * @throws SecurityException if an error occurs while writing the file.
      */
     private void writeToDisk(long usage) throws IOException {
-        synchronized (this.lock) {
-            Json usageJson = Json.object();
-            usageJson.set(DataUsageTracker.USAGE_KEY, usage);
-            Files.write(this.file.toPath(), usageJson.toString().getBytes("UTF-8"));
-        }
+        Json usageJson = Json.object();
+        usageJson.set(DataUsageTracker.USAGE_KEY, usage);
+        Files.write(this.file.toPath(), usageJson.toString().getBytes("UTF-8"));
     }
 
 }
