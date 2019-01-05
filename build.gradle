@@ -96,6 +96,7 @@ jar {
             'Built-JDK': System.getProperty('java.version'),
             'Implementation-Version': version,
             'Implementation-Title': project.name,
+            'Sealed': 'true'
         )
     }
 }
