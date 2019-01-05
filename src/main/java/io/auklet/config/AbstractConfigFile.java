@@ -1,5 +1,6 @@
 package io.auklet.config;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.misc.HasAgent;
@@ -15,7 +16,7 @@ public abstract class AbstractConfigFile extends HasAgent {
     protected File file;
 
     @Override
-    public void setAgent(Auklet agent) throws AukletException {
+    public void setAgent(@NonNull Auklet agent) throws AukletException {
         super.setAgent(agent);
         this.file = new File(agent.getConfigDir(), this.getName());
     }
@@ -25,6 +26,6 @@ public abstract class AbstractConfigFile extends HasAgent {
      *
      * @return never {@code null}.
      */
-    protected abstract String getName();
+    @NonNull protected abstract String getName();
 
 }

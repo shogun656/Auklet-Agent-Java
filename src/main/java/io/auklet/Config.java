@@ -1,12 +1,17 @@
 package io.auklet;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.misc.Util;
 
 /**
- * <p>Config object for the {@link Auklet} agent.</p>
+ * <p>Config object for the {@link Auklet} agent. For fluency, all setter methods in this class return
+ * {@code this} to support chaining.</p>
  *
  * <p>The table below shows all the available configuration options, the order of preference when a
- * configuration option is set in multiple ways, and the default value for non-required options.</p>
+ * configuration option is set in multiple ways, and the default value for non-required options. For
+ * configuration options that have setter methods, passing {@code null} to those methods will cause
+ * the agent to fallback on the environment variables/JVM system properties defined below.</p>
  *
  * <table>
  *   <thead>
@@ -124,7 +129,7 @@ import io.auklet.misc.Util;
  *
  * <ul>
  *   <li>All {@code public static} methods in the {@link Auklet} class.</li>
- *   <li>The {@link Config} class.</li>
+ *   <li>All {@code public} methods in the {@link Config} class.</li>
  *   <li>The {@link AukletException} class.</li>
  * </ul>
  *
@@ -141,145 +146,82 @@ public final class Config {
     private Boolean uncaughtExceptionHandler = null;
     private String serialPort = null;
 
-    /**
-     * <p>Sets the Auklet agent's app ID.</p>
-     *
-     * @param appId possibly {@code null}.
-     * @return {@code this}.
-     */
-    public Config setAppId(String appId) {
+    /** <p>Sets the Auklet agent's app ID. An empty string will be assumed {@code null}.</p> */
+    public Config setAppId(@Nullable String appId) {
         if (Util.isNullOrEmpty(appId)) appId = null;
         this.appId = appId;
         return this;
     }
 
-    /**
-     * <p>Sets the Auklet agent's API key.</p>
-     *
-     * @param apiKey possibly {@code null}.
-     * @return {@code this}.
-     */
-    public Config setApiKey(String apiKey) {
+    /** <p>Sets the Auklet agent's API key. An empty string will be assumed {@code null}.</p> */
+    public Config setApiKey(@Nullable String apiKey) {
         if (Util.isNullOrEmpty(appId)) appId = null;
         this.apiKey = apiKey;
         return this;
     }
 
-    /**
-     * <p>Sets the base URL of the Auklet API.</p>
-     *
-     * @param baseUrl possibly {@code null}.
-     * @return {@code this}.
-     */
-    public Config setBaseUrl(String baseUrl) {
+    /** <p>Sets the base URL of the Auklet API.</p> */
+    public Config setBaseUrl(@Nullable String baseUrl) {
         this.baseUrl = baseUrl;
         return this;
     }
 
-    /**
-     * <p>Sets the directory the Auklet agent will use to store its configuration files.</p>
-     *
-     * @param configDir possibly {@code null}.
-     * @return {@code this}.
-     */
-    public Config setConfigDir(String configDir) {
+    /** <p>Sets the directory the Auklet agent will use to store its configuration files.</p> */
+    public Config setConfigDir(@Nullable String configDir) {
         this.configDir = configDir;
         return this;
     }
 
-    /**
-     * <p>Tells the Auklet agent whether or not to setup a JVM shutdown hook to shut itself down.</p>
-     *
-     * @param autoShutdown possibly {@code null}.
-     * @return {@code this}.
-     */
-    public Config setAutoShutdown(Boolean autoShutdown) {
+    /** <p>Tells the Auklet agent whether or not to setup a JVM shutdown hook to shut itself down.</p> */
+    public Config setAutoShutdown(@Nullable Boolean autoShutdown) {
         this.autoShutdown = autoShutdown;
         return this;
     }
 
-    /**
-     * <p>Tells the Auklet agent whether or not to setup a JVM-wide uncaught exception handler.</p>
-     *
-     * @param uncaughtExceptionHandler possibly {@code null}.
-     * @return {@code this}.
-     */
-    public Config setUncaughtExceptionHandler(Boolean uncaughtExceptionHandler) {
+    /** <p>Tells the Auklet agent whether or not to setup a JVM-wide uncaught exception handler.</p> */
+    public Config setUncaughtExceptionHandler(@Nullable Boolean uncaughtExceptionHandler) {
         this.uncaughtExceptionHandler = uncaughtExceptionHandler;
         return this;
     }
 
-    /**
-     * <p>Tells the Auklet agent to write data to a serial port, instead of to {@code auklet.io}.</p>
-     *
-     * @param serialPort the name of the serial port to use; {@code null} disables writing to a serial port.
-     * @return {@code this}.
-     */
-    public Config setSerialPort(String serialPort) {
+    /** <p>Tells the Auklet agent to write data to a serial port, instead of to {@code auklet.io}.</p> */
+    public Config setSerialPort(@Nullable String serialPort) {
         this.serialPort = serialPort;
         return this;
     }
 
-    /**
-     * <p>Returns the desired app ID.</p>
-     *
-     * @return possibly {@code null}.
-     */
-    /*package*/ String getAppId() {
+    /** <p>Returns the desired app ID.</p> */
+    /*package*/ @CheckForNull String getAppId() {
         return appId;
     }
 
-    /**
-     * <p>Returns the desired API key.</p>
-     *
-     * @return possibly {@code null}.
-     */
-    /*package*/ String getApiKey() {
+    /** <p>Returns the desired API key.</p> */
+    /*package*/ @CheckForNull String getApiKey() {
         return apiKey;
     }
 
-    /**
-     * <p>Returns the desired API base URL.</p>
-     *
-     * @return possibly {@code null}.
-     */
-    /*package*/ String getBaseUrl() {
+    /** <p>Returns the desired API base URL.</p> */
+    /*package*/ @CheckForNull String getBaseUrl() {
         return baseUrl;
     }
 
-    /**
-     * <p>Returns the desired config directory.</p>
-     *
-     * @return possibly {@code null}.
-     */
-    /*package*/ String getConfigDir() {
+    /** <p>Returns the desired config directory.</p> */
+    /*package*/ @CheckForNull String getConfigDir() {
         return configDir;
     }
 
-    /**
-     * <p>Returns the desired auto-shutdown behavior.</p>
-     *
-     * @return possibly {@code null}.
-     */
-    /*package*/ Boolean getAutoShutdown() {
+    /** <p>Returns the desired auto-shutdown behavior.</p> */
+    /*package*/ @CheckForNull Boolean getAutoShutdown() {
         return autoShutdown;
     }
 
-    /**
-     * <p>Returns the desired uncaught exception handler behavior.</p>
-     *
-     * @return possibly {@code null}.
-     */
-    /*package*/ Boolean getUncaughtExceptionHandler() {
+    /** <p>Returns the desired uncaught exception handler behavior.</p> */
+    /*package*/ @CheckForNull Boolean getUncaughtExceptionHandler() {
         return uncaughtExceptionHandler;
     }
 
-    /**
-     * <p>Returns the desired serial port.</p>
-     *
-     * @return possibly {@code null}.
-     */
-    /*package*/ String getSerialPort() {
+    /** <p>Returns the desired serial port.</p> */
+    /*package*/ @CheckForNull String getSerialPort() {
         return serialPort;
     }
 

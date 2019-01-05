@@ -1,6 +1,6 @@
 package io.auklet.config;
 
-import io.auklet.Auklet;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
 import mjson.Json;
 import okhttp3.Request;
@@ -39,7 +39,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
      *
      * @return never {@code null}.
      */
-    public String getUrl() { return this.url; }
+    @NonNull public String getUrl() { return this.url; }
 
     @Override
     protected Json readFromDisk() {

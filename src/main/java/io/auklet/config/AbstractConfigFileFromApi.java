@@ -1,7 +1,10 @@
 package io.auklet.config;
 
-import io.auklet.Auklet;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.AukletException;
+import io.auklet.misc.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,7 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
      * @throws AukletException if the config cannot be read from disk or fetched from the API, or if it
      * cannot be written to disk.
      */
+    @NonNull
     protected final T loadConfig() throws AukletException {
         T config = this.readFromDisk();
         if (config == null) {
@@ -40,7 +44,7 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
      *
      * @return {@code null} if and only if the file does not exist on disk or could not be read.
      */
-    protected abstract T readFromDisk();
+    @CheckForNull protected abstract T readFromDisk();
 
     /**
      * <p>Fetches the config file from the Auklet API.</p>
@@ -48,7 +52,7 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
      * @return never {@code null}.
      * @throws AukletException if there is a problem communicating with the API.
      */
-    protected abstract T fetchFromApi() throws AukletException;
+    @NonNull protected abstract T fetchFromApi() throws AukletException;
 
     /**
      * <p>Writes the config file to disk.</p>
@@ -56,7 +60,7 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
      * @param contents never {@code null}.
      * @throws AukletException if an error occurs while writing the file.
      */
-    protected abstract void writeToDisk(T contents) throws AukletException;
+    @NonNull protected abstract void writeToDisk(T contents) throws AukletException;
 
     /**
      * <p>Loads the config file from disk into a string, using the UTF-8 charset.</p>
@@ -64,7 +68,7 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
      * @return never {@code null}.
      * @throws IOException if the file does not exit or cannot be read.
      */
-    protected final String getStringFromDisk() throws IOException {
+    @NonNull protected final String getStringFromDisk() throws IOException {
         try {
             byte[] bytes = Files.readAllBytes(this.file.toPath());
             return new String(bytes, "UTF-8");
@@ -76,14 +80,15 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
     /**
      * <p>Writes the given string to the config file on disk, using the UTF-8 charset.</p>
      *
-     * @param s the string to write.
+     * @param s the string to write. No-op if {@code null} or empty.
      * @throws AukletException if an error occurs while writing to disk.
      */
-    protected final void saveStringToDisk(String s) throws AukletException {
+    protected final void saveStringToDisk(@Nullable String s) throws AukletException {
+        if (Util.isNullOrEmpty(s)) return;
         try {
             Files.write(this.file.toPath(), s.getBytes("UTF-8"));
         } catch (IOException e) {
-            throw new AukletException("Could not write Auklet device cert file to disk", e);
+            throw new AukletException("Could not write Auklet config file to disk", e);
         }
     }
 

@@ -1,11 +1,10 @@
 package io.auklet.misc;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 
-/**
- * <p>Descendants of this class have a reference to the {@link Auklet} agent.</p>
- */
+/** <p>Descendants of this class have a reference to the {@link Auklet} agent.</p> */
 public abstract class HasAgent {
 
     private final Object lock = new Object();
@@ -14,10 +13,11 @@ public abstract class HasAgent {
     /**
      * <p>Sets the Auklet agent reference.</p>
      *
-     * @param agent the Auklet agent object.
-     * @throws AukletException if the agent reference has already been set.
+     * @param agent the Auklet agent object. Never {@code null}.
+     * @throws AukletException if the agent reference has already been set, or if the input is {@code null}.
      */
-    public void setAgent(Auklet agent) throws AukletException {
+    public void setAgent(@NonNull Auklet agent) throws AukletException {
+        if (agent == null) throw new AukletException("Auklet agent is null");
         synchronized(this.lock) {
             if (this.agent != null) throw new AukletException("Auklet agent already set");
             this.agent = agent;
@@ -30,7 +30,7 @@ public abstract class HasAgent {
      * @return never {@code null}.
      * @throws AukletException if the agent reference has not been set.
      */
-    protected final Auklet getAgent() throws AukletException {
+    @NonNull protected final Auklet getAgent() throws AukletException {
         synchronized(this.lock) {
             if (this.agent == null) throw new AukletException("Auklet agent not set");
             return this.agent;

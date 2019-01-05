@@ -1,6 +1,6 @@
 package io.auklet.misc;
 
-import io.auklet.Auklet;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -41,9 +41,11 @@ public final class AukletApi {
     /**
      * <p>Constructor.</p>
      *
-     * @param apiKey the Auklet API key.
+     * @param apiKey the Auklet API key. Never {@code null} or empty.
+     * @throws AukletException if the API key is {@code null} or empty.
      */
-    public AukletApi(String apiKey) {
+    public AukletApi(@NonNull String apiKey) throws AukletException {
+        if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty");
         this.apiKey = apiKey;
         this.httpClient = new OkHttpClient.Builder()
                 .addInterceptor(AukletApi.INTERCEPTOR)
@@ -57,7 +59,8 @@ public final class AukletApi {
      * @return never {@code null}.
      * @throws AukletException if an error occurs with the request.
      */
-    public Response doRequest(Request.Builder request) throws AukletException {
+    @NonNull public Response doRequest(@NonNull Request.Builder request) throws AukletException {
+        if (request == null) throw new AukletException("HTTP request is null");
         // We handle auth in this method so that the API key does not have
         // to be shared across classes.
         request.header("Authorization", "JWT " + this.apiKey);
@@ -88,7 +91,7 @@ public final class AukletApi {
      *
      * @return never {@code null}.
      */
-    private static HttpLoggingInterceptor createLogger() {
+    @NonNull private static HttpLoggingInterceptor createLogger() {
         HttpLoggingInterceptor.Level level;
         if (HTTP_LOGGER.isTraceEnabled()) level = HttpLoggingInterceptor.Level.BODY;
         else if (HTTP_LOGGER.isDebugEnabled()) level = HttpLoggingInterceptor.Level.HEADERS;

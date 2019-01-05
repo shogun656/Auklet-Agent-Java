@@ -1,6 +1,8 @@
 package io.auklet.config;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
+import io.auklet.AukletException;
 import mjson.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +14,7 @@ import java.nio.file.Files;
  * <p>The <i>data usage tracker file</i> is used to persist between restarts the amount of data that has
  * been sent by the Auklet agent to the sink.</p>
  */
-public class DataUsageTracker extends AbstractConfigFile {
+public final class DataUsageTracker extends AbstractConfigFile {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataUsageTracker.class);
     private static final String USAGE_FILE = "usage";
@@ -21,14 +23,13 @@ public class DataUsageTracker extends AbstractConfigFile {
     private final Object lock = new Object();
     private long bytesSent = 0L;
 
-    /**
-     * <p>Constructor.</p>
-     */
-    public DataUsageTracker() {
+    @Override
+    public void setAgent(@NonNull Auklet agent) throws AukletException {
+        super.setAgent(agent);
         try {
             // If the file doesn't exist, create it.
             if (!this.file.exists()) {
-                this.writeToDisk(0L);
+                this.writeUsageToDisk(0L);
             }
             // Read from disk.
             byte[] usageBytes = Files.readAllBytes(this.file.toPath());
@@ -84,7 +85,7 @@ public class DataUsageTracker extends AbstractConfigFile {
     private void saveUsage(long usage) {
         new Thread(() -> {
             try {
-                this.writeToDisk(usage);
+                this.writeUsageToDisk(usage);
             } catch (IOException | SecurityException e) {
                 LOGGER.warn("Could not save data usage to disk", e);
             }
@@ -98,7 +99,7 @@ public class DataUsageTracker extends AbstractConfigFile {
      * @throws IOException if an error occurs while writing the file.
      * @throws SecurityException if an error occurs while writing the file.
      */
-    private void writeToDisk(long usage) throws IOException {
+    private void writeUsageToDisk(long usage) throws IOException {
         Json usageJson = Json.object();
         usageJson.set(DataUsageTracker.USAGE_KEY, usage);
         Files.write(this.file.toPath(), usageJson.toString().getBytes("UTF-8"));

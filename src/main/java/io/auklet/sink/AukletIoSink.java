@@ -1,5 +1,7 @@
 package io.auklet.sink;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.config.AukletIoBrokers;
@@ -33,10 +35,11 @@ public final class AukletIoSink extends AbstractSink {
     /**
      * <p>Constructs the underlying MQTT client.</p>
      *
-     * @throws AukletException if the underlying MQTT client cannot be constructed or started.
+     * @throws AukletException if the underlying MQTT client cannot be constructed or started, or if
+     * the SSL cert/broker config cannot be obtained.
      */
     @Override
-    public void setAgent(Auklet agent) throws AukletException {
+    public void setAgent(@NonNull Auklet agent) throws AukletException {
         super.setAgent(agent);
         try {
             AukletIoCert cert = new AukletIoCert();
@@ -62,20 +65,20 @@ public final class AukletIoSink extends AbstractSink {
     }
 
     @Override
-    public void write(byte[] bytes) throws SinkException {
+    public void write(@Nullable byte[] bytes) throws AukletException {
         try {
             MqttMessage message = new MqttMessage(bytes);
             // TODO does MqttMessage add more data beyond what's in the bytes array?
             // if so, we need to change how we report/track data usage
             message.setQos(1);
             client.publish(this.getAgent().getDeviceAuth().getMqttEventsTopic(), message);
-        } catch (AukletException | MqttException e) {
-            throw new SinkException("Error while publishing MQTT message", e);
+        } catch (MqttException e) {
+            throw new AukletException("Error while publishing MQTT message", e);
         }
     }
 
     @Override
-    public void shutdown() throws SinkException {
+    public void shutdown() throws AukletException {
         super.shutdown();
         if (this.client.isConnected()) {
             try {
@@ -98,7 +101,12 @@ public final class AukletIoSink extends AbstractSink {
         }
     }
 
-    private MqttCallback getCallback() {
+    /**
+     * <p>Returns the MQTT callback object used by the MQTT client.</p>
+     *
+     * @return never {@code null}.
+     */
+    @NonNull private MqttCallback getCallback() {
         return new MqttCallback() {
             @Override
             public void connectionLost(Throwable cause) {
@@ -117,7 +125,15 @@ public final class AukletIoSink extends AbstractSink {
         };
     }
 
-    private DisconnectedBufferOptions getDisconnectBufferOptions(Auklet agent) {
+    /**
+     * <p>Returns the MQTT disconnected buffer options object.</p>
+     *
+     * @param agent the Auklet agent reference. Never {@code null}.
+     * @return never {@code null}.
+     * @throws AukletException if the options object cannot be constructed, or if any argument is {@code null}.
+     */
+    @NonNull private DisconnectedBufferOptions getDisconnectBufferOptions(@NonNull Auklet agent) throws AukletException {
+        if (agent == null) throw new AukletException("Auklet agent is null");
         // Divide by 5KB to get amount of messages.
         long storageLimit = agent.getUsageLimit().getStorageLimit();
         int bufferSize = (storageLimit == 0) ? 5000 : (int) storageLimit / 5000;
@@ -129,7 +145,17 @@ public final class AukletIoSink extends AbstractSink {
         return disconnectOptions;
     }
 
-    private MqttConnectOptions getConnectOptions(Auklet agent, X509Certificate cert) throws AukletException {
+    /**
+     * <p>Returns the MQTT connect options object.</p>
+     *
+     * @param agent the Auklet agent reference. Never {@code null}.
+     * @param cert the Auklet SSL certificate object. Never {@code null}.
+     * @return never {@code null}.
+     * @throws AukletException if the options object cannot be constructed, or if any argument is {@code null}.
+     */
+    @NonNull private MqttConnectOptions getConnectOptions(@NonNull Auklet agent, @NonNull X509Certificate cert) throws AukletException {
+        if (agent == null) throw new AukletException("Auklet agent is null");
+        if (cert == null) throw new AukletException("Auklet SSL cert is null");
         MqttConnectOptions options = new MqttConnectOptions();
         options.setUserName(agent.getDeviceAuth().getClientUsername());
         options.setPassword(agent.getDeviceAuth().getClientPassword().toCharArray());
@@ -142,30 +168,36 @@ public final class AukletIoSink extends AbstractSink {
         return options;
     }
 
-    private SSLSocketFactory getSocketFactory(X509Certificate cert) throws AukletException {
+    /**
+     * <p>Returns the MQTT SSL socket factory.</p>
+     *
+     * @param cert the Auklet SSL certificate object. Never {@code null}.
+     * @return never {@code null}.
+     * @throws AukletException if the factory cannot be constructed, or if any argument is {@code null}.
+     */
+    @NonNull private SSLSocketFactory getSocketFactory(@NonNull X509Certificate cert) throws AukletException {
+        if (cert == null) throw new AukletException("Auklet SSL cert is null");
         try {
-            // Prepare a keystore that contains the CA cert.
-            KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
-            caKs.load(null, null);
-            caKs.setCertificateEntry("ca-certificate", cert);
-            // Define and return the SSL context.
+            KeyStore ca = KeyStore.getInstance(KeyStore.getDefaultType());
+            ca.load(null, null);
+            ca.setCertificateEntry("ca-certificate", cert);
             TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-            tmf.init(caKs);
+            tmf.init(ca);
             SSLContext context = SSLContext.getInstance("TLSv1.2");
             context.init(null, tmf.getTrustManagers(), null);
-            // Return a socket factory from this context.
             return context.getSocketFactory();
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
             throw new AukletException("Error while setting up MQTT SSL socket factory", e);
         }
     }
 
+    /** <p>Shuts down the MQTT client's thread pool.</p> */
     private void shutdownThreadPool() {
         this.executorService.shutdown();
         try {
             this.executorService.awaitTermination(3, TimeUnit.SECONDS);
         } catch (InterruptedException e2) {
-            // End users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
+            // End-users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
             // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
             LOGGER.warn("Interrupted while awaiting MQTT thread pool shutdown", e2);
             Thread.currentThread().interrupt();

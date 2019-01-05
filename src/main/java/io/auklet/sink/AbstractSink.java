@@ -1,5 +1,6 @@
 package io.auklet.sink;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.misc.HasAgent;
@@ -12,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -27,7 +27,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
     protected final MessageBufferPacker msgpack = MessagePack.newDefaultBufferPacker();
 
     @Override
-    public void send(Throwable throwable) throws SinkException {
+    public void send(@Nullable Throwable throwable) throws AukletException {
         if (throwable == null) return;
         StackTraceElement[] stackTrace = throwable.getStackTrace();
         synchronized (this.lock) {
@@ -49,7 +49,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                             .packString("lineNumber").packInt(lineNumber < 0 ? -1 : lineNumber);
                 }
             } catch (IOException e) {
-                throw new SinkException("Could not assemble event message", e);
+                throw new AukletException("Could not assemble event message", e);
             }
             this.writeToSink();
         }
@@ -59,10 +59,10 @@ public abstract class AbstractSink extends HasAgent implements Sink {
      * <p>Writes the contents of the MessagePacker to the underlying sink, unless it is empty and unless
      * it is so large that it would exceed the data usage limit.</p>
      *
-     * @throws SinkException if an error occurs while writing the data. This exception is <i>not</i> thrown
-     * if the data usage limit would be exceeded; in that case, this method no-ops.
+     * @throws AukletException if an error occurs while writing the data. This exception is <i>not</i>
+     * thrown if the data usage limit would be exceeded; in that case, this method no-ops.
      */
-    private final void writeToSink() throws SinkException {
+    private void writeToSink() throws AukletException {
         // If the message is not empty, and if it will not push the device over the limit,
         // write the message and update the usage monitor.
         try {
@@ -75,8 +75,8 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                 this.write(payload);
                 this.getAgent().getUsageMonitor().addMoreData(payloadSize);
             }
-        } catch (AukletException | IOException e) {
-            throw new SinkException("Could not write event message", e);
+        } catch (IOException e) {
+            throw new AukletException("Could not write event message", e);
         }
     }
 
@@ -84,17 +84,17 @@ public abstract class AbstractSink extends HasAgent implements Sink {
      * <p>Writes the given byte array to the underlying data sink.</p>
      *
      * @param bytes no-op if null or empty.
-     * @throws SinkException if the data cannot be written.
+     * @throws AukletException if the data cannot be written.
      */
-    protected abstract void write(byte[] bytes) throws SinkException;
+    protected abstract void write(@Nullable byte[] bytes) throws AukletException;
 
     @Override
-    public void shutdown() throws SinkException {
+    public void shutdown() throws AukletException {
         synchronized (this.lock) {
             try {
                 this.msgpack.close();
             } catch (IOException e) {
-                throw new SinkException("Error while shutting down MessagePacker", e);
+                throw new AukletException("Error while shutting down MessagePacker", e);
             }
         }
     }
@@ -104,11 +104,11 @@ public abstract class AbstractSink extends HasAgent implements Sink {
      * map with at least 7 elements in it.</p>
      *
      * @param mapSize the size of the map message.
-     * @throws SinkException if the map size is less than 7, or if an error occurs while assembling the
+     * @throws AukletException if the map size is less than 7, or if an error occurs while assembling the
      * message payload.
      */
-    private void initMessage(int mapSize) throws SinkException {
-        if (mapSize < 7) throw new SinkException("Message size is too small.");
+    private void initMessage(int mapSize) throws AukletException {
+        if (mapSize < 7) throw new AukletException("Message size is too small.");
         try {
             this.msgpack.packMapHeader(mapSize)
                     .packString("id").packString(UUID.randomUUID().toString())
@@ -119,8 +119,8 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             this.addSystemMetrics();
             this.msgpack.packString("agentVersion").packString(Auklet.VERSION)
                     .packString("device").packString(this.getAgent().getDeviceAuth().getClientUsername());
-        } catch (AukletException | IOException | IllegalArgumentException e) {
-            throw new SinkException("Error while assembling msgpack payload", e);
+        } catch (IOException | IllegalArgumentException e) {
+            throw new AukletException("Error while assembling msgpack payload", e);
         }
     }
 
@@ -128,35 +128,28 @@ public abstract class AbstractSink extends HasAgent implements Sink {
      * <p>Adds JVM system metrics to the current position in the given MessagePacker as a map object.</p>
      *
      * @throws IllegalArgumentException if the MessagePacker is {@code null}.
-     * @throws SinkException if an error occurs while assembling the message.
+     * @throws AukletException if an error occurs while assembling the message.
      */
-    private void addSystemMetrics() throws SinkException {
+    private void addSystemMetrics() throws AukletException {
         try {
             this.msgpack.packMapHeader(4);
             // Calculate memory usage.
-            Optional<Long> freeMem = OSMX.BEAN.getFreePhysicalMemorySize();
-            Optional<Long> totalMem = OSMX.BEAN.getTotalPhysicalMemorySize();
-            double memUsage;
-            if (freeMem.isPresent() && totalMem.isPresent()) {
-                memUsage = 100 * (1 - ((double) freeMem.get() / (double) totalMem.get()));
-            } else {
-                memUsage = 0;
-            }
+            double memUsage = OSMX.BEAN.getFreePhysicalMemorySize().flatMap(free ->
+                    OSMX.BEAN.getTotalPhysicalMemorySize().map(total ->
+                            100 * (1 - ((double) free / (double) total))
+                    )
+            ).orElse(0d);
             this.msgpack.packString("memoryUsage").packDouble(memUsage);
             // Calculate CPU usage.
-            double cpuUsage;
-            Optional<Double> sysLoadAvg = OSMX.BEAN.getSystemLoadAverage();
-            if (sysLoadAvg.isPresent()) {
-                cpuUsage = 100 * (sysLoadAvg.get() / OSMX.BEAN.getAvailableProcessors());
-            } else {
-                cpuUsage = 0;
-            }
+            double cpuUsage = OSMX.BEAN.getSystemLoadAverage()
+                    .map(value -> 100 * (value / OSMX.BEAN.getAvailableProcessors()))
+                    .orElse(0d);
             this.msgpack.packString("cpuUsage").packDouble(cpuUsage);
             // Add other system metrics.
             this.msgpack.packString("outboundNetwork").packDouble(0);
             this.msgpack.packString("inboundNetwork").packDouble(0);
         } catch (IOException e) {
-            throw new SinkException("Error while assembling msgpack payload", e);
+            throw new AukletException("Error while assembling msgpack payload", e);
         }
     }
 

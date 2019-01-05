@@ -1,5 +1,6 @@
 package io.auklet.config;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import mjson.Json;
@@ -24,13 +25,9 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
     private long cellularDataLimit;
     private int cellPlanDate;
 
-    /**
-     * <p>Constructor.</p>
-     *
-     * @throws AukletException if the underlying config file cannot be obtained from the filesystem/API,
-     * or if it cannot be written to disk.
-     */
-    public DataUsageLimit() throws AukletException {
+    @Override
+    public void setAgent(@NonNull Auklet agent) throws AukletException {
+        super.setAgent(agent);
         Json config = this.loadConfig();
         this.updateConfig(config);
     }
@@ -115,8 +112,10 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
      * <p>Updates this object with the config values from the JSON.</p>
      *
      * @param config never {@code null}.
+     * @throws AukletException if the input is {@code null}.
      */
-    private void updateConfig(Json config) {
+    private void updateConfig(@NonNull Json config) throws AukletException {
+        if (config == null) throw new AukletException("Data usage limit JSON is null");
         this.emissionPeriod = config.at("emission_period").asLong() * SECONDS_TO_MILLISECONDS;
         this.storageLimit = config.at("storage").at("storage_limit", 0L).asLong() * MEGABYTES_TO_BYTES;
         this.cellularDataLimit = config.at("data").at("cellular_data_limit", 0L).asLong() * MEGABYTES_TO_BYTES;

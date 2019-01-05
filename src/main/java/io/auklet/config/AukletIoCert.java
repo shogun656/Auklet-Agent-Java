@@ -1,6 +1,6 @@
 package io.auklet.config;
 
-import io.auklet.Auklet;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -48,7 +48,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
      *
      * @return never {@code null}.
      */
-    public X509Certificate getCert() { return this.cert; }
+    @NonNull public X509Certificate getCert() { return this.cert; }
 
     @Override
     protected String readFromDisk() {
@@ -70,11 +70,11 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
                 if (response.isSuccessful()) {
                     return responseString;
                 } else {
-                    throw new AukletException(String.format("Error while getting cert: %s: %s", response.message(), responseString));
+                    throw new AukletException(String.format("Error while getting Auklet SSL cert: %s: %s", response.message(), responseString));
                 }
             }
         } catch (IOException e) {
-            throw new AukletException("Could not get cert", e);
+            throw new AukletException("Error while getting Auklet SSL cert", e);
         }
     }
 

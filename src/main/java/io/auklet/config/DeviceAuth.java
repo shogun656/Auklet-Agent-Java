@@ -1,5 +1,6 @@
 package io.auklet.config;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import mjson.Json;
@@ -37,13 +38,13 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
     private String clientPassword;
 
     @Override
-    public void setAgent(Auklet agent) throws AukletException {
+    public void setAgent(@NonNull Auklet agent) throws AukletException {
         super.setAgent(agent);
         // Setup AES cipher.
         try {
             this.aesCipher = Cipher.getInstance("AES");
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-            throw new AukletException(e);
+            throw new AukletException("Could not get AES cipher", e);
         }
         // MQTT credentials are derived from the app ID, so use that as the encryption key.
         // This way, if the app ID changes, we will obtain new credentials.
@@ -66,7 +67,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
      *
      * @return never {@code null}.
      */
-    public String getOrganizationId() {
+    @NonNull public String getOrganizationId() {
         return this.organizationId;
     }
 
@@ -75,7 +76,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
      *
      * @return never {@code null}.
      */
-    public String getClientId() {
+    @NonNull public String getClientId() {
         return this.clientId;
     }
 
@@ -84,7 +85,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
      *
      * @return never {@code null}.
      */
-    public String getClientUsername() {
+    @NonNull public String getClientUsername() {
         return this.clientUsername;
     }
 
@@ -93,7 +94,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
      *
      * @return never {@code null}.
      */
-    public String getClientPassword() {
+    @NonNull public String getClientPassword() {
         return this.clientPassword;
     }
 
@@ -102,7 +103,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
      *
      * @return never {@code null}.
      */
-    public String getMqttEventsTopic() {
+    @NonNull public String getMqttEventsTopic() {
         return "java/events/" + this.getOrganizationId() + "/" + this.getClientUsername();
     }
 

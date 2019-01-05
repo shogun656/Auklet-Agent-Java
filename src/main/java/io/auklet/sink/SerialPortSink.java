@@ -1,5 +1,7 @@
 package io.auklet.sink;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import purejavacomm.CommPortIdentifier;
@@ -23,7 +25,7 @@ public final class SerialPortSink extends AbstractSink {
      * serial port's underlying output stream cannot be obtained.
      */
     @Override
-    public void setAgent(Auklet agent) throws AukletException {
+    public void setAgent(@NonNull Auklet agent) throws AukletException {
         try {
             String appName = "auklet:" + this.getAgent().getAppId();
             this.port = (SerialPort) CommPortIdentifier.getPortIdentifier(this.getAgent().getSerialPort()).open(appName, 1000);
@@ -43,29 +45,29 @@ public final class SerialPortSink extends AbstractSink {
      * map with 2 elements: the name of the target MQTT topic and the event payload.</p>
      */
     @Override
-    public void send(Throwable throwable) throws SinkException {
+    public void send(@Nullable Throwable throwable) throws AukletException {
         try {
             this.msgpack.packMapHeader(2)
                     .packString("topic").packString(this.getAgent().getDeviceAuth().getMqttEventsTopic())
                     .packString("payload"); // The value will be set by calling super.write().
-        } catch (AukletException | IOException e) {
-            throw new SinkException("Could not assemble event message", e);
+        } catch (IOException e) {
+            throw new AukletException("Could not assemble event message", e);
         }
         super.send(throwable);
     }
 
     @Override
-    public void write(byte[] bytes) throws SinkException {
+    public void write(@Nullable byte[] bytes) throws AukletException {
         try {
             this.out.write(bytes);
             this.out.flush();
         } catch (IOException e) {
-            throw new SinkException("Could not write data to serial port", e);
+            throw new AukletException("Could not write data to serial port", e);
         }
     }
 
     @Override
-    public void shutdown() throws SinkException {
+    public void shutdown() throws AukletException {
         super.shutdown();
         this.port.close(); // implicitly closes this.out
     }

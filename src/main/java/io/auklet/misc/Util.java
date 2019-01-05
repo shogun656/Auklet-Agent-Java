@@ -1,5 +1,8 @@
 package io.auklet.misc;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +30,7 @@ public final class Util {
      * @param s the string to check.
      * @return {@code s == null || s.isEmpty()}
      */
-    public static boolean isNullOrEmpty(String s) {
+    public static boolean isNullOrEmpty(@Nullable String s) {
         return s == null || s.isEmpty();
     }
 
@@ -38,7 +41,7 @@ public final class Util {
      * @param b the second argument.
      * @return {@code a == null ? b : a}.
      */
-    public static String defaultValue(String a, String b) {
+    @CheckForNull public static String defaultValue(@Nullable String a, @Nullable String b) {
         return a == null ? b : a;
     }
 
@@ -48,7 +51,7 @@ public final class Util {
      * @param s the input string.
      * @return {@code null} if and only if the input string is {@code null}.
      */
-    public static String removeTrailingSlash(String s) {
+    @CheckForNull public static String removeTrailingSlash(@Nullable String s) {
         if (s == null) return null;
         if (s.endsWith("/")) {
             s = s.substring(0, s.length() - 1);
@@ -61,7 +64,7 @@ public final class Util {
      *
      * @param file no-op if {@code null}.
      */
-    public static void deleteQuietly(Path file) {
+    public static void deleteQuietly(@Nullable Path file) {
         if (file == null) return;
         try {
             Files.delete(file);
@@ -83,10 +86,10 @@ public final class Util {
      * parameter is {@code null} or empty, no JVM system property is checked.
      * @return possibly {@code null}.
      */
-    public static String getValue(String fromThisObj, String envVar, String sysProp) {
+    @CheckForNull public static String getValue(@Nullable String fromThisObj, @Nullable String envVar, @Nullable String sysProp) {
         if (fromThisObj != null) return fromThisObj;
         String fromEnv = null;
-        if (!Util.isNullOrEmpty(envVar)) {
+        if (!isNullOrEmpty(envVar)) {
             try {
                 fromEnv = System.getenv(envVar);
             } catch (SecurityException e) {
@@ -96,7 +99,7 @@ public final class Util {
         }
         if (fromEnv != null) return fromEnv;
         String fromProp = null;
-        if (!Util.isNullOrEmpty(sysProp)) {
+        if (!isNullOrEmpty(sysProp)) {
             try {
                 fromProp = System.getProperty(sysProp);
             } catch (SecurityException e) {
@@ -120,19 +123,20 @@ public final class Util {
      * @return whatever boolean value is determined by the logic described above, or {@code false}
      * if all above described options fail to produce a value.
      */
-    public static boolean getValue(Boolean fromThisObj, String envVar, String sysProp) {
+    public static boolean getValue(@Nullable Boolean fromThisObj, @Nullable String envVar, @Nullable String sysProp) {
         if (fromThisObj != null) return fromThisObj;
-        return Boolean.valueOf(Util.getValue((String) null, envVar, sysProp));
+        return Boolean.valueOf(getValue((String) null, envVar, sysProp));
     }
 
     /**
      * <p>Returns the MD5 hash of the MAC address of the first non-loopback network interface that is found by
      * this method.</p>
      *
-     * @return never {@code null}. If no such interface can be found, or if its MAC address cannot be read,
-     * or if this JVM does not support the MD5 algorithm, the string literal {@code unknown} is returned.
+     * @return never {@code null} or empty. If no such interface can be found, or if its MAC address cannot
+     * be read, or if this JVM does not support the MD5 algorithm, the string literal {@code unknown} is
+     * returned.
      */
-    public static String getMacAddressHash() {
+    @NonNull public static String getMacAddressHash() {
         try {
             // Find the first non-loopback interface on the system with an accessible hardware (MAC) address.
             NetworkInterface networkInterface = null;
@@ -146,7 +150,7 @@ public final class Util {
             }
             if (networkInterface == null) {
                 LOGGER.warn("Could not find a non-loopback interface with an available MAC address.");
-                return Util.UNKNOWN_VALUE;
+                return UNKNOWN_VALUE;
             }
             // Convert bytes of hardware address into human-readable form.
             byte[] mac = networkInterface.getHardwareAddress();
@@ -166,7 +170,7 @@ public final class Util {
             return hexString.toString();
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
             LOGGER.warn("Error while calculating MAC address hash", e);
-            return Util.UNKNOWN_VALUE;
+            return UNKNOWN_VALUE;
         }
     }
 
@@ -174,15 +178,15 @@ public final class Util {
      * <p>Gets the public IP address of the machine upon which this JVM is running, via
      * {@code http://checkip.amazonaws.com}.</p>
      *
-     * @return never {@code null}. If an error occurs, it is logged and this function returns the string
-     * literal {@code unknown}.
+     * @return never {@code null} or empty. If an error occurs, it is logged and this function returns
+     * the string literal {@code unknown}.
      */
-    public static String getIpAddress() {
+    @NonNull public static String getIpAddress() {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL("http://checkip.amazonaws.com").openStream()))) {
-            return Util.defaultValue(in.readLine(), Util.UNKNOWN_VALUE);
+            return defaultValue(in.readLine(), UNKNOWN_VALUE);
         } catch (IOException e) {
             LOGGER.warn("Could not get public IP address", e);
-            return Util.UNKNOWN_VALUE;
+            return UNKNOWN_VALUE;
         }
     }
 

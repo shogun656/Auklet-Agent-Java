@@ -8,14 +8,14 @@ package io.auklet;
  *
  * <ul>
  *   <li>All {@code public static} methods in the {@link Auklet} class.</li>
- *   <li>The {@link Config} class.</li>
+ *   <li>All {@code public} methods in the {@link Config} class.</li>
  *   <li>The {@link AukletException} class.</li>
  * </ul>
  *
  * <p><b>Unless instructed to do so by Auklet support, do not use any classes/fields/methods other than
  * those described above.</b></p>
  */
-public class AukletException extends Exception {
+public final class AukletException extends Exception {
 
     public static final long serialVersionUID = 0L;
 

@@ -1,5 +1,7 @@
 package io.auklet.daemon;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+import io.auklet.AukletException;
 import io.auklet.config.DataUsageLimit;
 import io.auklet.config.DataUsageTracker;
 
@@ -12,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * <p>This class handles tracking of data usage, enforcement of data usage limits, and periodic refresh
  * of data usage limit config.</p>
  */
-public class DataUsageMonitor {
+public final class DataUsageMonitor {
 
     private final Object lock = new Object();
     private final DataUsageLimit limit;
@@ -26,8 +28,11 @@ public class DataUsageMonitor {
      *
      * @param limit the data usage limit config, never {@code null}.
      * @param tracker the data usage tracker object, never {@code null}.
+     * @throws AukletException if any arguments are {@code null}.
      */
-    public DataUsageMonitor(DataUsageLimit limit, DataUsageTracker tracker) {
+    public DataUsageMonitor(@NonNull DataUsageLimit limit, @NonNull DataUsageTracker tracker) throws AukletException {
+        if (limit == null) throw new AukletException("Data usage limiter is null");
+        if (tracker == null) throw new AukletException("Data usage tracker is null");
         this.limit = limit;
         this.tracker = tracker;
         this.threadPool = new ScheduledThreadPoolExecutor(2, (Runnable r) -> {
@@ -35,6 +40,10 @@ public class DataUsageMonitor {
             t.setDaemon(true);
             return t;
         });
+    }
+
+    /** <p>Starts the usage monitor daemon threads.</p> */
+    public void start() {
         this.threadPool.scheduleAtFixedRate(this.createDataResetTask(), 0L, 1L, TimeUnit.DAYS);
         this.threadPool.scheduleAtFixedRate(this.createLimitConfigRefreshTask(), 0L, 1L, TimeUnit.HOURS);
     }
@@ -76,7 +85,7 @@ public class DataUsageMonitor {
      *
      * @return never {@code null}.
      */
-    private Runnable createDataResetTask() {
+    @NonNull private Runnable createDataResetTask() {
         return () -> {
             synchronized (this.lock) {
                 if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) == this.limit.getCellPlanDate()) {
@@ -96,7 +105,7 @@ public class DataUsageMonitor {
      *
      * @return never {@code null}.
      */
-    private Runnable createLimitConfigRefreshTask() {
+    @NonNull private Runnable createLimitConfigRefreshTask() {
         return () -> {
             synchronized (this.lock) {
                 hoursSinceConfigRefresh++;
