@@ -33,28 +33,28 @@ public enum OSMX {
     // so that our (static) fields are initialized upon classload, prior to any
     // deserialization taking place.
     static {
-        OSMX.realBean = ManagementFactory.getOperatingSystemMXBean();
+        realBean = ManagementFactory.getOperatingSystemMXBean();
         boolean sun = false;
         boolean sunUnix = false;
         try {
-            sun = OSMX.realBean instanceof com.sun.management.OperatingSystemMXBean; // NOSONAR
+            sun = realBean instanceof com.sun.management.OperatingSystemMXBean; // NOSONAR
         } catch (NoClassDefFoundError e) {
             LOGGER.warn("com.sun.management.OperatingSystemMXBean does not exist; system memory and JVM CPU usage stats will be available.");
         }
         if (sun) {
             try {
-                sunUnix = OSMX.realBean instanceof com.sun.management.UnixOperatingSystemMXBean; // NOSONAR
+                sunUnix = realBean instanceof com.sun.management.UnixOperatingSystemMXBean; // NOSONAR
             } catch (NoClassDefFoundError e) {
                 // No need to log; presumably the end-user knows if they're running on Unix or not.
             }
         }
-        OSMX.isSun = sun;
-        OSMX.isSunUnix = sunUnix;
+        isSun = sun;
+        isSunUnix = sunUnix;
     }
 
     @NonNull public Optional<String> getName() {
         try {
-            return Optional.ofNullable(OSMX.realBean.getName());
+            return Optional.ofNullable(realBean.getName());
         } catch (SecurityException e) {
             LOGGER.warn("Cannot get OS name", e);
             return Optional.empty();
@@ -62,7 +62,7 @@ public enum OSMX {
     }
     @NonNull public Optional<String> getArch() {
         try {
-            return Optional.ofNullable(OSMX.realBean.getArch());
+            return Optional.ofNullable(realBean.getArch());
         } catch (SecurityException e) {
             LOGGER.warn("Cannot get OS arch", e);
             return Optional.empty();
@@ -70,69 +70,60 @@ public enum OSMX {
     }
     @NonNull public Optional<String> getVersion() {
         try {
-            return Optional.ofNullable(OSMX.realBean.getVersion());
+            return Optional.ofNullable(realBean.getVersion());
         } catch (SecurityException e) {
             LOGGER.warn("Cannot get OS version", e);
             return Optional.empty();
         }
     }
     public int getAvailableProcessors() {
-        return OSMX.realBean.getAvailableProcessors();
+        return realBean.getAvailableProcessors();
     }
     @NonNull public Optional<Double> getSystemLoadAverage() {
-        double value = OSMX.realBean.getSystemLoadAverage();
-        return value < 0 ? Optional.empty() : Optional.of(value);
+        return convertDoubleLessThanZero(realBean.getSystemLoadAverage());
     }
     @NonNull public Optional<Long> getCommittedVirtualMemorySize() {
-        if (OSMX.isSun) {
-            long value = OSMX.asSun().getCommittedVirtualMemorySize();
-            return value == -1 ? Optional.empty() : Optional.of(value);
-        }
-        else return Optional.empty();
+        long value = -1;
+        if (isSun) value = asSun().getCommittedVirtualMemorySize();
+        return convertLongNegativeOne(value);
     }
     @NonNull public Optional<Long> getTotalSwapSpaceSize() {
-        if (OSMX.isSun) return Optional.of(OSMX.asSun().getTotalSwapSpaceSize());
+        if (isSun) return Optional.of(asSun().getTotalSwapSpaceSize());
         else return Optional.empty();
     }
     @NonNull public Optional<Long> getFreeSwapSpaceSize() {
-        if (OSMX.isSun) return Optional.of(OSMX.asSun().getFreeSwapSpaceSize());
+        if (isSun) return Optional.of(asSun().getFreeSwapSpaceSize());
         else return Optional.empty();
     }
     @NonNull public Optional<Long> getProcessCpuTime() {
-        if (OSMX.isSun) {
-            long value = OSMX.asSun().getProcessCpuTime();
-            return value == -1 ? Optional.empty() : Optional.of(value);
-        }
-        else return Optional.empty();
+        long value = -1;
+        if (isSun) value = asSun().getProcessCpuTime();
+        return convertLongNegativeOne(value);
     }
     @NonNull public Optional<Long> getFreePhysicalMemorySize() {
-        if (OSMX.isSun) return Optional.of(OSMX.asSun().getFreePhysicalMemorySize());
+        if (isSun) return Optional.of(asSun().getFreePhysicalMemorySize());
         else return Optional.empty();
     }
     @NonNull public Optional<Long> getTotalPhysicalMemorySize() {
-        if (OSMX.isSun) return Optional.of(OSMX.asSun().getTotalPhysicalMemorySize());
+        if (isSun) return Optional.of(asSun().getTotalPhysicalMemorySize());
         else return Optional.empty();
     }
     @NonNull public Optional<Double> getSystemCpuLoad() {
-        if (OSMX.isSun) {
-            double value = OSMX.asSun().getSystemCpuLoad();
-            return value < 0 ? Optional.empty() : Optional.of(value);
-        }
-        else return Optional.empty();
+        double value = 0;
+        if (isSun) value = asSun().getSystemCpuLoad();
+        return convertDoubleLessThanZero(value);
     }
     @NonNull public Optional<Double> getProcessCpuLoad() {
-        if (OSMX.isSun) {
-            double value = OSMX.asSun().getProcessCpuLoad();
-            return value < 0 ? Optional.empty() : Optional.of(value);
-        }
-        else return Optional.empty();
+        double value = 0;
+        if (isSun) value = asSun().getProcessCpuLoad();
+        return convertDoubleLessThanZero(value);
     }
     @NonNull public Optional<Long> getOpenFileDescriptorCount() {
-        if (OSMX.isSunUnix) return Optional.of(OSMX.asSunUnix().getOpenFileDescriptorCount());
+        if (isSunUnix) return Optional.of(asSunUnix().getOpenFileDescriptorCount());
         else return Optional.empty();
     }
     @NonNull public Optional<Long> getMaxFileDescriptorCount() {
-        if (OSMX.isSunUnix) return Optional.of(OSMX.asSunUnix().getMaxFileDescriptorCount());
+        if (isSunUnix) return Optional.of(asSunUnix().getMaxFileDescriptorCount());
         else return Optional.empty();
     }
 
@@ -141,10 +132,18 @@ public enum OSMX {
     // boolean flag via an if/else statement. Do not use ternary operators for this,
     // as it will cause NoClassDefFoundErrors on JVMs that lack com.sun packages.
     @NonNull private static com.sun.management.OperatingSystemMXBean asSun() {
-        return (com.sun.management.OperatingSystemMXBean) OSMX.realBean;
+        return (com.sun.management.OperatingSystemMXBean) realBean;
     }
     @NonNull private static com.sun.management.UnixOperatingSystemMXBean asSunUnix() {
-        return (com.sun.management.UnixOperatingSystemMXBean) OSMX.realBean;
+        return (com.sun.management.UnixOperatingSystemMXBean) realBean;
+    }
+
+    // These methods convert return values into optional equivalents.
+    @NonNull private static Optional<Long> convertLongNegativeOne(long value) {
+        return value == -1 ? Optional.empty() : Optional.of(value);
+    }
+    @NonNull private static Optional<Double> convertDoubleLessThanZero(double value) {
+        return value < 0 ? Optional.empty() : Optional.of(value);
     }
 
 }
