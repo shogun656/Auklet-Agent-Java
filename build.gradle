@@ -50,7 +50,6 @@ dependencies {
 
 // Module export (Java 9+)
 if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
-    ext.moduleName = 'io.auklet'
     sourceSets {
         moduleInfo {
             java {
@@ -61,7 +60,7 @@ if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
     compileModuleInfoJava {
         sourceCompatibility = 9
         targetCompatibility = 9
-        inputs.property("moduleName", moduleName)
+        inputs.property("moduleName", 'io.auklet')
         doFirst {
             classpath += sourceSets.main.compileClasspath
             options.compilerArgs = [
