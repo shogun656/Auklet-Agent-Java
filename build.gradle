@@ -28,7 +28,6 @@ targetCompatibility = 8
 // Dependencies
 repositories {
     jcenter()
-    maven { url 'https://jitpack.io' }
 }
 dependencies {
     compile "com.squareup.okhttp3:okhttp:3.12.0"
