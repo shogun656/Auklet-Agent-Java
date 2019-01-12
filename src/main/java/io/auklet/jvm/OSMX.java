@@ -39,7 +39,7 @@ public enum OSMX {
         try {
             sun = realBean instanceof com.sun.management.OperatingSystemMXBean; // NOSONAR
         } catch (NoClassDefFoundError e) {
-            LOGGER.warn("com.sun.management.OperatingSystemMXBean does not exist; system memory and JVM CPU usage stats will be available.");
+            LOGGER.warn("com.sun.management.OperatingSystemMXBean does not exist; system/JVM memory and CPU stats will not be available.");
         }
         if (sun) {
             try {
