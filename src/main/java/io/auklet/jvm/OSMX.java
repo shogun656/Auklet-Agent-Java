@@ -28,8 +28,8 @@ public enum OSMX {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OSMX.class);
     private static final java.lang.management.OperatingSystemMXBean realBean;
-    private static final boolean isSun;
-    private static final boolean isSunUnix;
+    private static final boolean IS_SUN;
+    private static final boolean IS_SUN_UNIX;
 
     // Since enums do not serialize any instance fields, we use a static initializer
     // so that our (static) fields are initialized upon classload, prior to any
@@ -51,8 +51,8 @@ public enum OSMX {
                 LOGGER.info("Running on non-Unix platform.");
             }
         }
-        isSun = sun;
-        isSunUnix = sunUnix;
+        IS_SUN = sun;
+        IS_SUN_UNIX = sunUnix;
     }
 
     @NonNull public Optional<String> getName() {
@@ -87,46 +87,46 @@ public enum OSMX {
     }
     @NonNull public Optional<Long> getCommittedVirtualMemorySize() {
         long value = -1;
-        if (isSun) value = asSun().getCommittedVirtualMemorySize();
+        if (IS_SUN) value = asSun().getCommittedVirtualMemorySize();
         return convertLongNegativeOne(value);
     }
     @NonNull public Optional<Long> getTotalSwapSpaceSize() {
-        if (isSun) return Optional.of(asSun().getTotalSwapSpaceSize());
+        if (IS_SUN) return Optional.of(asSun().getTotalSwapSpaceSize());
         else return Optional.empty();
     }
     @NonNull public Optional<Long> getFreeSwapSpaceSize() {
-        if (isSun) return Optional.of(asSun().getFreeSwapSpaceSize());
+        if (IS_SUN) return Optional.of(asSun().getFreeSwapSpaceSize());
         else return Optional.empty();
     }
     @NonNull public Optional<Long> getProcessCpuTime() {
         long value = -1;
-        if (isSun) value = asSun().getProcessCpuTime();
+        if (IS_SUN) value = asSun().getProcessCpuTime();
         return convertLongNegativeOne(value);
     }
     @NonNull public Optional<Long> getFreePhysicalMemorySize() {
-        if (isSun) return Optional.of(asSun().getFreePhysicalMemorySize());
+        if (IS_SUN) return Optional.of(asSun().getFreePhysicalMemorySize());
         else return Optional.empty();
     }
     @NonNull public Optional<Long> getTotalPhysicalMemorySize() {
-        if (isSun) return Optional.of(asSun().getTotalPhysicalMemorySize());
+        if (IS_SUN) return Optional.of(asSun().getTotalPhysicalMemorySize());
         else return Optional.empty();
     }
     @NonNull public Optional<Double> getSystemCpuLoad() {
         double value = 0;
-        if (isSun) value = asSun().getSystemCpuLoad();
+        if (IS_SUN) value = asSun().getSystemCpuLoad();
         return convertDoubleLessThanZero(value);
     }
     @NonNull public Optional<Double> getProcessCpuLoad() {
         double value = 0;
-        if (isSun) value = asSun().getProcessCpuLoad();
+        if (IS_SUN) value = asSun().getProcessCpuLoad();
         return convertDoubleLessThanZero(value);
     }
     @NonNull public Optional<Long> getOpenFileDescriptorCount() {
-        if (isSunUnix) return Optional.of(asSunUnix().getOpenFileDescriptorCount());
+        if (IS_SUN_UNIX) return Optional.of(asSunUnix().getOpenFileDescriptorCount());
         else return Optional.empty();
     }
     @NonNull public Optional<Long> getMaxFileDescriptorCount() {
-        if (isSunUnix) return Optional.of(asSunUnix().getMaxFileDescriptorCount());
+        if (IS_SUN_UNIX) return Optional.of(asSunUnix().getMaxFileDescriptorCount());
         else return Optional.empty();
     }
 

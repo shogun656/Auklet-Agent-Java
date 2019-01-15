@@ -67,7 +67,7 @@ public final class Util {
     public static void deleteQuietly(@Nullable File file) {
         if (file == null) return;
         try {
-            file.delete();
+            file.delete(); // NOSONAR
         } catch (SecurityException e) {
             // Be quiet.
         }

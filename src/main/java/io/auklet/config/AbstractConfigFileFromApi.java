@@ -2,7 +2,6 @@ package io.auklet.config;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.AukletException;
 import io.auklet.core.Util;
 import net.jcip.annotations.NotThreadSafe;

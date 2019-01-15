@@ -113,9 +113,9 @@ public final class Auklet {
         this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
         int internalThreads = Util.getValue(config.getThreads(), "AUKLET_THREADS", "auklet.threads");
         if (internalThreads < 1) internalThreads = 1;
-        int mqttThreads = Util.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt");
-        if (mqttThreads < 1) mqttThreads = 3;
-        this.mqttThreads = mqttThreads;
+        int mqttThreadsFromConfig = Util.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt");
+        if (mqttThreadsFromConfig < 1) mqttThreadsFromConfig = 3;
+        this.mqttThreads = mqttThreadsFromConfig;
 
         this.macHash = Util.getMacAddressHash();
         this.ipAddress = Util.getIpAddress();
