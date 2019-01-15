@@ -2,7 +2,9 @@ package io.auklet.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
+import io.auklet.core.Util;
 import mjson.Json;
+import net.jcip.annotations.NotThreadSafe;
 import okhttp3.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +14,27 @@ import java.io.IOException;
 /**
  * <p>This file contains MQTT connection information for sending data to {@code auklet.io}.</p>
  */
+@NotThreadSafe
 public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoBrokers.class);
+    private static final Json.Schema SCHEMA = Json.schema(Json.read("{\n" +
+            "  \"type\": \"object\",\n" +
+            "  \"required\": [\n" +
+            "    \"brokers\",\n" +
+            "    \"port\"\n" +
+            "  ],\n" +
+            "  \"properties\": {\n" +
+            "    \"brokers\": {\n" +
+            "      \"type\": \"string\",\n" +
+            "      \"pattern\": \"^(.+)$\"\n" +
+            "    },\n" +
+            "    \"port\": {\n" +
+            "      \"type\": \"string\",\n" +
+            "      \"pattern\": \"^(.+)$\"\n" +
+            "    }\n" +
+            "  }\n" +
+            "}"));
 
     private final String url;
 
@@ -29,10 +49,11 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
         this.url = "ssl://" + config.at("brokers").asString() + ":" + config.at("port").asString();
     }
 
-    @Override
-    public String getName() {
+    @Override public String getName() {
         return "brokers";
     }
+
+    @Override protected Json.Schema getSchema() { return SCHEMA; }
 
     /**
      * <p>Returns the MQTT connection URL</p>
@@ -41,27 +62,25 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
      */
     @NonNull public String getUrl() { return this.url; }
 
-    @Override
-    protected Json readFromDisk() {
+    @Override protected Json readFromDisk() {
         try {
-            return Json.make(this.getStringFromDisk());
-        } catch (IOException | IllegalArgumentException e) {
+            return this.validate(Json.read(this.getStringFromDisk()));
+        } catch (AukletException | IOException | IllegalArgumentException e) {
             LOGGER.warn("Could not read broker config from disk, will re-download from API", e);
             return null;
         }
     }
 
-    @Override
-    protected Json fetchFromApi() throws AukletException {
+    @Override protected Json fetchFromApi() throws AukletException {
         Request.Builder request = new Request.Builder()
                 .url(this.getAgent().getBaseUrl() + "/private/devices/config/").get()
                 .header("Content-Type", "application/json; charset=utf-8");
         return this.makeJsonRequest(request);
     }
 
-    @Override
-    protected void writeToDisk(Json contents) throws AukletException {
-        this.saveStringToDisk(contents.toString());
+    @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
+        if (contents == null) throw new AukletException("Input is null");
+        Util.writeUtf8(this.file, contents.toString());
     }
 
 }

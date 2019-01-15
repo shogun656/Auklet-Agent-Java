@@ -1,11 +1,14 @@
 package io.auklet.sink;
 
+import com.github.dmstocking.optional.java.util.Optional;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
-import io.auklet.misc.HasAgent;
-import io.auklet.misc.Util;
+import io.auklet.core.HasAgent;
+import io.auklet.core.Util;
 import io.auklet.jvm.OSMX;
+import net.jcip.annotations.ThreadSafe;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessagePacker;
@@ -19,19 +22,30 @@ import java.util.UUID;
  * <p>Base class of all Auklet agent data sinks. Each implementation provides a {@link MessagePacker} that
  * is used to construct MessagePack payloads that are then sent to the underlying output in the
  * {@link MessagePacker} object (e.g. an {@code OutputStream}).</p>
+ *
+ * <p>Subclasses are thread-safe as long as they synchronize on {@link #msgpack}.</p>
  */
+@ThreadSafe
 public abstract class AbstractSink extends HasAgent implements Sink {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSink.class);
-    private final Object lock = new Object();
     protected final MessageBufferPacker msgpack = MessagePack.newDefaultBufferPacker();
 
-    @Override
-    public void send(@Nullable Throwable throwable) throws AukletException {
+    @Override public void shutdown() {
+        synchronized (this.msgpack) {
+            try {
+                this.msgpack.close();
+            } catch (IOException e) {
+                LOGGER.warn("Error while shutting down MessagePacker", e);
+            }
+        }
+    }
+
+    @Override public void send(@Nullable Throwable throwable) throws AukletException {
         if (throwable == null) return;
         StackTraceElement[] stackTrace = throwable.getStackTrace();
-        synchronized (this.lock) {
-            // Assemble the complete message.
+        // Assemble the complete message.
+        synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
                 this.initMessage(10);
@@ -48,56 +62,23 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                             // Normalize all negative return values.
                             .packString("lineNumber").packInt(lineNumber < 0 ? -1 : lineNumber);
                 }
+                this.msgpack.flush();
             } catch (IOException e) {
                 throw new AukletException("Could not assemble event message", e);
             }
-            this.writeToSink();
-        }
-    }
-
-    /**
-     * <p>Writes the contents of the MessagePacker to the underlying sink, unless it is empty and unless
-     * it is so large that it would exceed the data usage limit.</p>
-     *
-     * @throws AukletException if an error occurs while writing the data. This exception is <i>not</i>
-     * thrown if the data usage limit would be exceeded; in that case, this method no-ops.
-     */
-    private void writeToSink() throws AukletException {
-        // If the message is not empty, and if it will not push the device over the limit,
-        // write the message and update the usage monitor.
-        try {
-            this.msgpack.flush();
             byte[] payload = this.msgpack.toByteArray();
-            if (payload == null) payload = new byte[0];
-            int payloadSize = payload.length;
-            boolean payloadWillExceedLimit = this.getAgent().getUsageMonitor().willExceedLimit(payloadSize);
-            if (!payloadWillExceedLimit) {
-                this.write(payload);
-                this.getAgent().getUsageMonitor().addMoreData(payloadSize);
-            }
-        } catch (IOException e) {
-            throw new AukletException("Could not write event message", e);
+            if (payload == null || payload.length == 0) return;
+            this.write(payload);
         }
     }
 
     /**
      * <p>Writes the given byte array to the underlying data sink.</p>
      *
-     * @param bytes no-op if null or empty.
+     * @param bytes the byte array, never {@code null} or empty.
      * @throws AukletException if the data cannot be written.
      */
-    protected abstract void write(@Nullable byte[] bytes) throws AukletException;
-
-    @Override
-    public void shutdown() throws AukletException {
-        synchronized (this.lock) {
-            try {
-                this.msgpack.close();
-            } catch (IOException e) {
-                throw new AukletException("Error while shutting down MessagePacker", e);
-            }
-        }
-    }
+    protected abstract void write(@NonNull byte[] bytes) throws AukletException;
 
     /**
      * <p>Starts assembling an Auklet-compatible MessagePack message, which is defined as a MessagePack
@@ -134,16 +115,23 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         try {
             this.msgpack.packMapHeader(4);
             // Calculate memory usage.
-            double memUsage = OSMX.BEAN.getFreePhysicalMemorySize().flatMap(free ->
-                    OSMX.BEAN.getTotalPhysicalMemorySize().map(total ->
-                            100 * (1 - ((double) free / (double) total))
-                    )
-            ).orElse(0d);
+            double memUsage;
+            Optional<Long> freeMem = OSMX.BEAN.getFreePhysicalMemorySize();
+            Optional<Long> totalMem = OSMX.BEAN.getTotalPhysicalMemorySize();
+            if (freeMem.isPresent() && totalMem.isPresent()) {
+                memUsage = 100 * (1 - ((double) freeMem.get() / (double) totalMem.get()));
+            } else {
+                memUsage = 0d;
+            }
             this.msgpack.packString("memoryUsage").packDouble(memUsage);
             // Calculate CPU usage.
-            double cpuUsage = OSMX.BEAN.getSystemLoadAverage()
-                    .map(value -> 100 * (value / OSMX.BEAN.getAvailableProcessors()))
-                    .orElse(0d);
+            double cpuUsage;
+            Optional<Double> loadAvg = OSMX.BEAN.getSystemLoadAverage();
+            if (loadAvg.isPresent()) {
+                cpuUsage = 100 * (loadAvg.get() / OSMX.BEAN.getAvailableProcessors());
+            } else {
+                cpuUsage = 0d;
+            }
             this.msgpack.packString("cpuUsage").packDouble(cpuUsage);
             // Add other system metrics.
             this.msgpack.packString("outboundNetwork").packDouble(0);

@@ -1,7 +1,8 @@
-package io.auklet.misc;
+package io.auklet.core;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
+import net.jcip.annotations.Immutable;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -30,6 +31,7 @@ import java.io.IOException;
  * logged at level {@code INFO} (unless logging is disabled), taking into consideration the behavior
  * of the levels described above.</p>
  */
+@Immutable
 public final class AukletApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletApi.class);
@@ -66,7 +68,9 @@ public final class AukletApi {
         request.header("Authorization", "JWT " + this.apiKey);
         Request req = request.build();
         try {
-            return this.httpClient.newCall(req).execute();
+            synchronized (this.httpClient) {
+                return this.httpClient.newCall(req).execute();
+            }
         } catch (IOException e) {
             throw new AukletException("Error while making HTTP request", e);
         }
@@ -76,12 +80,14 @@ public final class AukletApi {
      * <p>Shuts down the internal HTTP client.</p>
      */
     public void shutdown() {
-        try {
-            this.httpClient.dispatcher().executorService().shutdown();
-            this.httpClient.connectionPool().evictAll();
-            this.httpClient.cache().close();
-        } catch (IOException e) {
-            LOGGER.warn("Error while shutting down Auklet API", e);
+        synchronized (this.httpClient) {
+            try {
+                this.httpClient.dispatcher().executorService().shutdown();
+                this.httpClient.connectionPool().evictAll();
+                this.httpClient.cache().close();
+            } catch (IOException e) {
+                LOGGER.warn("Error while shutting down Auklet API", e);
+            }
         }
     }
 
@@ -97,7 +103,11 @@ public final class AukletApi {
         else if (HTTP_LOGGER.isDebugEnabled()) level = HttpLoggingInterceptor.Level.HEADERS;
         else if (HTTP_LOGGER.isInfoEnabled()) level = HttpLoggingInterceptor.Level.BASIC;
         else level = HttpLoggingInterceptor.Level.NONE;
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(HTTP_LOGGER::info);
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
+            @Override public void log(String message) {
+                HTTP_LOGGER.info(message);
+            }
+        });
         logging.setLevel(level);
         return logging;
     }

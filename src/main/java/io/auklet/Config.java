@@ -1,8 +1,10 @@
 package io.auklet;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.auklet.misc.Util;
+import io.auklet.core.Util;
+import net.jcip.annotations.NotThreadSafe;
 
 /**
  * <p>Config object for the {@link Auklet} agent. For fluency, all setter methods in this class return
@@ -14,6 +16,7 @@ import io.auklet.misc.Util;
  * the agent to fallback on the environment variables/JVM system properties defined below.</p>
  *
  * <table>
+ *   <caption>Auklet Java Agent configuration settings</caption>
  *   <thead>
  *     <tr>
  *       <td>Config element</td>
@@ -121,6 +124,30 @@ import io.auklet.misc.Util;
  *       </td>
  *       <td>{@code null} (Auklet will not write data to any serial port)</td>
  *     </tr>
+ *     <tr>
+ *       <td>Number of internal threads (in addition to MQTT threads)</td>
+ *       <td>{@link #setThreads(Integer)}</td>
+ *       <td>
+ *         <ol>
+ *           <li>Setter method value</li>
+ *           <li>Environment variable {@code AUKLET_THREADS}</li>
+ *           <li>JVM system property {@code auklet.threads}</li>
+ *         </ol>
+ *       </td>
+ *       <td>1</td>
+ *     </tr>
+ *     <tr>
+ *       <td>Number of MQTT threads (in addition to internal threads)</td>
+ *       <td>{@link #setMqttThreads(Integer)}</td>
+ *       <td>
+ *         <ol>
+ *           <li>Setter method value</li>
+ *           <li>Environment variable {@code AUKLET_THREADS_MQTT}</li>
+ *           <li>JVM system property {@code auklet.threads.mqtt}</li>
+ *         </ol>
+ *       </td>
+ *       <td>3</td>
+ *     </tr>
  *   </tbody>
  * </table>
  *
@@ -136,6 +163,7 @@ import io.auklet.misc.Util;
  * <p><b>Unless instructed to do so by Auklet support, do not use any classes/fields/methods other than
  * those described above.</b></p>
  */
+@NotThreadSafe
 public final class Config {
 
     private String appId = null;
@@ -145,48 +173,112 @@ public final class Config {
     private Boolean autoShutdown = null;
     private Boolean uncaughtExceptionHandler = null;
     private String serialPort = null;
+    private Integer threads = null;
+    private Integer mqttThreads = null;
 
-    /** <p>Sets the Auklet agent's app ID. An empty string will be assumed {@code null}.</p> */
-    public Config setAppId(@Nullable String appId) {
+    /**
+     * <p>Sets the Auklet agent's app ID.</p>
+     *
+     * @param appId may be {@code null}. Empty string is coerced to {@code null}.
+     * @return {@code this}.
+     */
+    @NonNull public Config setAppId(@Nullable String appId) {
         if (Util.isNullOrEmpty(appId)) appId = null;
         this.appId = appId;
         return this;
     }
 
-    /** <p>Sets the Auklet agent's API key. An empty string will be assumed {@code null}.</p> */
-    public Config setApiKey(@Nullable String apiKey) {
-        if (Util.isNullOrEmpty(appId)) appId = null;
+    /**
+     * <p>Sets the Auklet agent's API key.</p>
+     *
+     * @param apiKey may be {@code null}. Empty string is coerced to {@code null}.
+     * @return {@code this}.
+     */
+    @NonNull public Config setApiKey(@Nullable String apiKey) {
+        if (Util.isNullOrEmpty(apiKey)) apiKey = null;
         this.apiKey = apiKey;
         return this;
     }
 
-    /** <p>Sets the base URL of the Auklet API.</p> */
-    public Config setBaseUrl(@Nullable String baseUrl) {
+    /**
+     * <p>Sets the base URL of the Auklet API.</p>
+     *
+     * @param baseUrl may be {@code null}. Empty string is coerced to {@code null}.
+     * @return {@code this}.
+     */
+    @NonNull public Config setBaseUrl(@Nullable String baseUrl) {
+        if (Util.isNullOrEmpty(baseUrl)) baseUrl = null;
         this.baseUrl = baseUrl;
         return this;
     }
 
-    /** <p>Sets the directory the Auklet agent will use to store its configuration files.</p> */
-    public Config setConfigDir(@Nullable String configDir) {
+    /**
+     * <p>Sets the directory the Auklet agent will use to store its configuration files.</p>
+     *
+     * @param configDir may be {@code null}. Empty string is coerced to {@code null}.
+     * @return {@code this}.
+     */
+    @NonNull public Config setConfigDir(@Nullable String configDir) {
+        if (Util.isNullOrEmpty(configDir)) configDir = null;
         this.configDir = configDir;
         return this;
     }
 
-    /** <p>Tells the Auklet agent whether or not to setup a JVM shutdown hook to shut itself down.</p> */
-    public Config setAutoShutdown(@Nullable Boolean autoShutdown) {
+    /**
+     * <p>Tells the Auklet agent whether or not to setup a JVM shutdown hook to shut itself down.</p>
+     *
+     * @param autoShutdown may be {@code null}.
+     * @return {@code this}.
+     */
+    @NonNull public Config setAutoShutdown(@Nullable Boolean autoShutdown) {
         this.autoShutdown = autoShutdown;
         return this;
     }
 
-    /** <p>Tells the Auklet agent whether or not to setup a JVM-wide uncaught exception handler.</p> */
-    public Config setUncaughtExceptionHandler(@Nullable Boolean uncaughtExceptionHandler) {
+    /**
+     * <p>Tells the Auklet agent whether or not to setup a JVM-wide uncaught exception handler.</p>
+     *
+     * @param uncaughtExceptionHandler may be {@code null}.
+     * @return {@code this}.
+     */
+    @NonNull public Config setUncaughtExceptionHandler(@Nullable Boolean uncaughtExceptionHandler) {
         this.uncaughtExceptionHandler = uncaughtExceptionHandler;
         return this;
     }
 
-    /** <p>Tells the Auklet agent to write data to a serial port, instead of to {@code auklet.io}.</p> */
-    public Config setSerialPort(@Nullable String serialPort) {
+    /**
+     * <p>Tells the Auklet agent to write data to a serial port, instead of to {@code auklet.io}.</p>
+     *
+     * @param serialPort may be {@code null}. Empty string is coerced to {@code null}.
+     * @return {@code this}.
+     */
+    @NonNull public Config setSerialPort(@Nullable String serialPort) {
+        if (Util.isNullOrEmpty(serialPort)) serialPort = null;
         this.serialPort = serialPort;
+        return this;
+    }
+
+    /**
+     * <p>Tells the Auklet agent how many internal threads to use.</p>
+     *
+     * @param threads may be {@code null}. Values less than 1 are coerced to {@code null}.
+     * @return {@code this}.
+     */
+    @NonNull public Config setThreads(@Nullable Integer threads) {
+        if (threads != null && threads < 1) threads = null;
+        this.threads = threads;
+        return this;
+    }
+
+    /**
+     * <p>Tells the Auklet agent how many MQTT threads to use.</p>
+     *
+     * @param mqttThreads may be {@code null}. Values less than 1 are coerced to {@code null}.
+     * @return {@code this}.
+     */
+    @NonNull public Config setMqttThreads(@Nullable Integer mqttThreads) {
+        if (mqttThreads != null && mqttThreads < 1) mqttThreads = null;
+        this.mqttThreads = mqttThreads;
         return this;
     }
 
@@ -224,5 +316,11 @@ public final class Config {
     /*package*/ @CheckForNull String getSerialPort() {
         return serialPort;
     }
+
+    /** <p>Returns the desired number of internal threads.</p> */
+    /*package*/ @CheckForNull Integer getThreads() { return threads; }
+
+    /** <p>Returns the desired number of MQTT threads.</p> */
+    /*package*/ @CheckForNull Integer getMqttThreads() { return mqttThreads; }
 
 }

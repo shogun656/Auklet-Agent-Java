@@ -22,14 +22,15 @@ version "${theVersion}"
 description = 'Official Auklet SDK for Java and other JVM languages.'
 
 // Java version
-sourceCompatibility = 8
-targetCompatibility = 8
+sourceCompatibility = 7
+targetCompatibility = 7
 
 // Dependencies
 repositories {
     jcenter()
 }
 dependencies {
+    compile "com.github.dmstocking:support-optional:1.2"
     compile "com.squareup.okhttp3:okhttp:3.12.0"
     compile "com.squareup.okhttp3:logging-interceptor:3.12.0"
     compile("org.sharegov:mjson:1.4.1") {
@@ -39,6 +40,7 @@ dependencies {
     compile "org.msgpack:msgpack-core:0.8.16"
     compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
     compile "org.slf4j:slf4j-api:1.7.25"
+    compile "com.github.stephenc.jcip:jcip-annotations:1.0-1"
     // End-users never need to re-include this library in their list of dependencies, and those
     // that do so may run into legal issues if they distribute it alongside an Oracle JRE/JDK.
     // See https://stackoverflow.com/a/36198568 for details.
@@ -48,8 +50,8 @@ dependencies {
     testCompile "org.slf4j:slf4j-simple:1.7.25"
 }
 
-// Module export (Java 9+)
-if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
+// Module export (compile-time Java 9+)
+if (JavaVersion.current().isJava9Compatible()) {
     sourceSets {
         moduleInfo {
             java {
@@ -79,6 +81,12 @@ if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
 // Test configuration
 test {
     testLogging.showStandardStreams = true
+}
+
+// Javadoc configuration
+javadoc {
+    source = sourceSets.main.allJava
+    classpath = configurations.compileClasspath
 }
 
 // Packaging configurations

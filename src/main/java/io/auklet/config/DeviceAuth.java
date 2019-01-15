@@ -3,7 +3,9 @@ package io.auklet.config;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
+import io.auklet.core.Util;
 import mjson.Json;
+import net.jcip.annotations.NotThreadSafe;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -16,7 +18,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -25,10 +26,38 @@ import java.security.NoSuchAlgorithmException;
  * <p>The <i>device authentication file</i> contains the Auklet organization ID to which the application ID
  * belongs, as well as the credentials used to authenticate to the {@code auklet.io} data pipeline.</p>
  */
+@NotThreadSafe
 public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceAuth.class);
     public static final String FILENAME = "AukletAuth";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceAuth.class);
+    private static final Json.Schema SCHEMA = Json.schema(Json.read("{\n" +
+            "  \"type\": \"object\",\n" +
+            "  \"required\": [\n" +
+            "    \"organization\",\n" +
+            "    \"client_id\",\n" +
+            "    \"id\",\n" +
+            "    \"client_password\"\n" +
+            "  ],\n" +
+            "  \"properties\": {\n" +
+            "    \"organization\": {\n" +
+            "      \"type\": \"string\",\n" +
+            "      \"pattern\": \"^(.+)$\"\n" +
+            "    },\n" +
+            "    \"client_id\": {\n" +
+            "      \"type\": \"string\",\n" +
+            "      \"pattern\": \"^(.+)$\"\n" +
+            "    },\n" +
+            "    \"id\": {\n" +
+            "      \"type\": \"string\",\n" +
+            "      \"pattern\": \"^(.+)$\"\n" +
+            "    },\n" +
+            "    \"client_password\": {\n" +
+            "      \"type\": \"string\",\n" +
+            "      \"pattern\": \"^(.+)$\"\n" +
+            "    }\n" +
+            "  }\n" +
+            "}"));
 
     private Cipher aesCipher;
     private Key aesKey;
@@ -37,9 +66,8 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
     private String clientUsername;
     private String clientPassword;
 
-    @Override
-    public void setAgent(@NonNull Auklet agent) throws AukletException {
-        super.setAgent(agent);
+    @Override public void start(@NonNull Auklet agent) throws AukletException {
+        super.start(agent);
         // Setup AES cipher.
         try {
             this.aesCipher = Cipher.getInstance("AES");
@@ -57,10 +85,11 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
         this.clientPassword = config.at("client_password").asString();
     }
 
-    @Override
-    public String getName() {
-        return DeviceAuth.FILENAME;
+    @Override public String getName() {
+        return FILENAME;
     }
+
+    @Override protected Json.Schema getSchema() { return SCHEMA; }
 
     /**
      * <p>Returns the organization ID for this device.</p>
@@ -107,23 +136,21 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
         return "java/events/" + this.getOrganizationId() + "/" + this.getClientUsername();
     }
 
-    @Override
-    protected Json readFromDisk() {
+    @Override protected Json readFromDisk() {
         try {
             // Read and decrypt the device auth file from disk.
-            byte[] authFileBytes = Files.readAllBytes(this.file.toPath());
+            byte[] authFileBytes = Util.read(this.file);
             this.aesCipher.init(Cipher.DECRYPT_MODE, this.aesKey);
             String authFileDecrypted = new String(this.aesCipher.doFinal(authFileBytes));
             // Parse the JSON and set relevant fields.
-            return Json.make(authFileDecrypted);
-        } catch (IOException | SecurityException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException e) {
+            return this.validate(Json.read(authFileDecrypted));
+        } catch (AukletException | IOException | SecurityException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException e) {
             LOGGER.warn("Could not read device auth file from disk, will re-register device with API", e);
             return null;
         }
     }
 
-    @Override
-    protected Json fetchFromApi() throws AukletException {
+    @Override protected Json fetchFromApi() throws AukletException {
         Json requestJson = Json.object();
         requestJson.set("mac_address_hash", this.getAgent().getMacHash());
         requestJson.set("application", this.getAgent().getAppId());
@@ -134,13 +161,13 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
         return this.makeJsonRequest(request);
     }
 
-    @Override
-    protected void writeToDisk(Json contents) throws AukletException {
+    @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
+        if (contents == null) throw new AukletException("Input is null");
         try {
             // Encrypt and save the JSON string to disk.
             this.aesCipher.init(Cipher.ENCRYPT_MODE, this.aesKey);
             byte[] encrypted = this.aesCipher.doFinal(contents.toString().getBytes("UTF-8"));
-            Files.write(this.file.toPath(), encrypted);
+            Util.write(this.file, encrypted);
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IOException e) {
             throw new AukletException("Could not encrypt/save device data to disk", e);
         }

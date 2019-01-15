@@ -1,11 +1,12 @@
 package io.auklet.sink;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.config.AukletIoBrokers;
 import io.auklet.config.AukletIoCert;
+import io.auklet.core.Util;
+import net.jcip.annotations.ThreadSafe;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
@@ -15,20 +16,19 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/** The default Auklet data sink, which sends data to {@code auklet.io} via MQTT. */
+/** <p>The default Auklet data sink, which sends data to {@code auklet.io} via MQTT.</p> */
+@ThreadSafe
 public final class AukletIoSink extends AbstractSink {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoSink.class);
+    private final Object lock = new Object();
     private ScheduledExecutorService executorService;
     private MqttAsyncClient client;
 
@@ -38,66 +38,76 @@ public final class AukletIoSink extends AbstractSink {
      * @throws AukletException if the underlying MQTT client cannot be constructed or started, or if
      * the SSL cert/broker config cannot be obtained.
      */
-    @Override
-    public void setAgent(@NonNull Auklet agent) throws AukletException {
-        super.setAgent(agent);
+    @Override public void start(@NonNull Auklet agent) throws AukletException {
+        super.start(agent);
         try {
             AukletIoCert cert = new AukletIoCert();
-            cert.setAgent(agent);
+            cert.start(agent);
             AukletIoBrokers brokers = new AukletIoBrokers();
-            brokers.setAgent(agent);
+            brokers.start(agent);
             // Workaround to ensure that MQTT client threads do not stop JVM shutdown.
             // https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
-            this.executorService = Executors.newScheduledThreadPool(10,
-                    (Runnable r) -> {
-                        Thread t = Executors.defaultThreadFactory().newThread(r);
-                        t.setDaemon(true);
-                        return t;
-                    });
+            this.executorService = Executors.newScheduledThreadPool(agent.getMqttThreads(), Util.createDaemonThreadFactory());
             this.client = new MqttAsyncClient(brokers.getUrl(), agent.getDeviceAuth().getClientId(), new MemoryPersistence(), new TimerPingSender(), executorService);
             this.client.setCallback(this.getCallback());
             this.client.setBufferOpts(this.getDisconnectBufferOptions(agent));
             this.client.connect(this.getConnectOptions(agent, cert.getCert()));
         } catch (MqttException e) {
-            this.shutdownThreadPool();
+            this.shutdown();
             throw new AukletException("Could not initialize MQTT sink", e);
         }
     }
 
-    @Override
-    public void write(@Nullable byte[] bytes) throws AukletException {
-        try {
-            MqttMessage message = new MqttMessage(bytes);
-            // TODO does MqttMessage add more data beyond what's in the bytes array?
-            // if so, we need to change how we report/track data usage
-            message.setQos(1);
-            client.publish(this.getAgent().getDeviceAuth().getMqttEventsTopic(), message);
-        } catch (MqttException e) {
-            throw new AukletException("Error while publishing MQTT message", e);
+    @Override protected void write(@NonNull byte[] bytes) throws AukletException {
+        synchronized (this.lock) {
+            try {
+                MqttMessage message = new MqttMessage(bytes);
+                message.setQos(1);
+                // TODO does MqttMessage add more data beyond what's in the bytes array? if so, we need to change how we report/track data usage
+                int size = bytes.length;
+                boolean willExceedLimit = this.getAgent().getUsageMonitor().willExceedLimit(size);
+                if (!willExceedLimit) {
+                    client.publish(this.getAgent().getDeviceAuth().getMqttEventsTopic(), message);
+                    this.getAgent().getUsageMonitor().addMoreData(size);
+                }
+            } catch (MqttException e) {
+                throw new AukletException("Error while publishing MQTT message", e);
+            }
         }
     }
 
-    @Override
-    public void shutdown() throws AukletException {
-        super.shutdown();
-        if (this.client.isConnected()) {
-            try {
-                this.client.disconnect().waitForCompletion();
-            } catch (MqttException e) {
-                LOGGER.warn("Error while disconnecting MQTT client", e);
+    @Override public void shutdown() {
+        synchronized (this.lock) {
+            super.shutdown();
+            if (this.client.isConnected()) {
                 try {
-                    this.client.disconnectForcibly();
-                } catch (MqttException e2) {
-                    // No reason to log this, since we already failed to disconnect once.
+                    this.client.disconnect().waitForCompletion();
+                } catch (MqttException e) {
+                    LOGGER.warn("Error while disconnecting MQTT client", e);
+                    try {
+                        this.client.disconnectForcibly();
+                    } catch (MqttException e2) {
+                        LOGGER.warn("Error while forcibly disconnecting MQTT client", e);
+                    }
                 }
             }
-        }
-        try {
-            this.client.close();
-        } catch (MqttException e) {
-            LOGGER.error("Error while shutting down MQTT client", e);
-        } finally {
-            this.shutdownThreadPool();
+            try {
+                this.client.close();
+            } catch (MqttException e) {
+                LOGGER.error("Error while shutting down MQTT client", e);
+            }
+            try {
+                this.executorService.shutdown();
+                if (!this.executorService.awaitTermination(3, TimeUnit.SECONDS)) this.executorService.shutdownNow();
+            } catch (InterruptedException ie) {
+                // End-users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
+                // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
+                LOGGER.warn("Interrupted while awaiting MQTT thread pool shutdown.");
+                this.executorService.shutdownNow();
+                Thread.currentThread().interrupt();
+            } catch (SecurityException se) {
+                LOGGER.warn("Could not shut down MQTT thread pool", se);
+            }
         }
     }
 
@@ -135,7 +145,7 @@ public final class AukletIoSink extends AbstractSink {
     @NonNull private DisconnectedBufferOptions getDisconnectBufferOptions(@NonNull Auklet agent) throws AukletException {
         if (agent == null) throw new AukletException("Auklet agent is null");
         // Divide by 5KB to get amount of messages.
-        long storageLimit = agent.getUsageLimit().getStorageLimit();
+        long storageLimit = agent.getUsageMonitor().getUsageConfig().getStorageLimit();
         int bufferSize = (storageLimit == 0) ? 5000 : (int) storageLimit / 5000;
         DisconnectedBufferOptions disconnectOptions = new DisconnectedBufferOptions();
         disconnectOptions.setBufferEnabled(true);
@@ -188,19 +198,6 @@ public final class AukletIoSink extends AbstractSink {
             return context.getSocketFactory();
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
             throw new AukletException("Error while setting up MQTT SSL socket factory", e);
-        }
-    }
-
-    /** <p>Shuts down the MQTT client's thread pool.</p> */
-    private void shutdownThreadPool() {
-        this.executorService.shutdown();
-        try {
-            this.executorService.awaitTermination(3, TimeUnit.SECONDS);
-        } catch (InterruptedException e2) {
-            // End-users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
-            // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
-            LOGGER.warn("Interrupted while awaiting MQTT thread pool shutdown", e2);
-            Thread.currentThread().interrupt();
         }
     }
 

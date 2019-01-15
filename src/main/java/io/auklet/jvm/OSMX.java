@@ -1,11 +1,11 @@
 package io.auklet.jvm;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
-import java.util.Optional;
+import com.github.dmstocking.optional.java.util.Optional;
 
 /**
  * <p>A frontend for {@link java.lang.management.OperatingSystemMXBean},
@@ -18,22 +18,24 @@ import java.util.Optional;
  * Javadocs for the above classes for details on exceptional return values. Methods that would otherwise throw a
  * {@link SecurityException} will instead return {@link Optional#empty()}.</p>
  *
- * <p>This is a singleton; use {@link #BEAN} to retrieve the instance.</p>
+ * <p>This is a singleton; use {@link #BEAN} to retrieve the instance. The {@link #BEAN} maintains no
+ * state and is thus immutable.</p>
  */
+@Immutable
 public enum OSMX {
 
     BEAN;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OSMX.class);
-    private static java.lang.management.OperatingSystemMXBean realBean;
-    private static boolean isSun;
-    private static boolean isSunUnix;
+    private static final java.lang.management.OperatingSystemMXBean realBean;
+    private static final boolean isSun;
+    private static final boolean isSunUnix;
 
     // Since enums do not serialize any instance fields, we use a static initializer
     // so that our (static) fields are initialized upon classload, prior to any
     // deserialization taking place.
     static {
-        realBean = ManagementFactory.getOperatingSystemMXBean();
+        realBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
         boolean sun = false;
         boolean sunUnix = false;
         try {
@@ -44,8 +46,9 @@ public enum OSMX {
         if (sun) {
             try {
                 sunUnix = realBean instanceof com.sun.management.UnixOperatingSystemMXBean; // NOSONAR
+                LOGGER.info("Running on Unix platform.");
             } catch (NoClassDefFoundError e) {
-                // No need to log; presumably the end-user knows if they're running on Unix or not.
+                LOGGER.info("Running on non-Unix platform.");
             }
         }
         isSun = sun;
@@ -140,10 +143,12 @@ public enum OSMX {
 
     // These methods convert return values into optional equivalents.
     @NonNull private static Optional<Long> convertLongNegativeOne(long value) {
-        return value == -1 ? Optional.empty() : Optional.of(value);
+        if (value == -1) return Optional.empty();
+        else return Optional.of(value);
     }
     @NonNull private static Optional<Double> convertDoubleLessThanZero(double value) {
-        return value < 0 ? Optional.empty() : Optional.of(value);
+        if (value < 0) return Optional.empty();
+        else return Optional.of(value);
     }
 
 }

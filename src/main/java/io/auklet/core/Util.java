@@ -1,4 +1,4 @@
-package io.auklet.misc;
+package io.auklet.core;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -10,11 +10,11 @@ import java.io.*;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /** <p>Utility methods.</p> */
 public final class Util {
@@ -64,13 +64,63 @@ public final class Util {
      *
      * @param file no-op if {@code null}.
      */
-    public static void deleteQuietly(@Nullable Path file) {
+    public static void deleteQuietly(@Nullable File file) {
         if (file == null) return;
         try {
-            Files.delete(file);
-        } catch (IOException | SecurityException e) {
-            LOGGER.warn("Cannot delete file {}", file.toFile().getAbsolutePath(), e);
+            file.delete();
+        } catch (SecurityException e) {
+            // Be quiet.
         }
+    }
+
+    /**
+     * <p>Writes a string to a file using the UTF-8 charset.</p>
+     *
+     * @param file the file to write. No-op if {@code null}.
+     * @param contents the string to write to the file. No-op if {@code null} or empty.
+     */
+    public static void writeUtf8(@Nullable File file, @Nullable String contents) {
+        if (file == null) return;
+        if (isNullOrEmpty(contents)) return;
+        try {
+            write(file, contents.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError(e); // impossible
+        }
+    }
+
+    /**
+     * <p>Writes a byte array to a file.</p>
+     *
+     * @param file the file to write. No-op if {@code null}.
+     * @param bytes the bytes to write to the file. No-op if {@code null} or empty.
+     */
+    public static void write(@Nullable File file, @Nullable byte[] bytes) {
+        if (file == null) return;
+        if (bytes == null || bytes.length == 0) return;
+        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+            outputStream.write(bytes);
+            outputStream.flush();
+        } catch (IOException e) {
+            LOGGER.warn("Could not write file", e);
+        }
+    }
+
+    /**
+     * <p>Reads a file and returns its bytes.</p>
+     *
+     * @param file the file to read.
+     * @return never {@code null}. If file is {@code null}, returned array is empty.
+     * @throws IOException if an error occurs while reading the file.
+     */
+    @NonNull public static byte[] read(@Nullable File file) throws IOException {
+        if (file == null) return new byte[0];
+        if (file.length() > Integer.MAX_VALUE) throw new IOException("File too large: " + file.length());
+        byte[] bytes = new byte[(int) file.length()];
+        try (DataInputStream stream = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
+            stream.readFully(bytes);
+        }
+        return bytes;
     }
 
     /**
@@ -126,6 +176,46 @@ public final class Util {
     public static boolean getValue(@Nullable Boolean fromThisObj, @Nullable String envVar, @Nullable String sysProp) {
         if (fromThisObj != null) return fromThisObj;
         return Boolean.valueOf(getValue((String) null, envVar, sysProp));
+    }
+
+    /**
+     * <p>Returns an integer value, falling back on an environment variable or JVM system property.</p>
+     *
+     * @param fromThisObj this function returns this object if it is not {@code null}.
+     * @param envVar if {@code fromThisObj} is {@code null} and the environment variable named by
+     * this parameter is set, this function returns the value of that environment variable. If this
+     * parameter is {@code null} or empty, no environment variable is checked.
+     * @param sysProp if {@code fromThisObj} is {@code null}, and if {@code envVar} is {@code null},
+     * empty, or refers to an environment variable that is not set, and the JVM system property named
+     * by this parameter is set, this function returns the value of that JVM system property. If this
+     * parameter is {@code null} or empty, no JVM system property is checked.
+     * @return whatever boolean value is determined by the logic described above, or {@code 0}
+     * if all above described options fail to produce a value.
+     */
+    public static int getValue(@Nullable Integer fromThisObj, @Nullable String envVar, @Nullable String sysProp) {
+        if (fromThisObj != null) return fromThisObj;
+        String fromOther = getValue((String) null, envVar, sysProp);
+        if (fromOther == null) return 0;
+        try {
+            return Integer.valueOf(fromOther);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * <p>Returns a thread factory that produces daemon threads.</p>
+     *
+     * @return never {@code null}.
+     */
+    @NonNull public static ThreadFactory createDaemonThreadFactory() {
+        return new ThreadFactory() {
+            @Override public Thread newThread(Runnable r) {
+                Thread t = Executors.defaultThreadFactory().newThread(r);
+                t.setDaemon(true);
+                return t;
+            }
+        };
     }
 
     /**

@@ -2,6 +2,8 @@ package io.auklet.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
+import io.auklet.core.Util;
+import net.jcip.annotations.NotThreadSafe;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.slf4j.Logger;
@@ -15,6 +17,7 @@ import java.security.cert.X509Certificate;
 /**
  * <p>This is the CA certificate for establishing SSL connections to the {@code auklet.io} data pipeline.</p>
  */
+@NotThreadSafe
 public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoCert.class);
@@ -38,8 +41,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
         }
     }
 
-    @Override
-    public String getName() {
+    @Override public String getName() {
         return "CA";
     }
 
@@ -50,8 +52,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
      */
     @NonNull public X509Certificate getCert() { return this.cert; }
 
-    @Override
-    protected String readFromDisk() {
+    @Override protected String readFromDisk() {
         try {
             return this.getStringFromDisk();
         } catch (IOException e) {
@@ -60,8 +61,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
         }
     }
 
-    @Override
-    protected String fetchFromApi() throws AukletException {
+    @Override protected String fetchFromApi() throws AukletException {
         try {
             Request.Builder request = new Request.Builder()
                     .url(this.getAgent().getBaseUrl() + "/private/devices/certificates/").get();
@@ -78,9 +78,9 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
         }
     }
 
-    @Override
-    protected void writeToDisk(String contents) throws AukletException {
-        this.saveStringToDisk(contents);
+    @Override protected void writeToDisk(@NonNull String contents) throws AukletException {
+        if (Util.isNullOrEmpty(contents)) throw new AukletException("Input is null or empty");
+        Util.writeUtf8(this.file, contents);
     }
 
 }
