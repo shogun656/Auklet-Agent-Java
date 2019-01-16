@@ -52,10 +52,10 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                 this.msgpack
                         .packString("timestamp").packLong(System.currentTimeMillis())
                         .packString("excType").packString(throwable.toString())
-                        .packString("stackTrace").packMapHeader(stackTrace.length);
+                        .packString("stackTrace").packArrayHeader(stackTrace.length);
                 for (StackTraceElement ste : stackTrace) {
                     int lineNumber = ste.getLineNumber();
-                    this.msgpack
+                    this.msgpack.packMapHeader(4)
                             .packString("functionName").packString(ste.getMethodName())
                             .packString("className").packString(ste.getClassName())
                             .packString("filePath").packString(Util.defaultValue(ste.getFileName(), ""))
