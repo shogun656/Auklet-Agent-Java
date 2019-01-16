@@ -21,16 +21,10 @@ public final class AukletException extends Exception {
 
     public AukletException() {}
 
-    public AukletException(String message) {
-        super(message);
-    }
+    public AukletException(String message) { super(message); }
 
-    public AukletException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    public AukletException(String message, Throwable cause) { super(message, cause); }
 
-    public AukletException(Throwable cause) {
-        super(cause);
-    }
+    public AukletException(Throwable cause) { super(cause); }
 
 }
