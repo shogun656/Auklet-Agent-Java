@@ -69,7 +69,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
             "  }\n" +
             "}"));
 
-    private DataUsageConfig config;
+    private DataUsageConfig usageConfig;
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
         super.start(agent);
@@ -86,7 +86,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
      *
      * @return never {@code null}.
      */
-    @NonNull public DataUsageConfig getConfig() { return this.config; }
+    @NonNull public DataUsageConfig getConfig() { return this.usageConfig; }
 
     /** <p>Refreshes the data usage limit config from the API.</p> */
     public void refresh() {
@@ -133,7 +133,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
         long storageLimit = config.at("storage").at("storage_limit", 0L).asLong() * MEGABYTES_TO_BYTES;
         long cellularDataLimit = config.at("data").at("cellular_data_limit", 0L).asLong() * MEGABYTES_TO_BYTES;
         int cellularPlanDate = config.at("data").at("normalized_cell_plan_date").asInteger();
-        this.config = new DataUsageConfig(emissionPeriod, storageLimit, cellularDataLimit, cellularPlanDate);
+        this.usageConfig = new DataUsageConfig(emissionPeriod, storageLimit, cellularDataLimit, cellularPlanDate);
     }
 
 }

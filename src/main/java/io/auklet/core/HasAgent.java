@@ -53,6 +53,7 @@ public abstract class HasAgent {
     }
 
     /* Prevent finalizer attacks. */
-    @Override protected final void finalize() {}
+    @SuppressWarnings("deprecation")
+    @Override protected final void finalize() {} //NOSONAR
 
 }
