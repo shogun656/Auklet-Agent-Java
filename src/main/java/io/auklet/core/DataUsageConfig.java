@@ -3,8 +3,7 @@ package io.auklet.core;
 import net.jcip.annotations.Immutable;
 
 /**
- * <p>Implementations of this interface represent a <i>data usage config</i> object, which describes
- * to the Auklet agent what limits should be imposed on the amount of data the Auklet agent emits.</p>
+ * <p>Contains configuration values that tell the Auklet agent how much data to emit, and how often.</p>
  */
 @Immutable
 public final class DataUsageConfig {
