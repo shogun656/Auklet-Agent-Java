@@ -20,7 +20,6 @@ import java.util.concurrent.ThreadFactory;
 public final class Util {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
-    private static final String UNKNOWN_VALUE = "unknown";
 
     private Util() {}
 
@@ -222,9 +221,8 @@ public final class Util {
      * <p>Returns the MD5 hash of the MAC address of the first non-loopback network interface that is found by
      * this method.</p>
      *
-     * @return never {@code null} or empty. If no such interface can be found, or if its MAC address cannot
-     * be read, or if this JVM does not support the MD5 algorithm, the string literal {@code unknown} is
-     * returned.
+     * @return never {@code null}. If no such interface can be found, or if its MAC address cannot be
+     * read, or if this JVM does not support the MD5 algorithm, an empty string is returned.
      */
     @NonNull public static String getMacAddressHash() {
         try {
@@ -240,7 +238,7 @@ public final class Util {
             }
             if (networkInterface == null) {
                 LOGGER.warn("Could not find a non-loopback interface with an available MAC address.");
-                return UNKNOWN_VALUE;
+                return "";
             }
             // Convert bytes of hardware address into human-readable form.
             byte[] mac = networkInterface.getHardwareAddress();
@@ -260,7 +258,7 @@ public final class Util {
             return hexString.toString();
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
             LOGGER.warn("Error while calculating MAC address hash.", e);
-            return UNKNOWN_VALUE;
+            return "";
         }
     }
 
@@ -268,15 +266,14 @@ public final class Util {
      * <p>Gets the public IP address of the machine upon which this JVM is running, via
      * {@code http://checkip.amazonaws.com}.</p>
      *
-     * @return never {@code null} or empty. If an error occurs, it is logged and this function returns
-     * the string literal {@code unknown}.
+     * @return never {@code null}. If an error occurs, it is logged and this function returns an empty string.
      */
     @NonNull public static String getIpAddress() {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL("https://checkip.amazonaws.com").openStream()))) {
-            return defaultValue(in.readLine(), UNKNOWN_VALUE);
+            return defaultValue(in.readLine(), "");
         } catch (IOException e) {
             LOGGER.warn("Could not get public IP address.", e);
-            return UNKNOWN_VALUE;
+            return "";
         }
     }
 

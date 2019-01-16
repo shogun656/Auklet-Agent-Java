@@ -58,7 +58,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                     this.msgpack
                             .packString("functionName").packString(ste.getMethodName())
                             .packString("className").packString(ste.getClassName())
-                            .packString("filePath").packString(Util.defaultValue(ste.getFileName(), "unknown"))
+                            .packString("filePath").packString(Util.defaultValue(ste.getFileName(), ""))
                             // Normalize all negative return values.
                             .packString("lineNumber").packInt(lineNumber < 0 ? -1 : lineNumber);
                 }
