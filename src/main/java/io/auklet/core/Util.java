@@ -108,7 +108,7 @@ public final class Util {
      * @throws IOException if an error occurs while reading the file.
      */
     @NonNull public static byte[] read(@Nullable File file) throws IOException {
-        if (file == null) return new byte[0];
+        if (file == null || file.length() == 0) return new byte[0];
         if (file.length() > Integer.MAX_VALUE) throw new IOException("File too large: " + file.length());
         byte[] bytes = new byte[(int) file.length()];
         try (DataInputStream stream = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
