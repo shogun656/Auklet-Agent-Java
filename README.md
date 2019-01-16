@@ -3,8 +3,7 @@
 # Auklet for Java
 [![Maintainability](https://api.codeclimate.com/v1/badges/e1ced62442c7cf49d58a/maintainability)](https://codeclimate.com/github/aukletio/Auklet-Agent-Java/maintainability)
 
-This is the Java agent for Auklet, officially supporting JVMs running Java 8+.
-We test the agent on the Oracle JVM. 
+This is the Java agent for Auklet, officially supporting Java 7+.
 
 # Features
 
