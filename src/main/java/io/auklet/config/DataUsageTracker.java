@@ -5,7 +5,7 @@ import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.Util;
 import mjson.Json;
-import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.NotThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * <p>The <i>data usage tracker file</i> is used to persist between restarts the amount of data that has
  * been sent by the Auklet agent to the sink.</p>
  */
-@ThreadSafe
+@NotThreadSafe
 public final class DataUsageTracker extends AbstractConfigFile {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataUsageTracker.class);
@@ -82,22 +82,22 @@ public final class DataUsageTracker extends AbstractConfigFile {
             // If there is already a pending write task, cancel it.
             synchronized (this.lock) {
                 if (this.currentWriteTask != null) currentWriteTask.cancel(false);
+                // Queue the new write task.
+                this.currentWriteTask = this.getAgent().scheduleOneShotTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        // This task is no longer pending, so clear its status.
+                        synchronized (lock) {
+                            currentWriteTask = null;
+                        }
+                        try {
+                            writeUsageToDisk(givenUsage);
+                        } catch (IOException | SecurityException e) {
+                            LOGGER.warn("Could not save data usage to disk", e);
+                        }
+                    }
+                }, 5, TimeUnit.SECONDS); // 5-second cooldown.
             }
-            // Queue the new write task.
-            this.currentWriteTask = this.getAgent().scheduleOneShotTask(new Runnable() {
-                @Override
-                public void run() {
-                    // This task is no longer pending, so clear its status.
-                    synchronized (lock) {
-                        currentWriteTask = null;
-                    }
-                    try {
-                        writeUsageToDisk(givenUsage);
-                    } catch (IOException | SecurityException e) {
-                        LOGGER.warn("Could not save data usage to disk", e);
-                    }
-                }
-            }, 5, TimeUnit.SECONDS); // 5-second cooldown.
         } catch (AukletException e) {
             LOGGER.warn("Could not queue data usage save task", e);
         }
