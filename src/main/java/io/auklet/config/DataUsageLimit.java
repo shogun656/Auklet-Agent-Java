@@ -77,9 +77,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
         this.updateConfig(config);
     }
 
-    @Override public String getName() {
-        return "limits";
-    }
+    @Override public String getName() { return "limits"; }
 
     @Override protected Json.Schema getSchema() { return SCHEMA; }
 
@@ -97,7 +95,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
             this.writeToDisk(config);
             this.updateConfig(config);
         } catch (AukletException e) {
-            LOGGER.warn("Could not refresh data usage limit config from API", e);
+            LOGGER.warn("Could not refresh data usage limit config from API.", e);
         }
     }
 
@@ -105,7 +103,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
         try {
             return this.validate(Json.read(this.getStringFromDisk())).at("config");
         } catch (AukletException | IOException | IllegalArgumentException e) {
-            LOGGER.warn("Could not read data usage limits file from disk, will re-download from API", e);
+            LOGGER.warn("Could not read data usage limits file from disk, will re-download from API.", e);
             return null;
         }
     }
@@ -119,7 +117,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
     }
 
     @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
-        if (contents == null) throw new AukletException("Input is null");
+        if (contents == null) throw new AukletException("Input is null.");
         Util.writeUtf8(this.file, contents.toString());
     }
 
@@ -130,7 +128,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
      * @throws AukletException if the input is {@code null}.
      */
     private void updateConfig(@NonNull Json config) throws AukletException {
-        if (config == null) throw new AukletException("Data usage limit JSON is null");
+        if (config == null) throw new AukletException("Data usage limit JSON is null.");
         long emissionPeriod = config.at("emission_period").asLong() * SECONDS_TO_MILLISECONDS;
         long storageLimit = config.at("storage").at("storage_limit", 0L).asLong() * MEGABYTES_TO_BYTES;
         long cellularDataLimit = config.at("data").at("cellular_data_limit", 0L).asLong() * MEGABYTES_TO_BYTES;

@@ -47,7 +47,7 @@ public final class AukletApi {
      * @throws AukletException if the API key is {@code null} or empty.
      */
     public AukletApi(@NonNull String apiKey) throws AukletException {
-        if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty");
+        if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty.");
         this.apiKey = apiKey;
         this.httpClient = new OkHttpClient.Builder()
                 .addInterceptor(AukletApi.INTERCEPTOR)
@@ -62,7 +62,7 @@ public final class AukletApi {
      * @throws AukletException if an error occurs with the request.
      */
     @NonNull public Response doRequest(@NonNull Request.Builder request) throws AukletException {
-        if (request == null) throw new AukletException("HTTP request is null");
+        if (request == null) throw new AukletException("HTTP request is null.");
         // We handle auth in this method so that the API key does not have
         // to be shared across classes.
         request.header("Authorization", "JWT " + this.apiKey);
@@ -72,13 +72,11 @@ public final class AukletApi {
                 return this.httpClient.newCall(req).execute();
             }
         } catch (IOException e) {
-            throw new AukletException("Error while making HTTP request", e);
+            throw new AukletException("Error while making HTTP request.", e);
         }
     }
 
-    /**
-     * <p>Shuts down the internal HTTP client.</p>
-     */
+    /** <p>Shuts down the internal HTTP client.</p> */
     public void shutdown() {
         synchronized (this.httpClient) {
             try {
@@ -86,7 +84,7 @@ public final class AukletApi {
                 this.httpClient.connectionPool().evictAll();
                 this.httpClient.cache().close();
             } catch (IOException e) {
-                LOGGER.warn("Error while shutting down Auklet API", e);
+                LOGGER.warn("Error while shutting down Auklet API.", e);
             }
         }
     }
@@ -103,6 +101,7 @@ public final class AukletApi {
         else if (HTTP_LOGGER.isDebugEnabled()) level = HttpLoggingInterceptor.Level.HEADERS;
         else if (HTTP_LOGGER.isInfoEnabled()) level = HttpLoggingInterceptor.Level.BASIC;
         else level = HttpLoggingInterceptor.Level.NONE;
+        if (level != HttpLoggingInterceptor.Level.NONE) LOGGER.info("Auklet HTTP request logging is enabled.");
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override public void log(String message) {
                 HTTP_LOGGER.info(message);

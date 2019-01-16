@@ -37,7 +37,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             this.cert = (X509Certificate) cf.generateCertificate(bis);
         } catch (CertificateException | IOException e) {
-            throw new AukletException("Could not convert PEM certificate into object format", e);
+            throw new AukletException("Could not convert PEM certificate into object format.", e);
         }
     }
 
@@ -56,7 +56,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
         try {
             return this.getStringFromDisk();
         } catch (IOException e) {
-            LOGGER.warn("Could not read cert file from disk, will re-download from API", e);
+            LOGGER.warn("Could not read cert file from disk, will re-download from API.", e);
             return null;
         }
     }
@@ -74,12 +74,12 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
                 }
             }
         } catch (IOException e) {
-            throw new AukletException("Error while getting Auklet SSL cert", e);
+            throw new AukletException("Error while getting Auklet SSL cert.", e);
         }
     }
 
     @Override protected void writeToDisk(@NonNull String contents) throws AukletException {
-        if (Util.isNullOrEmpty(contents)) throw new AukletException("Input is null or empty");
+        if (Util.isNullOrEmpty(contents)) throw new AukletException("Input is null or empty.");
         Util.writeUtf8(this.file, contents);
     }
 

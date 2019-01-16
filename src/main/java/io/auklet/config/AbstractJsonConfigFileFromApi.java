@@ -32,7 +32,7 @@ public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFr
                 throw new AukletException(String.format("Error while getting Auklet JSON config file '%s': %s: %s", this.getName(), response.message(), responseString));
             }
         } catch (IOException | IllegalArgumentException e) {
-            throw new AukletException(String.format("Error while getting Auklet JSON config file '%s'", this.getName()), e);
+            throw new AukletException(String.format("Error while getting Auklet JSON config file '%s'.", this.getName()), e);
         }
     }
 

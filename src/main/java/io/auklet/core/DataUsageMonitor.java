@@ -6,6 +6,8 @@ import io.auklet.AukletException;
 import io.auklet.config.DataUsageLimit;
 import io.auklet.config.DataUsageTracker;
 import net.jcip.annotations.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
@@ -17,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 @ThreadSafe
 public final class DataUsageMonitor extends HasAgent {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataUsageMonitor.class);
     private final Object lock = new Object();
     private DataUsageLimit limit;
     private DataUsageTracker tracker;
@@ -50,6 +53,7 @@ public final class DataUsageMonitor extends HasAgent {
      * @param moreBytes no-op if less than 1.
      */
     public void addMoreData(int moreBytes) {
+        LOGGER.debug("Recording more sinked data: {}", moreBytes);
         if (moreBytes < 1) return;
         synchronized (this.lock) {
             this.tracker.addMoreData(moreBytes);
@@ -64,14 +68,19 @@ public final class DataUsageMonitor extends HasAgent {
      * otherwise.
      */
     public boolean willExceedLimit(long proposedPayloadSize) {
-        if (proposedPayloadSize <= 0) return true;
-        long dataLimit;
-        long bytesSent;
-        synchronized (this.lock) {
-            bytesSent = this.tracker.getBytesSent();
-            dataLimit = this.limit.getConfig().getCellularDataLimit();
+        LOGGER.debug("Testing data limit for payload size: {}", proposedPayloadSize);
+        boolean result = false;
+        if (proposedPayloadSize > 0) {
+            long dataLimit;
+            long bytesSent;
+            synchronized (this.lock) {
+                bytesSent = this.tracker.getBytesSent();
+                dataLimit = this.limit.getConfig().getCellularDataLimit();
+            }
+            result = (dataLimit == 0) || (bytesSent) + proposedPayloadSize <= dataLimit;
         }
-        return (dataLimit == 0) || (bytesSent) + proposedPayloadSize <= dataLimit;
+        LOGGER.debug("Data limit test result: {}", result);
+        return result;
     }
 
     /**
@@ -88,6 +97,7 @@ public final class DataUsageMonitor extends HasAgent {
                         if (awaitingMonthlyReset) {
                             tracker.reset();
                             awaitingMonthlyReset = false;
+                            LOGGER.info("Reset monthly data usage tracker.");
                         }
                     } else {
                         awaitingMonthlyReset = true;
@@ -111,6 +121,7 @@ public final class DataUsageMonitor extends HasAgent {
                     if (hoursSinceConfigRefresh == 24) {
                         limit.refresh();
                         hoursSinceConfigRefresh = 0;
+                        LOGGER.info("Refreshed data limit config from API.");
                     }
                 }
             }

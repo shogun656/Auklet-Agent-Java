@@ -72,7 +72,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
         try {
             this.aesCipher = Cipher.getInstance("AES");
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-            throw new AukletException("Could not get AES cipher", e);
+            throw new AukletException("Could not get AES cipher.", e);
         }
         // MQTT credentials are derived from the app ID, so use that as the encryption key.
         // This way, if the app ID changes, we will obtain new credentials.
@@ -145,7 +145,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
             // Parse the JSON and set relevant fields.
             return this.validate(Json.read(authFileDecrypted));
         } catch (AukletException | IOException | SecurityException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException e) {
-            LOGGER.warn("Could not read device auth file from disk, will re-register device with API", e);
+            LOGGER.warn("Could not read device auth file from disk, will re-register device with API.", e);
             return null;
         }
     }
@@ -169,7 +169,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
             byte[] encrypted = this.aesCipher.doFinal(contents.toString().getBytes("UTF-8"));
             Util.write(this.file, encrypted);
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IOException e) {
-            throw new AukletException("Could not encrypt/save device data to disk", e);
+            throw new AukletException("Could not encrypt/save device data to disk.", e);
         }
     }
 

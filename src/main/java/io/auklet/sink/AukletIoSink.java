@@ -40,6 +40,7 @@ public final class AukletIoSink extends AbstractSink {
      */
     @Override public void start(@NonNull Auklet agent) throws AukletException {
         super.start(agent);
+        LOGGER.info("Establishing MQTT client.");
         try {
             AukletIoCert cert = new AukletIoCert();
             cert.start(agent);
@@ -54,7 +55,7 @@ public final class AukletIoSink extends AbstractSink {
             this.client.connect(this.getConnectOptions(agent, cert.getCert()));
         } catch (MqttException e) {
             this.shutdown();
-            throw new AukletException("Could not initialize MQTT sink", e);
+            throw new AukletException("Could not initialize MQTT sink.", e);
         }
     }
 
@@ -71,7 +72,7 @@ public final class AukletIoSink extends AbstractSink {
                     this.getAgent().getUsageMonitor().addMoreData(size);
                 }
             } catch (MqttException e) {
-                throw new AukletException("Error while publishing MQTT message", e);
+                throw new AukletException("Error while publishing MQTT message.", e);
             }
         }
     }
@@ -83,18 +84,18 @@ public final class AukletIoSink extends AbstractSink {
                 try {
                     this.client.disconnect().waitForCompletion();
                 } catch (MqttException e) {
-                    LOGGER.warn("Error while disconnecting MQTT client", e);
+                    LOGGER.warn("Error while disconnecting MQTT client.", e);
                     try {
                         this.client.disconnectForcibly();
                     } catch (MqttException e2) {
-                        LOGGER.warn("Error while forcibly disconnecting MQTT client", e);
+                        LOGGER.warn("Error while forcibly disconnecting MQTT client.", e);
                     }
                 }
             }
             try {
                 this.client.close();
             } catch (MqttException e) {
-                LOGGER.error("Error while shutting down MQTT client", e);
+                LOGGER.warn("Error while shutting down MQTT client.", e);
             }
             try {
                 this.executorService.shutdown();
@@ -106,7 +107,7 @@ public final class AukletIoSink extends AbstractSink {
                 this.executorService.shutdownNow();
                 Thread.currentThread().interrupt();
             } catch (SecurityException se) {
-                LOGGER.warn("Could not shut down MQTT thread pool", se);
+                LOGGER.warn("Could not shut down MQTT thread pool.", se);
             }
         }
     }
@@ -120,7 +121,7 @@ public final class AukletIoSink extends AbstractSink {
         return new MqttCallback() {
             @Override
             public void connectionLost(Throwable cause) {
-                LOGGER.error("Unexpected disconnect from MQTT");
+                LOGGER.error("Unexpected disconnect from MQTT.", cause);
             }
 
             @Override
@@ -143,7 +144,7 @@ public final class AukletIoSink extends AbstractSink {
      * @throws AukletException if the options object cannot be constructed, or if any argument is {@code null}.
      */
     @NonNull private DisconnectedBufferOptions getDisconnectBufferOptions(@NonNull Auklet agent) throws AukletException {
-        if (agent == null) throw new AukletException("Auklet agent is null");
+        if (agent == null) throw new AukletException("Auklet agent is null.");
         // Divide by 5KB to get amount of messages.
         long storageLimit = agent.getUsageMonitor().getUsageConfig().getStorageLimit();
         int bufferSize = (storageLimit == 0) ? 5000 : (int) storageLimit / 5000;
@@ -164,8 +165,8 @@ public final class AukletIoSink extends AbstractSink {
      * @throws AukletException if the options object cannot be constructed, or if any argument is {@code null}.
      */
     @NonNull private MqttConnectOptions getConnectOptions(@NonNull Auklet agent, @NonNull X509Certificate cert) throws AukletException {
-        if (agent == null) throw new AukletException("Auklet agent is null");
-        if (cert == null) throw new AukletException("Auklet SSL cert is null");
+        if (agent == null) throw new AukletException("Auklet agent is null.");
+        if (cert == null) throw new AukletException("SSL cert is null.");
         MqttConnectOptions options = new MqttConnectOptions();
         options.setUserName(agent.getDeviceAuth().getClientUsername());
         options.setPassword(agent.getDeviceAuth().getClientPassword().toCharArray());
@@ -186,7 +187,7 @@ public final class AukletIoSink extends AbstractSink {
      * @throws AukletException if the factory cannot be constructed, or if any argument is {@code null}.
      */
     @NonNull private SSLSocketFactory getSocketFactory(@NonNull X509Certificate cert) throws AukletException {
-        if (cert == null) throw new AukletException("Auklet SSL cert is null");
+        if (cert == null) throw new AukletException("SSL cert is null.");
         try {
             KeyStore ca = KeyStore.getInstance(KeyStore.getDefaultType());
             ca.load(null, null);
@@ -197,7 +198,7 @@ public final class AukletIoSink extends AbstractSink {
             context.init(null, tmf.getTrustManagers(), null);
             return context.getSocketFactory();
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
-            throw new AukletException("Error while setting up MQTT SSL socket factory", e);
+            throw new AukletException("Error while setting up MQTT SSL socket factory.", e);
         }
     }
 

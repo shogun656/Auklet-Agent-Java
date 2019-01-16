@@ -5,6 +5,8 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import net.jcip.annotations.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import purejavacomm.CommPortIdentifier;
 import purejavacomm.NoSuchPortException;
 import purejavacomm.PortInUseException;
@@ -17,6 +19,7 @@ import java.io.OutputStream;
 @ThreadSafe
 public final class SerialPortSink extends AbstractSink {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SerialPortSink.class);
     private final Object lock = new Object();
     private SerialPort port;
     private OutputStream out;
@@ -28,18 +31,20 @@ public final class SerialPortSink extends AbstractSink {
      * serial port's underlying output stream cannot be obtained.
      */
     @Override public void start(@NonNull Auklet agent) throws AukletException {
+        String port = this.getAgent().getSerialPort();
+        LOGGER.info("Connecting to serial port: {}", port);
         try {
             String appName = "auklet:" + this.getAgent().getAppId();
-            this.port = (SerialPort) CommPortIdentifier.getPortIdentifier(this.getAgent().getSerialPort()).open(appName, 1000);
+            this.port = (SerialPort) CommPortIdentifier.getPortIdentifier(port).open(appName, 1000);
         } catch (NoSuchPortException | PortInUseException e) {
             this.shutdown();
-            throw new AukletException("Could not initialize serial port sink", e);
+            throw new AukletException("Could not initialize serial port sink.", e);
         }
         try {
             this.out = this.port.getOutputStream();
         } catch (IOException e) {
             this.shutdown();
-            throw new AukletException("Could not initialize serial port sink", e);
+            throw new AukletException("Could not initialize serial port sink.", e);
         }
     }
 
@@ -51,11 +56,12 @@ public final class SerialPortSink extends AbstractSink {
         synchronized (this.lock) {
             synchronized (this.msgpack) {
                 try {
+                    LOGGER.debug("Adding MQTT info to payload.");
                     this.msgpack.packMapHeader(2)
                             .packString("topic").packString(this.getAgent().getDeviceAuth().getMqttEventsTopic())
                             .packString("payload"); // The value will be set by calling super.write().
                 } catch (IOException e) {
-                    throw new AukletException("Could not assemble event message", e);
+                    throw new AukletException("Could not assemble event message.", e);
                 }
                 super.send(throwable);
             }

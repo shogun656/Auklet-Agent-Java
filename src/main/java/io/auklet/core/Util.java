@@ -85,7 +85,7 @@ public final class Util {
         try {
             write(file, contents.getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
-            throw new AssertionError(e); // impossible
+            LOGGER.error("Impossible UnsupportedEncodingException, please report this bug.", e);
         }
     }
 
@@ -102,7 +102,7 @@ public final class Util {
             outputStream.write(bytes);
             outputStream.flush();
         } catch (IOException e) {
-            LOGGER.warn("Could not write file", e);
+            LOGGER.warn("Could not write file.", e);
         }
     }
 
@@ -143,7 +143,7 @@ public final class Util {
             try {
                 fromEnv = System.getenv(envVar);
             } catch (SecurityException e) {
-                LOGGER.warn("Could not get env var {}", envVar, e);
+                LOGGER.warn("Could not get env var '{}'.", envVar, e);
                 // Skip this and try the JVM sysprop.
             }
         }
@@ -153,7 +153,7 @@ public final class Util {
             try {
                 fromProp = System.getProperty(sysProp);
             } catch (SecurityException e) {
-                LOGGER.warn("Could not get JVM sys prop {}", sysProp, e);
+                LOGGER.warn("Could not get JVM sys prop '{}'.", sysProp, e);
             }
         }
         return fromProp;
@@ -259,7 +259,7 @@ public final class Util {
             }
             return hexString.toString();
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            LOGGER.warn("Error while calculating MAC address hash", e);
+            LOGGER.warn("Error while calculating MAC address hash.", e);
             return UNKNOWN_VALUE;
         }
     }
@@ -275,7 +275,7 @@ public final class Util {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL("http://checkip.amazonaws.com").openStream()))) {
             return defaultValue(in.readLine(), UNKNOWN_VALUE);
         } catch (IOException e) {
-            LOGGER.warn("Could not get public IP address", e);
+            LOGGER.warn("Could not get public IP address.", e);
             return UNKNOWN_VALUE;
         }
     }

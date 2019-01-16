@@ -66,7 +66,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
         try {
             return this.validate(Json.read(this.getStringFromDisk()));
         } catch (AukletException | IOException | IllegalArgumentException e) {
-            LOGGER.warn("Could not read broker config from disk, will re-download from API", e);
+            LOGGER.warn("Could not read broker config from disk, will re-download from API.", e);
             return null;
         }
     }
@@ -79,7 +79,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
     }
 
     @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
-        if (contents == null) throw new AukletException("Input is null");
+        if (contents == null) throw new AukletException("Input is null.");
         Util.writeUtf8(this.file, contents.toString());
     }
 

@@ -32,9 +32,7 @@ public final class DataUsageTracker extends AbstractConfigFile {
         super.start(agent);
         try {
             // If the file doesn't exist, create it.
-            if (!this.file.exists()) {
-                this.writeUsageToDisk(0L);
-            }
+            if (!this.file.exists()) this.writeUsageToDisk(0L);
             // Read from disk.
             byte[] usageBytes = Util.read(this.file);
             String usageString = new String(usageBytes, "UTF-8");
@@ -42,7 +40,7 @@ public final class DataUsageTracker extends AbstractConfigFile {
             Json usageJson = Json.read(usageString);
             this.bytesSent = usageJson.at(USAGE_KEY, 0l).asLong();
         } catch (IOException | SecurityException | IllegalArgumentException e) {
-            LOGGER.warn("Could not read data usage tracker file from disk, assuming zero usage", e);
+            LOGGER.warn("Could not read data usage tracker file from disk, assuming zero usage.", e);
         }
     }
 
@@ -93,13 +91,13 @@ public final class DataUsageTracker extends AbstractConfigFile {
                         try {
                             writeUsageToDisk(givenUsage);
                         } catch (IOException | SecurityException e) {
-                            LOGGER.warn("Could not save data usage to disk", e);
+                            LOGGER.warn("Could not save data usage to disk.", e);
                         }
                     }
                 }, 5, TimeUnit.SECONDS); // 5-second cooldown.
             }
         } catch (AukletException e) {
-            LOGGER.warn("Could not queue data usage save task", e);
+            LOGGER.warn("Could not queue data usage save task.", e);
         }
     }
 

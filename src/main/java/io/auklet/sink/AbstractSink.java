@@ -36,7 +36,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             try {
                 this.msgpack.close();
             } catch (IOException e) {
-                LOGGER.warn("Error while shutting down MessagePacker", e);
+                LOGGER.warn("Error while shutting down MessagePacker.", e);
             }
         }
     }
@@ -64,7 +64,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                 }
                 this.msgpack.flush();
             } catch (IOException e) {
-                throw new AukletException("Could not assemble event message", e);
+                throw new AukletException("Could not assemble event message.", e);
             }
             byte[] payload = this.msgpack.toByteArray();
             if (payload == null || payload.length == 0) return;
@@ -101,7 +101,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             this.msgpack.packString("agentVersion").packString(Auklet.VERSION)
                     .packString("device").packString(this.getAgent().getDeviceAuth().getClientUsername());
         } catch (IOException | IllegalArgumentException e) {
-            throw new AukletException("Error while assembling msgpack payload", e);
+            throw new AukletException("Error while assembling msgpack payload.", e);
         }
     }
 
@@ -137,7 +137,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             this.msgpack.packString("outboundNetwork").packDouble(0);
             this.msgpack.packString("inboundNetwork").packDouble(0);
         } catch (IOException e) {
-            throw new AukletException("Error while assembling msgpack payload", e);
+            throw new AukletException("Error while assembling msgpack payload.", e);
         }
     }
 

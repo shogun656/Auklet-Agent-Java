@@ -32,9 +32,9 @@ public abstract class HasAgent {
      * @throws AukletException if the agent reference has already been set, or if the input is {@code null}.
      */
     public void start(@NonNull Auklet agent) throws AukletException {
-        if (agent == null) throw new AukletException("Auklet agent is null");
+        if (agent == null) throw new AukletException("Auklet agent is null.");
         synchronized(this.lock) {
-            if (this.agent != null) throw new AukletException("Auklet agent already set");
+            if (this.agent != null) throw new AukletException("Auklet agent already set.");
             this.agent = agent;
         }
     }
@@ -47,7 +47,7 @@ public abstract class HasAgent {
      */
     @NonNull protected final Auklet getAgent() throws AukletException {
         synchronized(this.lock) {
-            if (this.agent == null) throw new AukletException("Auklet agent not set");
+            if (this.agent == null) throw new AukletException("Auklet agent not set.");
             return this.agent;
         }
     }
