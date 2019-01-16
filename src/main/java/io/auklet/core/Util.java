@@ -52,9 +52,7 @@ public final class Util {
      */
     @CheckForNull public static String removeTrailingSlash(@Nullable String s) {
         if (s == null) return null;
-        if (s.endsWith("/")) {
-            s = s.substring(0, s.length() - 1);
-        }
+        if (s.endsWith("/")) s = s.substring(0, s.length() - 1);
         return s;
     }
 
@@ -65,11 +63,8 @@ public final class Util {
      */
     public static void deleteQuietly(@Nullable File file) {
         if (file == null) return;
-        try {
-            file.delete(); // NOSONAR
-        } catch (SecurityException e) {
-            // Be quiet.
-        }
+        try { file.delete(); } // NOSONAR
+        catch (SecurityException e) { /* Be quiet. */ }
     }
 
     /**

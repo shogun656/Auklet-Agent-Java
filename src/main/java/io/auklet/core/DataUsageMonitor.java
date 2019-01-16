@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * <p>This class handles tracking of data usage, enforcement of data usage limits, and periodic refresh
- * of data usage limit config.</p>
+ * of the data usage limit config.</p>
  */
 @ThreadSafe
 public final class DataUsageMonitor extends HasAgent {
