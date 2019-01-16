@@ -9,7 +9,7 @@ import net.jcip.annotations.NotThreadSafe;
 import java.io.File;
 
 /**
- * <p>Implementations of this interface represent a configuration file located inside the Auklet agent's
+ * <p>Descendants of this class represent a configuration file located inside the Auklet agent's
  * configuration directory.</p>
  */
 @NotThreadSafe
