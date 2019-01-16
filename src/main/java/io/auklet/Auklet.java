@@ -46,6 +46,7 @@ public final class Auklet {
     public static final String VERSION;
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
+    private static final ExecutorService START_STOP = Executors.newSingleThreadExecutor(Util.createDaemonThreadFactory());
     private static Auklet agent = null;
 
     private final String appId;
@@ -169,9 +170,8 @@ public final class Auklet {
      * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
      *
      * @return {@code true} if the agent was initialized successfully, {@code false} otherwise.
-     * @throws IllegalStateException if the agent is already initialized.
      */
-    public static boolean init() {
+    @NonNull public static Future<Boolean> init() {
         return init(null);
     }
 
@@ -181,27 +181,43 @@ public final class Auklet {
      *
      * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
      *
-     * @return {@code true} if the agent was initialized successfully, {@code false} otherwise.
      * @param config the agent config object. May be {@code null}.
-     * @throws IllegalStateException if the agent is already initialized.
+     * @return {@code true} if the agent was initialized successfully, {@code false} otherwise.
      */
-    public static boolean init(@Nullable Config config) {
-        synchronized (LOCK) {
-            // We check this here to provide a proper message, in case the user accidentally attempted to
-            // init twice. We check again in the constructor to prevent instantiation via reflection.
-            if (agent != null) throw new IllegalStateException("Agent is already initialized; use Auklet.shutdown() first.");
-            LOGGER.info("Starting agent.");
-            try {
-                agent = new Auklet(config);
-                agent.start();
-                LOGGER.info("Agent started successfully.");
-                return true;
-            } catch (AukletException e) {
-                shutdown();
-                LOGGER.error("Could not start agent.", e);
-                return false;
+    @NonNull public static Future<Boolean> init(@Nullable final Config config) {
+        Callable<Boolean> initTask = new Callable<Boolean>() {
+            @NonNull @Override public Boolean call() {
+                synchronized (LOCK) {
+                    // We check this here to provide a proper message, in case the user accidentally attempted to
+                    // init twice. We check again in the constructor to prevent instantiation via reflection.
+                    if (agent != null) {
+                        LOGGER.error("Agent is already initialized; use Auklet.shutdown() first.");
+                        return false;
+                    }
+                    LOGGER.info("Starting agent.");
+                    try {
+                        agent = new Auklet(config);
+                        agent.start();
+                        LOGGER.info("Agent started successfully.");
+                        return true;
+                    } catch (AukletException e) {
+                        shutdown();
+                        LOGGER.error("Could not start agent.", e);
+                        return false;
+                    }
+                }
             }
+        };
+        FutureTask<Boolean> future;
+        try {
+            future = new FutureTask<>(initTask);
+            START_STOP.execute(future);
+        } catch (RejectedExecutionException e) {
+            future = new FutureTask<>(new Runnable() {@Override public void run() { }}, false);
+            future.run();
+            LOGGER.error("Could not start agent.", e);
         }
+        return future;
     }
 
     /**
@@ -222,12 +238,28 @@ public final class Auklet {
      * than once has no effect; therefore, explicitly calling this method when the agent has been initialized
      * with a builtin JVM shutdown hook is unnecessary, unless you wish to shutdown the Auklet agent earlier
      * than JVM shutdown.</p>
+     *
+     * <p>Any error that occurs during shutdown will be logged automatically.</p>
+     *
+     * @return a future whose result is always {@code null}.
      */
-    public static void shutdown() {
-        synchronized (LOCK) {
-            if (agent == null) return;
-            agent.doShutdown(false);
-            agent = null;
+    @NonNull public static Future<Object> shutdown() {
+        Runnable shutdownTask = new Runnable() {
+            @Override public void run() {
+                synchronized (LOCK) {
+                    if (agent == null) return;
+                    agent.doShutdown(false);
+                    agent = null;
+                }
+            }
+        };
+        try {
+            return START_STOP.submit(shutdownTask, null);
+        } catch (RejectedExecutionException e) {
+            FutureTask<Object> future = new FutureTask<>(new Runnable() {@Override public void run() { }}, null);
+            future.run();
+            LOGGER.error("Could not shutdown agent.", e);
+            return future;
         }
     }
 
