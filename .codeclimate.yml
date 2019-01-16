@@ -1,4 +1,11 @@
----
+version: "2"
+checks:
+  method-complexity:
+    config:
+      threshold: 10
+  method-lines:
+    config:
+      threshold: 50
 plugins:
   sonar-java:
     enabled: true
@@ -7,5 +14,5 @@ plugins:
       sonar.java.source: 7
       tests_patterns:
         - src/test/**
-exclude_paths:
+exclude_patterns:
 - .devops/

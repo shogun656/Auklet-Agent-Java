@@ -213,7 +213,7 @@ public final class Auklet {
             future = new FutureTask<>(initTask);
             START_STOP.execute(future);
         } catch (RejectedExecutionException e) {
-            future = new FutureTask<>(new Runnable() {@Override public void run() { }}, false);
+            future = new FutureTask<>(new Runnable() {@Override public void run() { /* no-op */ }}, false);
             future.run();
             LOGGER.error("Could not start agent.", e);
         }
@@ -256,7 +256,7 @@ public final class Auklet {
         try {
             return START_STOP.submit(shutdownTask, null);
         } catch (RejectedExecutionException e) {
-            FutureTask<Object> future = new FutureTask<>(new Runnable() {@Override public void run() { }}, null);
+            FutureTask<Object> future = new FutureTask<>(new Runnable() {@Override public void run() { /* no-op */ }}, null);
             future.run();
             LOGGER.error("Could not shutdown agent.", e);
             return future;
