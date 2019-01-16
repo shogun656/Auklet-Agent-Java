@@ -15,13 +15,16 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /** <p>Utility methods.</p> */
 public final class Util {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
+    private static final String UTF_8 = "UTF-8";
 
     private Util() {}
 
@@ -79,7 +82,7 @@ public final class Util {
         if (file == null) return;
         if (isNullOrEmpty(contents)) return;
         try {
-            write(file, contents.getBytes("UTF-8"));
+            write(file, contents.getBytes(UTF_8));
         } catch (UnsupportedEncodingException e) {
             LOGGER.error("Impossible UnsupportedEncodingException, please report this bug.", e);
         }
@@ -135,24 +138,18 @@ public final class Util {
     @CheckForNull public static String getValue(@Nullable String fromThisObj, @Nullable String envVar, @Nullable String sysProp) {
         if (fromThisObj != null) return fromThisObj;
         String fromEnv = null;
-        if (!isNullOrEmpty(envVar)) {
-            try {
-                fromEnv = System.getenv(envVar);
-            } catch (SecurityException e) {
-                LOGGER.warn("Could not get env var '{}'.", envVar, e);
-                // Skip this and try the JVM sysprop.
-            }
+        try {
+            if (!isNullOrEmpty(envVar)) fromEnv = System.getenv(envVar);
+        } catch (SecurityException e) {
+            LOGGER.warn("Could not get env var '{}'.", envVar, e);
         }
-        if (fromEnv != null) return fromEnv;
         String fromProp = null;
-        if (!isNullOrEmpty(sysProp)) {
-            try {
-                fromProp = System.getProperty(sysProp);
-            } catch (SecurityException e) {
-                LOGGER.warn("Could not get JVM sys prop '{}'.", sysProp, e);
-            }
+        try {
+            if (!isNullOrEmpty(sysProp)) fromProp = System.getProperty(sysProp);
+        } catch (SecurityException e) {
+            LOGGER.warn("Could not get JVM sys prop '{}'.", sysProp, e);
         }
-        return fromProp;
+        return defaultValue(fromEnv, fromProp);
     }
 
     /**
@@ -247,7 +244,7 @@ public final class Util {
             while ((nRead = schemaStream.read(data, 0, data.length)) != -1) {
                 buffer.write(data, 0, nRead);
             }
-            return Json.schema(Json.read(new String(buffer.toByteArray(), "UTF-8")));
+            return Json.schema(Json.read(new String(buffer.toByteArray(), UTF_8)));
         } catch (SecurityException | IOException e) {
             throw new AukletException("Could not read JSON schema.", e);
         }
@@ -283,7 +280,7 @@ public final class Util {
                 humanReadable.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
             }
             // Hash the human-readable address using MD5.
-            byte[] humanReadableBytes = humanReadable.toString().getBytes("UTF-8");
+            byte[] humanReadableBytes = humanReadable.toString().getBytes(UTF_8);
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] hashBytes = md.digest(humanReadableBytes);
             // Convert bytes of hashed hardware address into a hexadecimal string.
@@ -310,6 +307,29 @@ public final class Util {
         } catch (IOException e) {
             LOGGER.warn("Could not get public IP address.", e);
             return "";
+        }
+    }
+
+    /**
+     * <p>Shuts down the given executor service. If it does not shut down within 3 seconds,
+     * or if the current thread is interrupted while waiting for shutdown to complete,
+     * {@link ExecutorService#shutdownNow()} is invoked.</p>
+     *
+     * @param es no-op if {@code null}.
+     */
+    public static void shutdown(@Nullable ExecutorService es) {
+        if (es == null) return;
+        try {
+            es.shutdown();
+            if (!es.awaitTermination(3, TimeUnit.SECONDS)) es.shutdownNow();
+        } catch (InterruptedException ie) {
+            // End-users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
+            // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
+            LOGGER.warn("Interrupted while awaiting ExecutorService shutdown.", ie);
+            es.shutdownNow();
+            Thread.currentThread().interrupt();
+        } catch (SecurityException se) {
+            LOGGER.warn("Could not shut down ExecutorService.", se);
         }
     }
 

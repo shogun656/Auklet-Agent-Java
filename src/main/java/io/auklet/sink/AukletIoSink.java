@@ -97,18 +97,7 @@ public final class AukletIoSink extends AbstractSink {
             } catch (MqttException e) {
                 LOGGER.warn("Error while shutting down MQTT client.", e);
             }
-            try {
-                this.executorService.shutdown();
-                if (!this.executorService.awaitTermination(3, TimeUnit.SECONDS)) this.executorService.shutdownNow();
-            } catch (InterruptedException ie) {
-                // End-users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
-                // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
-                LOGGER.warn("Interrupted while awaiting MQTT thread pool shutdown.");
-                this.executorService.shutdownNow();
-                Thread.currentThread().interrupt();
-            } catch (SecurityException se) {
-                LOGGER.warn("Could not shut down MQTT thread pool.", se);
-            }
+            Util.shutdown(this.executorService);
         }
     }
 

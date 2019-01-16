@@ -534,18 +534,7 @@ public final class Auklet {
         boolean jvmHookIsShuttingDown = this.shutdownHook != null && viaJvmHook;
         if (!jvmHookIsShuttingDown) Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
         this.sink.shutdown();
-        try {
-            this.daemon.shutdown();
-            if (!this.daemon.awaitTermination(3, TimeUnit.SECONDS)) this.daemon.shutdownNow();
-        } catch (InterruptedException ie) {
-            // End-users that call shutdown() explicitly should only do so inside the context of a JVM shutdown.
-            // Thus, rethrowing this exception creates unnecessary noise and clutters the API/Javadocs.
-            LOGGER.warn("Interrupted while awaiting Auklet agent thread pool shutdown.");
-            this.daemon.shutdownNow();
-            Thread.currentThread().interrupt();
-        } catch (SecurityException se) {
-            LOGGER.warn("Could not shut down Auklet agent thread pool.", se);
-        }
+        Util.shutdown(this.daemon);
         this.api.shutdown();
     }
 
