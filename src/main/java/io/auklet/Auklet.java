@@ -329,7 +329,7 @@ public final class Auklet {
      * @throws AukletException to wrap any underlying exceptions.
      * @see ScheduledExecutorService#schedule(Runnable, long, TimeUnit)
      */
-    @NonNull public ScheduledFuture<?> scheduleOneShotTask(@NonNull Runnable command, long delay, @NonNull TimeUnit unit) throws AukletException {
+    @NonNull public ScheduledFuture<?> scheduleOneShotTask(@NonNull Runnable command, long delay, @NonNull TimeUnit unit) throws AukletException { //NOSONAR
         if (command == null) throw new AukletException("Daemon task is null.");
         if (unit == null) throw new AukletException("Daemon task time unit is null.");
         try {
@@ -350,7 +350,7 @@ public final class Auklet {
      * @throws AukletException to wrap any underlying exceptions.
      * @see ScheduledExecutorService#scheduleAtFixedRate(Runnable, long, long, TimeUnit)
      */
-    @NonNull public ScheduledFuture<?> scheduleRepeatingTask(@NonNull Runnable command, long initialDelay, long period, @NonNull TimeUnit unit) throws AukletException {
+    @NonNull public ScheduledFuture<?> scheduleRepeatingTask(@NonNull Runnable command, long initialDelay, long period, @NonNull TimeUnit unit) throws AukletException { //NOSONAR
         if (command == null) throw new AukletException("Daemon task is null.");
         if (unit == null) throw new AukletException("Daemon task time unit is null.");
         try {
