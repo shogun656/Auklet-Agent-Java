@@ -272,7 +272,7 @@ public final class Util {
      * the string literal {@code unknown}.
      */
     @NonNull public static String getIpAddress() {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL("http://checkip.amazonaws.com").openStream()))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL("https://checkip.amazonaws.com").openStream()))) {
             return defaultValue(in.readLine(), UNKNOWN_VALUE);
         } catch (IOException e) {
             LOGGER.warn("Could not get public IP address.", e);
