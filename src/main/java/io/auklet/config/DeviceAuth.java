@@ -31,33 +31,6 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
 
     public static final String FILENAME = "AukletAuth";
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceAuth.class);
-    private static final Json.Schema SCHEMA = Json.schema(Json.read("{\n" +
-            "  \"type\": \"object\",\n" +
-            "  \"required\": [\n" +
-            "    \"organization\",\n" +
-            "    \"client_id\",\n" +
-            "    \"id\",\n" +
-            "    \"client_password\"\n" +
-            "  ],\n" +
-            "  \"properties\": {\n" +
-            "    \"organization\": {\n" +
-            "      \"type\": \"string\",\n" +
-            "      \"pattern\": \"^(.+)$\"\n" +
-            "    },\n" +
-            "    \"client_id\": {\n" +
-            "      \"type\": \"string\",\n" +
-            "      \"pattern\": \"^(.+)$\"\n" +
-            "    },\n" +
-            "    \"id\": {\n" +
-            "      \"type\": \"string\",\n" +
-            "      \"pattern\": \"^(.+)$\"\n" +
-            "    },\n" +
-            "    \"client_password\": {\n" +
-            "      \"type\": \"string\",\n" +
-            "      \"pattern\": \"^(.+)$\"\n" +
-            "    }\n" +
-            "  }\n" +
-            "}"));
 
     private Cipher aesCipher;
     private Key aesKey;
@@ -88,8 +61,6 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
     @Override public String getName() {
         return FILENAME;
     }
-
-    @Override protected Json.Schema getSchema() { return SCHEMA; }
 
     /**
      * <p>Returns the organization ID for this device.</p>
@@ -143,7 +114,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
             this.aesCipher.init(Cipher.DECRYPT_MODE, this.aesKey);
             String authFileDecrypted = new String(this.aesCipher.doFinal(authFileBytes));
             // Parse the JSON and set relevant fields.
-            return this.validate(Json.read(authFileDecrypted));
+            return Util.validate(Json.read(authFileDecrypted), this.getClass().getName());
         } catch (AukletException | IOException | SecurityException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException e) {
             LOGGER.warn("Could not read device auth file from disk, will re-register device with API.", e);
             return null;

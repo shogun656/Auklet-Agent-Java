@@ -23,51 +23,6 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataUsageLimit.class);
     private static final Long MEGABYTES_TO_BYTES = 1000000L;
     private static final Long SECONDS_TO_MILLISECONDS = 1000L;
-    private static final Json.Schema SCHEMA = Json.schema(Json.read("{\n" +
-            "  \"type\": \"object\",\n" +
-            "  \"required\": [\n" +
-            "    \"config\"\n" +
-            "  ],\n" +
-            "  \"properties\": {\n" +
-            "    \"config\": {\n" +
-            "      \"type\": \"object\",\n" +
-            "      \"required\": [\n" +
-            "        \"emission_period\",\n" +
-            "        \"storage\",\n" +
-            "        \"data\"\n" +
-            "      ],\n" +
-            "      \"properties\": {\n" +
-            "        \"emission_period\": {\n" +
-            "          \"type\": \"integer\"\n" +
-            "        },\n" +
-            "        \"storage\": {\n" +
-            "          \"type\": \"object\",\n" +
-            "          \"properties\": {\n" +
-            "            \"storage_limit\": {\n" +
-            "              \"type\": \"integer\",\n" +
-            "              \"default\": 0\n" +
-            "            }\n" +
-            "          }\n" +
-            "        },\n" +
-            "        \"data\": {\n" +
-            "          \"type\": \"object\",\n" +
-            "          \"required\": [\n" +
-            "            \"normalized_cell_plan_date\"\n" +
-            "          ],\n" +
-            "          \"properties\": {\n" +
-            "            \"cellular_data_limit\": {\n" +
-            "              \"type\": \"integer\",\n" +
-            "              \"default\": 0\n" +
-            "            },\n" +
-            "            \"normalized_cell_plan_date\": {\n" +
-            "              \"type\": \"integer\"\n" +
-            "            }\n" +
-            "          }\n" +
-            "        }\n" +
-            "      }\n" +
-            "    }\n" +
-            "  }\n" +
-            "}"));
 
     private DataUsageConfig usageConfig;
 
@@ -78,8 +33,6 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
     }
 
     @Override public String getName() { return "limits"; }
-
-    @Override protected Json.Schema getSchema() { return SCHEMA; }
 
     /**
      * <p>Returns the underlying data usage limit config object.</p>
@@ -101,7 +54,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
 
     @Override protected Json readFromDisk() {
         try {
-            return this.validate(Json.read(this.getStringFromDisk())).at("config");
+            return Util.validate(Json.read(this.getStringFromDisk()), this.getClass().getName()).at("config");
         } catch (AukletException | IOException | IllegalArgumentException e) {
             LOGGER.warn("Could not read data usage limits file from disk, will re-download from API.", e);
             return null;

@@ -1,0 +1,45 @@
+{
+  "type": "object",
+  "required": [
+    "config"
+  ],
+  "properties": {
+    "config": {
+      "type": "object",
+      "required": [
+        "emission_period",
+        "storage",
+        "data"
+      ],
+      "properties": {
+        "emission_period": {
+          "type": "integer"
+        },
+        "storage": {
+          "type": "object",
+          "properties": {
+            "storage_limit": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "normalized_cell_plan_date"
+          ],
+          "properties": {
+            "cellular_data_limit": {
+              "type": "integer",
+              "default": 0
+            },
+            "normalized_cell_plan_date": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    }
+  }
+}

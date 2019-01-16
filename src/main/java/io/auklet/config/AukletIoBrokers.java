@@ -18,23 +18,6 @@ import java.io.IOException;
 public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoBrokers.class);
-    private static final Json.Schema SCHEMA = Json.schema(Json.read("{\n" +
-            "  \"type\": \"object\",\n" +
-            "  \"required\": [\n" +
-            "    \"brokers\",\n" +
-            "    \"port\"\n" +
-            "  ],\n" +
-            "  \"properties\": {\n" +
-            "    \"brokers\": {\n" +
-            "      \"type\": \"string\",\n" +
-            "      \"pattern\": \"^(.+)$\"\n" +
-            "    },\n" +
-            "    \"port\": {\n" +
-            "      \"type\": \"string\",\n" +
-            "      \"pattern\": \"^(.+)$\"\n" +
-            "    }\n" +
-            "  }\n" +
-            "}"));
 
     private final String url;
 
@@ -53,8 +36,6 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
         return "brokers";
     }
 
-    @Override protected Json.Schema getSchema() { return SCHEMA; }
-
     /**
      * <p>Returns the MQTT connection URL</p>
      *
@@ -64,7 +45,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
 
     @Override protected Json readFromDisk() {
         try {
-            return this.validate(Json.read(this.getStringFromDisk()));
+            return Util.validate(Json.read(this.getStringFromDisk()), this.getClass().getName());
         } catch (AukletException | IOException | IllegalArgumentException e) {
             LOGGER.warn("Could not read broker config from disk, will re-download from API.", e);
             return null;

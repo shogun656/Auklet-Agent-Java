@@ -2,6 +2,7 @@ package io.auklet.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
+import io.auklet.core.Util;
 import mjson.Json;
 import net.jcip.annotations.NotThreadSafe;
 import okhttp3.Request;
@@ -27,34 +28,13 @@ public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFr
         try (Response response = this.getAgent().getApi().doRequest(request)) {
             String responseString = response.body().string();
             if (response.isSuccessful()) {
-                return this.validate(Json.read(responseString));
+                return Util.validate(Json.read(responseString), this.getClass().getName());
             } else {
                 throw new AukletException(String.format("Error while getting Auklet JSON config file '%s': %s: %s", this.getName(), response.message(), responseString));
             }
         } catch (IOException | IllegalArgumentException e) {
             throw new AukletException(String.format("Error while getting Auklet JSON config file '%s'.", this.getName()), e);
         }
-    }
-
-    /**
-     * <p>Returns the JSON schema for this config file.</p>
-     *
-     * @return never {@code null}.
-     */
-    @NonNull protected abstract Json.Schema getSchema();
-
-    /**
-     * <p>Validates the given JSON config object against the schema defined for this Java class.</p>
-     *
-     * @param json never {@code null}.
-     * @return the input object.
-     * @throws AukletException if schema validation fails.
-     */
-    @NonNull protected final Json validate(@NonNull Json json) throws AukletException {
-        if (json == null) throw new AukletException("Input is null");
-        Json schemaValidation = this.getSchema().validate(json);
-        if (schemaValidation.is("ok", true)) return json;
-        else throw new AukletException(String.format("Errors while parsing Auklet JSON config file '%s': %s", this.getName(), schemaValidation.at("errors").toString()));
     }
 
 }
