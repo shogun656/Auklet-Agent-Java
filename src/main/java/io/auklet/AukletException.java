@@ -33,8 +33,4 @@ public final class AukletException extends Exception {
         super(cause);
     }
 
-    public AukletException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
 }
