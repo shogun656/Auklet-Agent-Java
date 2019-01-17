@@ -31,6 +31,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
      * or if it cannot be written to disk.
      */
     public AukletIoCert() throws AukletException {
+        LOGGER.debug("Loading auklet.io CA certificate.");
         String certString = this.loadConfig();
         // Load the cert file from disk and convert it to an X509 object.
         try (BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(certString.getBytes("UTF-8")))) {

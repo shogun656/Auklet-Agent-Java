@@ -28,6 +28,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
      * or if it cannot be written to disk.
      */
     public AukletIoBrokers() throws AukletException {
+        LOGGER.debug("Loading auklet.io MQTT broker configuration.");
         Json config = this.loadConfig();
         this.url = "ssl://" + config.at("brokers").asString() + ":" + config.at("port").asString();
     }

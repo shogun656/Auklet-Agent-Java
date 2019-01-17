@@ -29,6 +29,7 @@ public final class DataUsageTracker extends AbstractConfigFile {
     private long bytesSent = 0L;
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
+        LOGGER.debug("Loading data usage tracker file.");
         super.start(agent);
         try {
             // If the file doesn't exist, create it.

@@ -40,6 +40,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
     private String clientPassword;
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
+        LOGGER.debug("Loading device auth file.");
         super.start(agent);
         // Setup AES cipher.
         try {

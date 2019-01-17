@@ -27,6 +27,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
     private DataUsageConfig usageConfig;
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
+        LOGGER.debug("Loading data usage limits file.");
         super.start(agent);
         Json config = this.loadConfig();
         this.updateConfig(config);

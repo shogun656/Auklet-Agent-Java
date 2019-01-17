@@ -27,6 +27,7 @@ public final class DataUsageMonitor extends HasAgent {
     private int hoursSinceConfigRefresh = 0;
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
+        LOGGER.info("Starting data usage monitor service.");
         super.start(agent);
         this.limit = new DataUsageLimit();
         this.limit.start(agent);

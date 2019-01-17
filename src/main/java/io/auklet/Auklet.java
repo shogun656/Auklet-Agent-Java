@@ -496,6 +496,7 @@ public final class Auklet {
      * @throws AukletException if the underlying resources cannot be started.
      */
     private void start() throws AukletException {
+        LOGGER.debug("Starting internal resources.");
         this.deviceAuth.start(this);
         this.sink.start(this);
         this.usageMonitor.start(this);
