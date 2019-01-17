@@ -46,13 +46,14 @@ public final class Auklet {
     public static final String VERSION;
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
-    private static final ExecutorService START_STOP = Executors.newSingleThreadExecutor(Util.createDaemonThreadFactory("AukletStartStop"));
     private static Auklet agent = null;
+    private static ScheduledExecutorService daemon = null;
 
     private final String appId;
     private final String baseUrl;
     private final File configDir;
     private final String serialPort;
+    private final int internalThreads;
     private final int mqttThreads;
     private final String macHash;
     private final String ipAddress;
@@ -61,7 +62,6 @@ public final class Auklet {
     private final AbstractSink sink;
     private final DataUsageMonitor usageMonitor;
     private final Thread shutdownHook;
-    private final ScheduledExecutorService daemon;
 
     static {
         // Extract Auklet agent version from the manifest.
@@ -113,6 +113,7 @@ public final class Auklet {
         this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
         int internalThreads = Util.getValue(config.getThreads(), "AUKLET_THREADS", "auklet.threads");
         if (internalThreads < 1) internalThreads = 1;
+        this.internalThreads = internalThreads;
         int mqttThreadsFromConfig = Util.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt");
         if (mqttThreadsFromConfig < 1) mqttThreadsFromConfig = 3;
         this.mqttThreads = mqttThreadsFromConfig;
@@ -158,9 +159,6 @@ public final class Auklet {
                 throw new AukletException("Could not set default uncaught exception handler.", e);
             }
         }
-
-        LOGGER.debug("Starting task scheduler.");
-        this.daemon = Executors.newScheduledThreadPool(internalThreads, Util.createDaemonThreadFactory("AukletTask-%d"));
     }
 
     /**
@@ -182,7 +180,8 @@ public final class Auklet {
      * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
      *
      * @param config the agent config object. May be {@code null}.
-     * @return {@code true} if the agent was initialized successfully, {@code false} otherwise.
+     * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
+     * initialized successfully or {@code false} otherwise.
      */
     @NonNull public static Future<Boolean> init(@Nullable final Config config) {
         Callable<Boolean> initTask = new Callable<Boolean>() {
@@ -198,6 +197,8 @@ public final class Auklet {
                     try {
                         agent = new Auklet(config);
                         agent.start();
+                        LOGGER.debug("Starting task scheduler.");
+                        daemon = Executors.newScheduledThreadPool(agent.getInternalThreads(), Util.createDaemonThreadFactory("Auklet-%d"));
                         LOGGER.info("Agent started successfully.");
                         return true;
                     } catch (AukletException e) {
@@ -208,15 +209,9 @@ public final class Auklet {
                 }
             }
         };
-        FutureTask<Boolean> future;
-        try {
-            future = new FutureTask<>(initTask);
-            START_STOP.execute(future);
-        } catch (RejectedExecutionException e) {
-            future = new FutureTask<>(new Runnable() {@Override public void run() { /* no-op */ }}, false);
-            future.run();
-            LOGGER.error("Could not start agent.", e);
-        }
+        // We can't use the daemon because init constructs the daemon, so just use a bare thread.
+        FutureTask<Boolean> future = new FutureTask<>(initTask);
+        new Thread(future, "AukletInit").start();
         return future;
     }
 
@@ -225,18 +220,29 @@ public final class Auklet {
      *
      * @param throwable if {@code null}, this method is no-op.
      */
-    public static void send(@Nullable Throwable throwable) {
+    public static void send(@Nullable final Throwable throwable) {
         if (throwable == null) {
             LOGGER.debug("Ignoring send request for null throwable.");
             return;
         }
-        synchronized (LOCK) {
-            if (agent == null) {
-                LOGGER.debug("Ignoring send request because agent is null.");
-                return;
+        LOGGER.debug("Scheduling send task.");
+        Runnable shutdownTask = new Runnable() {
+            @Override public void run() {
+                synchronized (LOCK) {
+                    if (agent == null) {
+                        LOGGER.debug("Ignoring send request because agent is null.");
+                        return;
+                    }
+                    agent.doSend(throwable);
+                }
             }
-            LOGGER.debug("Scheduling send task.");
-            agent.doSend(throwable);
+        };
+        try {
+            daemon.submit(shutdownTask, null);
+        } catch (RejectedExecutionException e) {
+            FutureTask<Object> future = new FutureTask<>(new Runnable() {@Override public void run() { /* no-op */ }}, null);
+            future.run();
+            LOGGER.error("Could not send event.", e);
         }
     }
 
@@ -251,17 +257,21 @@ public final class Auklet {
      * @return a future whose result is always {@code null}.
      */
     @NonNull public static Future<Object> shutdown() {
+        LOGGER.debug("Scheduling shutdown task.");
         Runnable shutdownTask = new Runnable() {
             @Override public void run() {
                 synchronized (LOCK) {
-                    if (agent == null) return;
+                    if (agent == null) {
+                        LOGGER.debug("Ignoring shutdown request because agent is null.");
+                        return;
+                    }
                     agent.doShutdown(false);
                     agent = null;
                 }
             }
         };
         try {
-            return START_STOP.submit(shutdownTask, null);
+            return daemon.submit(shutdownTask, null);
         } catch (RejectedExecutionException e) {
             FutureTask<Object> future = new FutureTask<>(new Runnable() {@Override public void run() { /* no-op */ }}, null);
             future.run();
@@ -305,6 +315,13 @@ public final class Auklet {
     @CheckForNull public String getSerialPort() {
         return this.serialPort;
     }
+
+    /**
+     * <p>Returns the number of internal threads that will be used by this instance of the agent.</p>
+     *
+     * @return never less than 1.
+     */
+    public int getInternalThreads() { return this.internalThreads; }
 
     /**
      * <p>Returns the number of MQTT threads that will be used by this instance of the agent.</p>
@@ -372,7 +389,7 @@ public final class Auklet {
         if (command == null) throw new AukletException("Daemon task is null.");
         if (unit == null) throw new AukletException("Daemon task time unit is null.");
         try {
-            return this.daemon.schedule(command, delay, unit);
+            return daemon.schedule(command, delay, unit);
         } catch (RejectedExecutionException e) {
             throw new AukletException("Could not schedule one-shot task.", e);
         }
@@ -393,7 +410,7 @@ public final class Auklet {
         if (command == null) throw new AukletException("Daemon task is null.");
         if (unit == null) throw new AukletException("Daemon task time unit is null.");
         try {
-            return this.daemon.scheduleAtFixedRate(command, initialDelay, period, unit);
+            return daemon.scheduleAtFixedRate(command, initialDelay, period, unit);
         } catch (RejectedExecutionException | IllegalArgumentException e) {
             throw new AukletException("Could not schedule repeating task.", e);
         }
@@ -541,8 +558,8 @@ public final class Auklet {
         LOGGER.info("Shutting down agent.");
         boolean jvmHookIsShuttingDown = this.shutdownHook != null && viaJvmHook;
         if (!jvmHookIsShuttingDown) Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
+        Util.shutdown(daemon);
         this.sink.shutdown();
-        Util.shutdown(this.daemon);
         this.api.shutdown();
     }
 
