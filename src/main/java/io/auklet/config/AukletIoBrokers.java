@@ -1,6 +1,7 @@
 package io.auklet.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.Util;
 import mjson.Json;
@@ -19,16 +20,11 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoBrokers.class);
 
-    private final String url;
+    private String url;
 
-    /**
-     * <p>Constructor.</p>
-     *
-     * @throws AukletException if the underlying config file cannot be obtained from the filesystem/API,
-     * or if it cannot be written to disk.
-     */
-    public AukletIoBrokers() throws AukletException {
+    @Override public void start(@NonNull Auklet agent) throws AukletException {
         LOGGER.debug("Loading auklet.io MQTT broker configuration.");
+        super.start(agent);
         Json config = this.loadConfig();
         this.url = "ssl://" + config.at("brokers").asString() + ":" + config.at("port").asString();
     }
