@@ -256,7 +256,7 @@ public final class Util {
         List<Json> errors = schemaValidation.at("errors").asJsonList();
         StringBuilder errorString = new StringBuilder();
         for (Json error : errors) {
-            errorString.append(error.asString()).append('\n');
+            errorString.append('\n').append(error.asString());
         }
         throw new AukletException(String.format("Errors while parsing Auklet JSON config file '%s': %s", clazz, errorString.toString()));
     }
