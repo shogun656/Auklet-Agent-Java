@@ -98,7 +98,7 @@ import net.jcip.annotations.NotThreadSafe;
  *           <li>JVM system property {@code auklet.auto.shutdown}</li>
  *         </ol>
  *       </td>
- *       <td>{@code false} (auto-shutdown is disabled)</td>
+ *       <td>{@code true} (auto-shutdown is enabled)</td>
  *     </tr>
  *     <tr>
  *       <td>Default uncaught exception handler</td>
@@ -110,7 +110,7 @@ import net.jcip.annotations.NotThreadSafe;
  *           <li>JVM system property {@code auklet.uncaught.exception.handler}</li>
  *         </ol>
  *       </td>
- *       <td>{@code false} (uncaught exceptions will not be sent to Auklet)</td>
+ *       <td>{@code true} (uncaught exceptions will be sent to Auklet)</td>
  *     </tr>
  *     <tr>
  *       <td>Serial port (instead of sending data to {@code auklet.io}</td>

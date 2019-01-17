@@ -176,12 +176,13 @@ public final class Util {
      * empty, or refers to an environment variable that is not set, and the JVM system property named
      * by this parameter is set, this function returns the value of that JVM system property. If this
      * parameter is {@code null} or empty, no JVM system property is checked.
-     * @return whatever boolean value is determined by the logic described above, or {@code false}
+     * @return whatever boolean value is determined by the logic described above, or {@code null}
      * if all above described options fail to produce a value.
      */
-    public static boolean getValue(@Nullable Boolean fromThisObj, @Nullable String envVar, @Nullable String sysProp) {
+    @CheckForNull public static Boolean getValue(@Nullable Boolean fromThisObj, @Nullable String envVar, @Nullable String sysProp) {
         if (fromThisObj != null) return fromThisObj;
-        return Boolean.valueOf(getValue((String) null, envVar, sysProp));
+        String stringValue = getValue((String) null, envVar, sysProp);
+        return stringValue == null ? null : Boolean.valueOf(stringValue);
     }
 
     /**
@@ -195,17 +196,17 @@ public final class Util {
      * empty, or refers to an environment variable that is not set, and the JVM system property named
      * by this parameter is set, this function returns the value of that JVM system property. If this
      * parameter is {@code null} or empty, no JVM system property is checked.
-     * @return whatever boolean value is determined by the logic described above, or {@code 0}
+     * @return whatever boolean value is determined by the logic described above, or {@code null}
      * if all above described options fail to produce a value.
      */
-    public static int getValue(@Nullable Integer fromThisObj, @Nullable String envVar, @Nullable String sysProp) {
+    @CheckForNull public static Integer getValue(@Nullable Integer fromThisObj, @Nullable String envVar, @Nullable String sysProp) {
         if (fromThisObj != null) return fromThisObj;
-        String fromOther = getValue((String) null, envVar, sysProp);
-        if (fromOther == null) return 0;
+        String stringValue = getValue((String) null, envVar, sysProp);
+        if (stringValue == null) return null;
         try {
-            return Integer.valueOf(fromOther);
+            return Integer.valueOf(stringValue);
         } catch (NumberFormatException e) {
-            return 0;
+            return null;
         }
     }
 

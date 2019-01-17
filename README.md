@@ -14,22 +14,8 @@ This is the Java agent for Auklet, officially supporting Java 7+.
 # Quickstart
 
 * Download the agent JAR using Maven or Gradle from https://bintray.com/aukletio/agent-java/auklet-agent-java.
-* Initialize the agent at the very beginning of `main` using your app ID and API key:
-```
-import io.auklet.agent.Auklet;
-
-public class demo {
-
-   public static void main(String []arg) {
-       Auklet.init(new Auklet.Config()
-           .setAppId("...")
-           .setApiKey("...")
-       );
-       ...
-   }
-}
-```
-
+* Configure your app ID and API key using the environment variables `AUKLET_APP_ID` and `AUKLET_API_KEY` or the
+JVM system properties `auklet.app.id` and `auklet.api.key`.
 * The agent needs a dedicated folder to create and store its configuration files. The agent will create these files 
 on startup if they do not exist, or will use files that are already available on disk.
 
