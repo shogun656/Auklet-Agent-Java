@@ -86,8 +86,10 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
     private void updateConfig(@NonNull Json config) throws AukletException {
         if (config == null) throw new AukletException("Data usage limit JSON is null.");
         long emissionPeriod = config.at("emission_period").asLong() * SECONDS_TO_MILLISECONDS;
-        long storageLimit = config.at("storage").at("storage_limit", 0L).asLong() * MEGABYTES_TO_BYTES;
-        long cellularDataLimit = config.at("data").at("cellular_data_limit", 0L).asLong() * MEGABYTES_TO_BYTES;
+        Json slJson = config.at("storage").at("storage_limit");
+        long storageLimit = slJson.isNull() ? 0 : slJson.asLong() * MEGABYTES_TO_BYTES;
+        Json cdlJson = config.at("data").at("cellular_data_limit");
+        long cellularDataLimit = cdlJson.isNull() ? 0 : cdlJson.asLong() * MEGABYTES_TO_BYTES;
         int cellularPlanDate = config.at("data").at("normalized_cell_plan_date").asInteger();
         this.usageConfig = new DataUsageConfig(emissionPeriod, storageLimit, cellularDataLimit, cellularPlanDate);
     }
