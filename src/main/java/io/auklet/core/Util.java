@@ -15,6 +15,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -252,7 +253,12 @@ public final class Util {
         if (json == null) throw new AukletException("Input is null");
         Json schemaValidation = getJsonSchema(clazz).validate(json);
         if (schemaValidation.is("ok", true)) return json;
-        else throw new AukletException(String.format("Errors while parsing Auklet JSON config file '%s': %s", clazz, schemaValidation.at("errors").toString()));
+        List<Json> errors = schemaValidation.at("errors").asJsonList();
+        StringBuilder errorString = new StringBuilder();
+        for (Json error : errors) {
+            errorString.append(error.asString()).append('\n');
+        }
+        throw new AukletException(String.format("Errors while parsing Auklet JSON config file '%s': %s", clazz, errorString.toString()));
     }
 
     /**
