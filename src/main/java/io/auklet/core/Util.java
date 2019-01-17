@@ -121,7 +121,7 @@ public final class Util {
      * <p>Reads a file and returns its bytes.</p>
      *
      * @param file the file to read.
-     * @return never {@code null}. If file is {@code null}, returned array is empty.
+     * @return never {@code null}. If file is {@code null} or does not exist, returned array is empty.
      * @throws IOException if an error occurs while reading the file.
      */
     @NonNull public static byte[] read(@Nullable File file) throws IOException {

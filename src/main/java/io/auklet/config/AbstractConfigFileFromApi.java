@@ -60,8 +60,8 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
     /**
      * <p>Loads the config file from disk into a string, using the UTF-8 charset.</p>
      *
-     * @return never {@code null}.
-     * @throws IOException if the file does not exit or cannot be read.
+     * @return never {@code null}. If the file does not exist, an empty string is returned.
+     * @throws IOException if the file cannot be read.
      */
     @NonNull protected final String getStringFromDisk() throws IOException {
         try {

@@ -1,6 +1,7 @@
 package io.auklet.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.Util;
 import net.jcip.annotations.NotThreadSafe;
@@ -22,16 +23,11 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoCert.class);
 
-    private final X509Certificate cert;
+    private X509Certificate cert;
 
-    /**
-     * <p>Constructor.</p>
-     *
-     * @throws AukletException if the underlying config file cannot be obtained from the filesystem/API,
-     * or if it cannot be written to disk.
-     */
-    public AukletIoCert() throws AukletException {
+    @Override public void start(@NonNull Auklet agent) throws AukletException {
         LOGGER.debug("Loading auklet.io CA certificate.");
+        super.start(agent);
         String certString = this.loadConfig();
         // Load the cert file from disk and convert it to an X509 object.
         try (BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(certString.getBytes("UTF-8")))) {
@@ -55,7 +51,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
 
     @Override protected String readFromDisk() {
         try {
-            return this.getStringFromDisk();
+            return Util.orElseNullEmpty(this.getStringFromDisk(), null);
         } catch (IOException e) {
             LOGGER.warn("Could not read cert file from disk, will re-download from API.", e);
             return null;
