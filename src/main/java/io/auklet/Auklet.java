@@ -46,7 +46,7 @@ public final class Auklet {
     public static final String VERSION;
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
-    private static final ExecutorService START_STOP = Executors.newSingleThreadExecutor(Util.createDaemonThreadFactory());
+    private static final ExecutorService START_STOP = Executors.newSingleThreadExecutor(Util.createDaemonThreadFactory("AukletStartStop"));
     private static Auklet agent = null;
 
     private final String appId;
@@ -160,7 +160,7 @@ public final class Auklet {
         }
 
         LOGGER.debug("Starting task scheduler.");
-        this.daemon = Executors.newScheduledThreadPool(internalThreads, Util.createDaemonThreadFactory());
+        this.daemon = Executors.newScheduledThreadPool(internalThreads, Util.createDaemonThreadFactory("AukletTask-%d"));
     }
 
     /**
