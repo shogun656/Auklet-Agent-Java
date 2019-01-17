@@ -211,7 +211,9 @@ public final class Auklet {
         };
         // We can't use the daemon because init constructs the daemon, so just use a bare thread.
         FutureTask<Boolean> future = new FutureTask<>(initTask);
-        new Thread(future, "AukletInit").start();
+        Thread initThread = new Thread(future, "AukletInit");
+        initThread.setDaemon(true);
+        initThread.start();
         return future;
     }
 
