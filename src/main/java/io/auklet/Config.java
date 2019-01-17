@@ -125,19 +125,7 @@ import net.jcip.annotations.NotThreadSafe;
  *       <td>{@code null} (Auklet will not write data to any serial port)</td>
  *     </tr>
  *     <tr>
- *       <td>Number of internal threads (in addition to MQTT threads)</td>
- *       <td>{@link #setThreads(Integer)}</td>
- *       <td>
- *         <ol>
- *           <li>Setter method value</li>
- *           <li>Environment variable {@code AUKLET_THREADS}</li>
- *           <li>JVM system property {@code auklet.threads}</li>
- *         </ol>
- *       </td>
- *       <td>1</td>
- *     </tr>
- *     <tr>
- *       <td>Number of MQTT threads (in addition to internal threads)</td>
+ *       <td>Number of MQTT threads</td>
  *       <td>{@link #setMqttThreads(Integer)}</td>
  *       <td>
  *         <ol>
@@ -173,7 +161,6 @@ public final class Config {
     private Boolean autoShutdown = null;
     private Boolean uncaughtExceptionHandler = null;
     private String serialPort = null;
-    private Integer threads = null;
     private Integer mqttThreads = null;
 
     /**
@@ -259,18 +246,6 @@ public final class Config {
     }
 
     /**
-     * <p>Tells the Auklet agent how many internal threads to use.</p>
-     *
-     * @param threads may be {@code null}. Values less than 1 are coerced to {@code null}.
-     * @return {@code this}.
-     */
-    @NonNull public Config setThreads(@Nullable Integer threads) {
-        if (threads != null && threads < 1) threads = null;
-        this.threads = threads;
-        return this;
-    }
-
-    /**
      * <p>Tells the Auklet agent how many MQTT threads to use.</p>
      *
      * @param mqttThreads may be {@code null}. Values less than 1 are coerced to {@code null}.
@@ -316,9 +291,6 @@ public final class Config {
     /*package*/ @CheckForNull String getSerialPort() {
         return serialPort;
     }
-
-    /** <p>Returns the desired number of internal threads.</p> */
-    /*package*/ @CheckForNull Integer getThreads() { return threads; }
 
     /** <p>Returns the desired number of MQTT threads.</p> */
     /*package*/ @CheckForNull Integer getMqttThreads() { return mqttThreads; }
