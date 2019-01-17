@@ -112,7 +112,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
         try {
             // Read and decrypt the device auth file from disk.
             byte[] authFileBytes = Util.read(this.file);
-            if (authFileBytes.length == 0) return Json.object();
+            if (authFileBytes.length == 0) return null;
             this.aesCipher.init(Cipher.DECRYPT_MODE, this.aesKey);
             String authFileDecrypted = new String(this.aesCipher.doFinal(authFileBytes));
             // Parse the JSON and set relevant fields.
