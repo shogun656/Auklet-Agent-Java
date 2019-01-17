@@ -226,7 +226,10 @@ public final class Auklet {
      * @param throwable if {@code null}, this method is no-op.
      */
     public static void send(@Nullable Throwable throwable) {
-        if (throwable == null) return;
+        if (throwable == null) {
+            LOGGER.debug("Ignoring send request for null throwable.");
+            return;
+        }
         synchronized (LOCK) {
             if (agent == null) return;
             agent.doSend(throwable);
@@ -509,6 +512,7 @@ public final class Auklet {
      */
     private void doSend(@Nullable final Throwable throwable) {
         if (throwable == null) return;
+        LOGGER.debug("Scheduling send task.");
         try {
             this.scheduleOneShotTask(new Runnable() {
                 @Override public void run() {
