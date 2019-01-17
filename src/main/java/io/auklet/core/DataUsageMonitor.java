@@ -75,16 +75,14 @@ public final class DataUsageMonitor extends HasAgent {
      */
     public boolean willExceedLimit(long proposedPayloadSize) {
         LOGGER.debug("Testing data limit for payload size: {}", proposedPayloadSize);
-        boolean result = false;
-        if (proposedPayloadSize > 0) {
-            long dataLimit;
-            long bytesSent;
-            synchronized (this.lock) {
-                bytesSent = this.tracker.getBytesSent();
-                dataLimit = this.limit.getConfig().getCellularDataLimit();
-            }
-            result = (dataLimit == 0) || (bytesSent) + proposedPayloadSize <= dataLimit;
+        long dataLimit;
+        long bytesSent;
+        synchronized (this.lock) {
+            bytesSent = this.tracker.getBytesSent();
+            dataLimit = this.limit.getConfig().getCellularDataLimit();
         }
+        boolean result = false;
+        if (dataLimit > 0 && proposedPayloadSize > 0) result = bytesSent + proposedPayloadSize <= dataLimit;
         LOGGER.debug("Data limit test result: {}", result);
         return result;
     }
