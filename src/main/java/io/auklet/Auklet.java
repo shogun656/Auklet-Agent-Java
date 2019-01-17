@@ -498,8 +498,8 @@ public final class Auklet {
     private void start() throws AukletException {
         LOGGER.debug("Starting internal resources.");
         this.deviceAuth.start(this);
-        this.sink.start(this);
         this.usageMonitor.start(this);
+        this.sink.start(this);
     }
 
     /**
