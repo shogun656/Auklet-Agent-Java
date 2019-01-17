@@ -230,10 +230,12 @@ public final class Auklet {
             LOGGER.debug("Ignoring send request for null throwable.");
             return;
         }
-        LOGGER.debug("Scheduling send task.");
         synchronized (LOCK) {
-            LOGGER.debug("Lock acquired.");
-            if (agent == null) return;
+            if (agent == null) {
+                LOGGER.debug("Ignoring send request because agent is null.");
+                return;
+            }
+            LOGGER.debug("Scheduling send task.");
             agent.doSend(throwable);
         }
     }
