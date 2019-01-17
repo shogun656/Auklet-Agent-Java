@@ -28,7 +28,7 @@ public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFr
         try (Response response = this.getAgent().getApi().doRequest(request)) {
             String responseString = response.body().string();
             if (response.isSuccessful()) {
-                return Util.validate(Json.read(responseString), this.getClass().getName());
+                return Util.validateJson(Util.readJson(responseString), this.getClass().getName());
             } else {
                 throw new AukletException(String.format("Error while getting Auklet JSON config file '%s': %s: %s", this.getName(), response.message(), responseString));
             }

@@ -46,7 +46,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
 
     @Override protected Json readFromDisk() {
         try {
-            return Util.validate(Json.read(this.getStringFromDisk()), this.getClass().getName());
+            return Util.validateJson(Util.readJson(this.getStringFromDisk()), this.getClass().getName());
         } catch (AukletException | IOException | IllegalArgumentException e) {
             LOGGER.warn("Could not read broker config from disk, will re-download from API.", e);
             return null;

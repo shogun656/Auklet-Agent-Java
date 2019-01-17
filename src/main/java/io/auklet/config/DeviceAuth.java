@@ -115,7 +115,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
             this.aesCipher.init(Cipher.DECRYPT_MODE, this.aesKey);
             String authFileDecrypted = new String(this.aesCipher.doFinal(authFileBytes));
             // Parse the JSON and set relevant fields.
-            return Util.validate(Json.read(authFileDecrypted), this.getClass().getName());
+            return Util.validateJson(Util.readJson(authFileDecrypted), this.getClass().getName());
         } catch (AukletException | IOException | SecurityException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException e) {
             LOGGER.warn("Could not read device auth file from disk, will re-register device with API.", e);
             return null;

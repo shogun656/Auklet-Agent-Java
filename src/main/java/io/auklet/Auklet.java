@@ -70,7 +70,7 @@ public final class Auklet {
             if (manifestStream != null) {
                 Manifest manifest = new Manifest(manifestStream);
                 version = manifest.getMainAttributes().getValue("Implementation-Version");
-                version = Util.defaultValue(version, "unknown");
+                version = Util.orElse(version, "unknown");
             }
             LOGGER.info("Auklet Agent version " + version);
         } catch (SecurityException | IOException e) {
@@ -107,7 +107,7 @@ public final class Auklet {
         String apiKey = Util.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
         if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty.");
         String baseUrlMaybeNull = Util.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
-        this.baseUrl = Util.defaultValue(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
+        this.baseUrl = Util.orElse(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
         boolean autoShutdown = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
         boolean uncaughtExceptionHandler = Util.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
         this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");

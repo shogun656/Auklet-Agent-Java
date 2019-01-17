@@ -38,7 +38,7 @@ public final class DataUsageTracker extends AbstractConfigFile {
             byte[] usageBytes = Util.read(this.file);
             String usageString = new String(usageBytes, "UTF-8");
             // Parse the JSON and set relevant fields.
-            Json usageJson = Util.validate(Json.read(usageString), this.getClass().getName());
+            Json usageJson = Util.validateJson(Util.readJson(usageString), this.getClass().getName());
             this.bytesSent = usageJson.at(USAGE_KEY, 0l).asLong();
         } catch (IOException | SecurityException | IllegalArgumentException e) {
             LOGGER.warn("Could not read data usage tracker file from disk, assuming zero usage.", e);

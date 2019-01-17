@@ -55,7 +55,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
 
     @Override protected Json readFromDisk() {
         try {
-            return Util.validate(Json.read(this.getStringFromDisk()), this.getClass().getName()).at("config");
+            return Util.validateJson(Util.readJson(this.getStringFromDisk()), this.getClass().getName()).at("config");
         } catch (AukletException | IOException | IllegalArgumentException e) {
             LOGGER.warn("Could not read data usage limits file from disk, will re-download from API.", e);
             return null;

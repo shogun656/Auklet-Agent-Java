@@ -46,8 +46,19 @@ public final class Util {
      * @param b the second argument.
      * @return {@code a == null ? b : a}.
      */
-    @CheckForNull public static String defaultValue(@Nullable String a, @Nullable String b) {
+    @CheckForNull public static String orElse(@Nullable String a, @Nullable String b) {
         return a == null ? b : a;
+    }
+
+    /**
+     * <p>Returns the first argument if it is neither {@code null} nor empty, else returns the second argument.</p>
+     *
+     * @param a the first argument.
+     * @param b the second argument.
+     * @return {isNullOrEmpty(a) ? b : a}.
+     */
+    @CheckForNull public static String orElseNullEmpty(@Nullable String a, @Nullable String b) {
+        return isNullOrEmpty(a) ? b : a;
     }
 
     /**
@@ -150,7 +161,7 @@ public final class Util {
         } catch (SecurityException e) {
             LOGGER.warn("Could not get JVM sys prop '{}'.", sysProp, e);
         }
-        return defaultValue(fromEnv, fromProp);
+        return orElse(fromEnv, fromProp);
     }
 
     /**
@@ -219,6 +230,17 @@ public final class Util {
     }
 
     /**
+     * <p>Parses the given JSON string into a JSON object.</p>
+     *
+     * @param json the string to parse. If {@code null} or empty, the returned JSON object
+     * will be empty.
+     * @return never {@code null}, but may be a representation of the JSON "null" element.
+     */
+    @NonNull public static Json readJson(@Nullable String json) {
+        return Json.read(orElseNullEmpty(json, "{}"));
+    }
+
+    /**
      * <p>Validates the given JSON config object against the schema defined for the given Java class.</p>
      *
      * @param json never {@code null}.
@@ -226,7 +248,7 @@ public final class Util {
      * @return the input JSON object.
      * @throws AukletException if schema validation fails.
      */
-    @NonNull public static Json validate(@NonNull Json json, @NonNull String clazz) throws AukletException {
+    @NonNull public static Json validateJson(@NonNull Json json, @NonNull String clazz) throws AukletException {
         if (json == null) throw new AukletException("Input is null");
         Json schemaValidation = getJsonSchema(clazz).validate(json);
         if (schemaValidation.is("ok", true)) return json;
@@ -310,7 +332,7 @@ public final class Util {
      */
     @NonNull public static String getIpAddress() {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL("https://checkip.amazonaws.com").openStream()))) {
-            return defaultValue(in.readLine(), "");
+            return orElse(in.readLine(), "");
         } catch (IOException e) {
             LOGGER.warn("Could not get public IP address.", e);
             return "";
