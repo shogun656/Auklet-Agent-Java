@@ -63,7 +63,6 @@ public final class AukletIoSink extends AbstractSink {
             try {
                 MqttMessage message = new MqttMessage(bytes);
                 message.setQos(1);
-                // TODO does MqttMessage add more data beyond what's in the bytes array? if so, we need to change how we report/track data usage
                 int size = bytes.length;
                 boolean willExceedLimit = this.getAgent().getUsageMonitor().willExceedLimit(size);
                 if (!willExceedLimit) {

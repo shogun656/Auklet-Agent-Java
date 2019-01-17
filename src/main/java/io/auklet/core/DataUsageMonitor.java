@@ -15,6 +15,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * <p>This class handles tracking of data usage, enforcement of data usage limits, and periodic refresh
  * of the data usage limit config.</p>
+ *
+ * <p>The enforcement of the data usage limit provided by this class is fuzzy by nature; due to a lack
+ * of OS integration to sniff all traffic that's being sent across the wire, this class will always
+ * underestimate the amount of data being sent by the agent. End-users must be careful to configure
+ * their usage limits with some expected overhead in mind.</p>
  */
 @ThreadSafe
 public final class DataUsageMonitor extends HasAgent {

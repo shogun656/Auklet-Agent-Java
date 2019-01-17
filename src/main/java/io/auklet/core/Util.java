@@ -222,7 +222,7 @@ public final class Util {
             @Override public Thread newThread(Runnable r) {
                 Thread t = Executors.defaultThreadFactory().newThread(r);
                 t.setDaemon(true);
-                final long count = Long.valueOf(counter.incrementAndGet());
+                final long count = counter.incrementAndGet();
                 if (nameFormat != null) t.setName(String.format(nameFormat, count));
                 return t;
             }
