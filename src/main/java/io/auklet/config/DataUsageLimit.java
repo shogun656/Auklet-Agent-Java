@@ -57,7 +57,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
         try {
             String fromDisk = this.getStringFromDisk();
             if (fromDisk.isEmpty()) return null;
-            return Util.validateJson(Util.readJson(fromDisk), this.getClass().getName()).at("config");
+            return Util.validateJson(Util.readJson(fromDisk), this.getClass().getName());
         } catch (AukletException | IOException | IllegalArgumentException e) {
             LOGGER.warn("Could not read data usage limits file from disk, will re-download from API.", e);
             return null;
@@ -69,7 +69,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
         Request.Builder request = new Request.Builder()
                 .url(this.getAgent().getBaseUrl() + apiSuffix).get()
                 .header("Content-Type", "application/json; charset=utf-8");
-        return this.makeJsonRequest(request).at("config");
+        return this.makeJsonRequest(request);
     }
 
     @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
@@ -85,12 +85,12 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
      */
     private void updateConfig(@NonNull Json config) throws AukletException {
         if (config == null) throw new AukletException("Data usage limit JSON is null.");
-        long emissionPeriod = config.at("emission_period").asLong() * SECONDS_TO_MILLISECONDS;
-        Json slJson = config.at("storage").at("storage_limit");
+        long emissionPeriod = config.at("config").at("emission_period").asLong() * SECONDS_TO_MILLISECONDS;
+        Json slJson = config.at("config").at("storage").at("storage_limit");
         long storageLimit = slJson.isNull() ? 0 : slJson.asLong() * MEGABYTES_TO_BYTES;
-        Json cdlJson = config.at("data").at("cellular_data_limit");
+        Json cdlJson = config.at("config").at("data").at("cellular_data_limit");
         long cellularDataLimit = cdlJson.isNull() ? 0 : cdlJson.asLong() * MEGABYTES_TO_BYTES;
-        int cellularPlanDate = config.at("data").at("normalized_cell_plan_date").asInteger();
+        int cellularPlanDate = config.at("config").at("data").at("normalized_cell_plan_date").asInteger();
         this.usageConfig = new DataUsageConfig(emissionPeriod, storageLimit, cellularDataLimit, cellularPlanDate);
     }
 
