@@ -230,7 +230,9 @@ public final class Auklet {
             LOGGER.debug("Ignoring send request for null throwable.");
             return;
         }
+        LOGGER.debug("Scheduling send task.");
         synchronized (LOCK) {
+            LOGGER.debug("Lock acquired.");
             if (agent == null) return;
             agent.doSend(throwable);
         }
@@ -512,7 +514,6 @@ public final class Auklet {
      */
     private void doSend(@Nullable final Throwable throwable) {
         if (throwable == null) return;
-        LOGGER.debug("Scheduling send task.");
         try {
             this.scheduleOneShotTask(new Runnable() {
                 @Override public void run() {
