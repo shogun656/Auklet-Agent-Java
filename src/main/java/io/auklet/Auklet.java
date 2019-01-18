@@ -489,10 +489,11 @@ public final class Auklet {
                     File tempFile = File.createTempFile("auklet", null, possibleConfigDir);
                     LOGGER.debug("Using existing config directory: {}", dir);
                     Util.deleteQuietly(tempFile);
+                    return possibleConfigDir;
                 } else if (possibleConfigDir.mkdirs()) {
                     LOGGER.debug("Created new config directory: {}", dir);
+                    return possibleConfigDir;
                 }
-                return possibleConfigDir;
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
                 LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
             }
