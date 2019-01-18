@@ -125,7 +125,7 @@ public final class Auklet {
         // until we've validated the rest of the config, in case there is a config error; this
         // approach avoids unnecessary filesystem changes for bad configs.
         LOGGER.debug("Determining which config directory to use.");
-        this.configDir = obtainConfigDir(config.getConfigDir());
+        this.configDir = obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
 
         LOGGER.debug("Configuring agent resources.");
@@ -438,17 +438,16 @@ public final class Auklet {
      * creates/tests write access to the target config directory after determining which directory to use,
      * per the logic described in the class-level Javadoc.</p>
      *
-     * @param fromConfigObject the value from the {@link Config config object}, possibly
+     * @param fromConfig the value from the {@link Config} object, env var and/or JVM sysprop, possibly
      * {@code null}.
      * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
      * initialization and all data sent to the agent must be silently discarded.
      */
-    @CheckForNull private static File obtainConfigDir(@Nullable String fromConfigObject) {
+    @CheckForNull private static File obtainConfigDir(@Nullable String fromConfig) {
+        if (Util.isNullOrEmpty(fromConfig)) LOGGER.warn("Config dir not defined, will attempt to fallback on JVM system properties.");
         // Consider config dir settings in this order.
         List<String> possibleConfigDirs = Arrays.asList(
-                fromConfigObject,
-                System.getenv("AUKLET_CONFIG_DIR"),
-                System.getProperty("auklet.config.dir"),
+                fromConfig,
                 System.getProperty("user.dir"),
                 System.getProperty("user.home"),
                 System.getProperty("java.io.tmpdir")
