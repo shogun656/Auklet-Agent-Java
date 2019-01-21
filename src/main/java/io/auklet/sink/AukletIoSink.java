@@ -80,11 +80,15 @@ public final class AukletIoSink extends AbstractSink {
             super.shutdown();
             if (this.client.isConnected()) {
                 try {
-                    this.client.disconnect().waitForCompletion();
+                    // Wait 2 seconds for work to quiesce and 1 second for disconnect to finish.
+                    this.client.disconnect(2000L).waitForCompletion(1000L);
                 } catch (MqttException e) {
                     LOGGER.warn("Error while disconnecting MQTT client.", e);
                     try {
-                        this.client.disconnectForcibly();
+                        // Do not wait for work to quiesce.
+                        // Wait 1ms to disconnect (effectively do not wait, but if we say 0ms
+                        // it will actually wait forever).
+                        this.client.disconnectForcibly(0L, 1L);
                     } catch (MqttException e2) {
                         LOGGER.warn("Error while forcibly disconnecting MQTT client.", e);
                     }
@@ -93,7 +97,7 @@ public final class AukletIoSink extends AbstractSink {
             try {
                 this.client.close();
             } catch (MqttException e) {
-                LOGGER.warn("Error while shutting down MQTT client.", e);
+                LOGGER.warn("Error while closing MQTT client.", e);
             }
             Util.shutdown(this.executorService);
         }
