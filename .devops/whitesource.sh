@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-cd ~
 
 echo 'Downloading WhiteSource agent...'
 WS_AGENT_URL='https://s3.amazonaws.com/unified-agent/wss-unified-agent-18.12.2.jar'
