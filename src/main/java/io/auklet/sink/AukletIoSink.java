@@ -47,6 +47,7 @@ public final class AukletIoSink extends AbstractSink {
             brokers.start(agent);
             // Workaround to ensure that MQTT client threads do not stop JVM shutdown.
             // https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
+            // MQTT threads must be daemon threads or else the JVM will hang on shutdown.
             this.executorService = Executors.newScheduledThreadPool(agent.getMqttThreads(), Util.createDaemonThreadFactory("AukletPahoMQTT-%d"));
             org.eclipse.paho.client.mqttv3.logging.LoggerFactory.setLogger("io.auklet.core.PahoLogger");
             this.client = new MqttAsyncClient(brokers.getUrl(), agent.getDeviceAuth().getClientId(), new MemoryPersistence(), new TimerPingSender(), executorService);
