@@ -3,6 +3,7 @@ package io.auklet.core;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
 import net.jcip.annotations.Immutable;
+import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -82,7 +83,8 @@ public final class AukletApi {
             try {
                 this.httpClient.dispatcher().executorService().shutdown();
                 this.httpClient.connectionPool().evictAll();
-                this.httpClient.cache().close();
+                Cache cache = this.httpClient.cache();
+                if (cache != null) cache.close();
             } catch (IOException e) {
                 LOGGER.warn("Error while shutting down Auklet API.", e);
             }
