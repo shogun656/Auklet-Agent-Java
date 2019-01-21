@@ -1,12 +1,4 @@
 // Plugins
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath group: 'org.whitesource', name: 'whitesource-gradle-plugin', version: '0.8'
-    }
-}
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '2.0.1'
@@ -14,7 +6,6 @@ plugins {
     id 'maven-publish'
     id 'com.jfrog.bintray' version '1.8.4'
 }
-apply plugin: 'whitesource'
 
 // Project info
 group "${theGroup}"
