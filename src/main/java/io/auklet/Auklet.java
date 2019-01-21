@@ -4,6 +4,7 @@ import android.content.Context;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.auklet.core.AndroidMetrics;
 import io.auklet.core.DataUsageMonitor;
 import io.auklet.jvm.AukletExceptionHandler;
 import io.auklet.config.DeviceAuth;
@@ -62,6 +63,7 @@ public final class Auklet {
     private final DeviceAuth deviceAuth;
     private final AbstractSink sink;
     private final DataUsageMonitor usageMonitor;
+    private final AndroidMetrics metrics;
     private final Thread shutdownHook;
 
     static {
@@ -140,6 +142,12 @@ public final class Auklet {
             this.sink = new AukletIoSink();
         }
         this.usageMonitor = new DataUsageMonitor();
+
+        if(Auklet.context != null) {
+            this.metrics = new AndroidMetrics(context);
+        } else {
+            this.metrics = null;
+        }
 
         LOGGER.debug("Configuring JVM integrations.");
         if (autoShutdown) {
@@ -387,6 +395,15 @@ public final class Auklet {
     }
 
     /**
+     * <p>Returns the android metrics for this instance of the agent.</p>
+     *
+     * @return never {@code null}.
+     */
+    @NonNull public AndroidMetrics getAndroidMetrics() {
+        return this.metrics;
+    }
+
+    /**
      * <p>Schedules the given one-shot task to run on the Auklet agent's daemon executor thread.</p>
      *
      * @param command the task to execute.
@@ -464,9 +481,10 @@ public final class Auklet {
     @CheckForNull private static File obtainConfigDir(@Nullable String fromConfig) {
         if(Auklet.context != null) {
             try {
-                return makeDirs(new File(dir));
+                return makeDirs(new File(context.getFilesDir().getPath() + "/aukletFiles"));
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
-                LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
+                LOGGER.warn("Couldn't create a Config directory");
+                return null;
             }
         }
         if (Util.isNullOrEmpty(fromConfig)) LOGGER.warn("Config dir not defined, will attempt to fallback on JVM system properties.");
