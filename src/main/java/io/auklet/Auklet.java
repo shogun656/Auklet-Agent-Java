@@ -1,5 +1,6 @@
 package io.auklet;
 
+import android.content.Context;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -47,6 +48,7 @@ public final class Auklet {
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
     private static final ScheduledExecutorService DAEMON = Executors.newSingleThreadScheduledExecutor(Util.createDaemonThreadFactory("Auklet"));
+    private static Context context = null;
     private static Auklet agent = null;
 
     private final String appId;
@@ -215,6 +217,22 @@ public final class Auklet {
             LOGGER.error("Could not init agent.", e);
             return future;
         }
+    }
+
+    /**
+     * <p>Initializes the agent with the given configuration values, falling back on environment
+     * variables, JVM system properties and/or default values where needed.</p>
+     *
+     * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
+     *
+     * @param context The Android Context. Can never be {@code null}.
+     * @param config the agent config object. May be {@code null}.
+     * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
+     * initialized successfully or {@code false} otherwise.
+     */
+    @NonNull public static Future<Boolean> init(@NonNull Context context, @Nullable final Config config) {
+        Auklet.context = context.getApplicationContext();
+        return init(config);
     }
 
     /**
@@ -444,6 +462,13 @@ public final class Auklet {
      * initialization and all data sent to the agent must be silently discarded.
      */
     @CheckForNull private static File obtainConfigDir(@Nullable String fromConfig) {
+        if(Auklet.context != null) {
+            try {
+                return makeDirs(new File(dir));
+            } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
+                LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
+            }
+        }
         if (Util.isNullOrEmpty(fromConfig)) LOGGER.warn("Config dir not defined, will attempt to fallback on JVM system properties.");
         // Consider config dir settings in this order.
         List<String> possibleConfigDirs = Arrays.asList(
@@ -474,28 +499,32 @@ public final class Auklet {
         LOGGER.debug("No existing config files found; checking directories for suitability.");
         // Use the first directory that we can create.
         for (String dir : filteredConfigDirs) {
-            File possibleConfigDir = new File(dir);
             try {
-                boolean alreadyExists = possibleConfigDir.exists();
-                // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
-                // exists *as a directory*. However, this result does not imply that the JVM has
-                // write permissions *inside* the directory, which would be the case only if the
-                // directory existed beforehand.
-                //
-                // To alleviate this, we do a test file write inside the directory *only if the
-                // directory existed beforehand*.
-                if (alreadyExists) {
-                    File tempFile = File.createTempFile("auklet", null, possibleConfigDir);
-                    LOGGER.debug("Using existing config directory: {}", dir);
-                    Util.deleteQuietly(tempFile);
-                    return possibleConfigDir;
-                } else if (possibleConfigDir.mkdirs()) {
-                    LOGGER.debug("Created new config directory: {}", dir);
-                    return possibleConfigDir;
-                }
+                return makeDirs(new File(dir));
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
                 LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
             }
+        }
+        return null;
+    }
+
+    private static File makeDirs(File possibleConfigDir) throws IOException {
+        boolean alreadyExists = possibleConfigDir.exists();
+        // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
+        // exists *as a directory*. However, this result does not imply that the JVM has
+        // write permissions *inside* the directory, which would be the case only if the
+        // directory existed beforehand.
+        //
+        // To alleviate this, we do a test file write inside the directory *only if the
+        // directory existed beforehand*.
+        if (alreadyExists) {
+            File tempFile = File.createTempFile("auklet", null, possibleConfigDir);
+            LOGGER.debug("Using existing config directory: {}", possibleConfigDir.getPath());
+            Util.deleteQuietly(tempFile);
+            return possibleConfigDir;
+        } else if (possibleConfigDir.mkdirs()) {
+            LOGGER.debug("Created new config directory: {}", possibleConfigDir.getPath());
+            return possibleConfigDir;
         }
         return null;
     }
