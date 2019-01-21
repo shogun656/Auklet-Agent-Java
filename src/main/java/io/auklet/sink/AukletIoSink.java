@@ -38,7 +38,7 @@ public final class AukletIoSink extends AbstractSink {
      * the SSL cert/broker config cannot be obtained.
      */
     @Override public void start(@NonNull Auklet agent) throws AukletException {
-        super.start(agent);
+        this.setAgent(agent);
         LOGGER.info("Establishing MQTT client.");
         try {
             AukletIoCert cert = new AukletIoCert();

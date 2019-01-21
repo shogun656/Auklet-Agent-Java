@@ -26,12 +26,21 @@ public abstract class HasAgent {
     private Auklet agent = null;
 
     /**
-     * <p>Sets the Auklet agent reference and invokes the post-construction start logic for this object.</p>
+     * <p>Invokes the post-construction start logic for this object. Implementations are required to invoke
+     * {@link #setAgent(Auklet)}.</p>
      *
      * @param agent the Auklet agent object. Never {@code null}.
      * @throws AukletException if the agent reference has already been set, or if the input is {@code null}.
      */
-    public void start(@NonNull Auklet agent) throws AukletException {
+    public abstract void start(@NonNull Auklet agent) throws AukletException;
+
+    /**
+     * <p>Sets the Auklet agent reference.</p>
+     *
+     * @param agent the Auklet agent object. Never {@code null}.
+     * @throws AukletException if the agent reference has already been set, or if the input is {@code null}.
+     */
+    protected final void setAgent(@NonNull Auklet agent) throws AukletException {
         if (agent == null) throw new AukletException("Auklet agent is null.");
         synchronized(this.lock) {
             if (this.agent != null) throw new AukletException("Auklet agent already set.");

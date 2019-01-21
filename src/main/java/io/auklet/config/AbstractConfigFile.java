@@ -18,7 +18,7 @@ public abstract class AbstractConfigFile extends HasAgent {
     protected File file;
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
-        super.start(agent);
+        this.setAgent(agent);
         this.file = new File(agent.getConfigDir(), this.getName());
     }
 

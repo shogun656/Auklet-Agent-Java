@@ -31,6 +31,7 @@ public final class SerialPortSink extends AbstractSink {
      * serial port's underlying output stream cannot be obtained.
      */
     @Override public void start(@NonNull Auklet agent) throws AukletException {
+        this.setAgent(agent);
         String portName = this.getAgent().getSerialPort();
         LOGGER.info("Connecting to serial port: {}", portName);
         try {
