@@ -32,12 +32,6 @@ jobs:
                 name: Calculate codebase version
                 command: |
                   bash .devops/calculate-app-version.sh
-            - run:
-                name: Prep for Whitesource
-                command: |
-                  if [[ ! -f ~/.localCircleBuild ]]; then
-                    bash .devops/prep-for-whitesource.sh
-                  fi
 
             ##
             # RESTORE CACHES
@@ -61,8 +55,9 @@ jobs:
             - run:
                 name: Run Whitesource
                 command: |
+                  set -ou pipefail
                   if [[ ! -f ~/.localCircleBuild && ! -f ~/.prCircleBuild ]]; then
-                    TERM=dumb ./gradlew updatewhitesource
+                    bash .devops/whitesource.sh
                   fi
 
             ##
