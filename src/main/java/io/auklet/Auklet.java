@@ -404,6 +404,15 @@ public final class Auklet {
     }
 
     /**
+     * <p>Returns whether the current system is Android.</p>
+     *
+     * @return never {@code null}.
+     */
+    @NonNull public Boolean isAndroid() {
+        return Auklet.context != null;
+    }
+
+    /**
      * <p>Schedules the given one-shot task to run on the Auklet agent's daemon executor thread.</p>
      *
      * @param command the task to execute.
