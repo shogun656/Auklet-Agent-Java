@@ -53,7 +53,8 @@ public final class AukletIoSink extends AbstractSink {
             this.client = new MqttAsyncClient(brokers.getUrl(), agent.getDeviceAuth().getClientId(), new MemoryPersistence(), new TimerPingSender(), executorService);
             this.client.setCallback(this.getCallback());
             this.client.setBufferOpts(this.getDisconnectBufferOptions(agent));
-            this.client.connect(this.getConnectOptions(agent, cert.getCert()));
+            // Wait 10 seconds for connect to succeed, then give up.
+            this.client.connect(this.getConnectOptions(agent, cert.getCert())).waitForCompletion(10000L);
         } catch (MqttException e) {
             this.shutdown();
             throw new AukletException("Could not initialize MQTT sink.", e);
