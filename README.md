@@ -18,6 +18,9 @@ This is the Java agent for Auklet, officially supporting Java 7+.
 JVM system properties `auklet.app.id` and `auklet.api.key`.
 * The agent needs a dedicated folder to create and store its configuration files. The agent will create these files 
 on startup if they do not exist, or will use files that are already available on disk.
+* If you are running the agent on an Android device, you will need to pass in your Android Context using
+`Auklet.init(Context, Config)`. You will also need to add `<uses-permission android:name="android.permission.INTERNET" />`
+to your Android Manifest.
 
 # Authorization
 
