@@ -27,8 +27,13 @@ public final class AndroidMetrics {
     private ActivityManager manager;
     private ScheduledThreadPoolExecutor cpuThread;
 
-    private static Long total, totalBefore, totalDiff, work, workBefore, workDiff;
-    private static float cpuUsage = 0;
+    private Long total;
+    private Long totalBefore;
+    private Long totalDiff;
+    private Long work;
+    private Long workBefore;
+    private Long workDiff;
+    private float cpuUsage = 0;
 
     public AndroidMetrics(Context context) {
         manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
