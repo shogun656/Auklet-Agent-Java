@@ -3,19 +3,23 @@ package io.auklet.core;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * <p>This class handles retrieving the Memory and CPU Usage for Android devices.</p>
+ *
+ * <p>CPU Usage can only be retrieved for devices running on Android 7 or older. If your device is running on
+ * something newer than Android 7 than the CPU Usage will return 0.</p>
+ */
 public final class AndroidMetrics {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AndroidMetrics.class);
@@ -40,7 +44,7 @@ public final class AndroidMetrics {
         }
     }
 
-    public Runnable calculateCPUUsage() {
+    private Runnable calculateCPUUsage() {
         return new Runnable() {
             @Override
             public void run() {
@@ -51,7 +55,7 @@ public final class AndroidMetrics {
                     total = work + Long.parseLong(s[4]) + Long.parseLong(s[5]) +
                             Long.parseLong(s[6]) + Long.parseLong(s[7]);
                 } catch (IOException e) {
-                    Log.e("auklet", "Unable to obtain CPU Usage", e);
+                    LOGGER.error("auklet", "Unable to obtain CPU Usage", e);
                     return;
                 }
 
@@ -59,7 +63,7 @@ public final class AndroidMetrics {
                 if (totalBefore != 0) {
                     workDiff = work - workBefore;
                     totalDiff = total - totalBefore;
-                    cpuUsage = restrictPercentage(workDiff * 100 / (float) totalDiff);
+                    cpuUsage = workDiff * 100 / (float) totalDiff;
                 }
 
                 totalBefore = total;
@@ -68,27 +72,21 @@ public final class AndroidMetrics {
         };
     }
 
-    /** <p>Shuts down the daemon threads that refresh the config and track data usage.</p> */
+    /** <p>Shuts down the daemon threads that calculates the CPU Usage.</p> */
     public void shutdown() {
         if (cpuThread != null) {
             this.cpuThread.shutdown();
         }
     }
 
-    public double getMemorUsagey() {
+    /** <p>Returns the Memory Usage for this Android device.</p> */
+    @NonNull public double getMemoryUsage() {
         // memInfo.totalMem needs API 16+
         return memInfo.availMem / (double) memInfo.totalMem * 100.0;
     }
 
-    public float getCPUUsage() {
+    /** <p>Returns the CPU Usage for this Android device. Return 0 if Android 8+</p> */
+    @NonNull public float getCPUUsage() {
         return cpuUsage;
-    }
-
-    private float restrictPercentage(float percentage) {
-        if (percentage > 100)
-            return 100;
-        else if (percentage < 0)
-            return 0;
-        else return percentage;
     }
 }

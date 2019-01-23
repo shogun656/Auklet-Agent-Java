@@ -607,6 +607,7 @@ public final class Auklet {
         LOGGER.info("Shutting down agent.");
         boolean jvmHookIsShuttingDown = this.shutdownHook != null && viaJvmHook;
         if (!jvmHookIsShuttingDown) Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
+        if(isAndroid()) this.metrics.shutdown();
         this.sink.shutdown();
         this.api.shutdown();
     }

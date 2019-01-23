@@ -152,7 +152,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
 
     private void addAndroidMetrics() throws IOException {
         try {
-            this.msgpack.packString("memoryUsage").packDouble(getAgent().getAndroidMetrics().getMemorUsagey());
+            this.msgpack.packString("memoryUsage").packDouble(getAgent().getAndroidMetrics().getMemoryUsage());
             this.msgpack.packString("cpuUsage").packDouble(getAgent().getAndroidMetrics().getCPUUsage());
         } catch (AukletException e) {
             this.msgpack.packString("memoryUsage").packDouble(0);
