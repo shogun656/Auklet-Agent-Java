@@ -128,6 +128,12 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         }
     }
 
+    /**
+     * <p>Adds JVM Memory and CPU Usage for Unix devices to the current position in the given MessagePacker
+     * as a map object.</p>
+     *
+     * @throws IllegalArgumentException if the MessagePacker is {@code null}.
+     */
     private void addUnixMetrics() throws IOException {
         // Calculate memory usage.
         double memUsage;
@@ -150,6 +156,12 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         this.msgpack.packString("cpuUsage").packDouble(cpuUsage);
     }
 
+    /**
+     * <p>Adds JVM Memory and CPU Usage for Android devices to the current position in the given MessagePacker
+     * as a map object.</p>
+     *
+     * @throws IllegalArgumentException if the MessagePacker is {@code null}.
+     */
     private void addAndroidMetrics() throws IOException {
         try {
             this.msgpack.packString("memoryUsage").packDouble(getAgent().getAndroidMetrics().getMemoryUsage());

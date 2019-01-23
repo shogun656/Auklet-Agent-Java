@@ -535,6 +535,14 @@ public final class Auklet {
         return null;
     }
 
+    /**
+     * <p>Checks the directory, the Auklet agent will use to store its configuration files, for write permissions.
+     * This method creates/tests write access to the target config directory.</p>
+     *
+     * @param possibleConfigDir the directory that needs to be checked for write permissions.
+     * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
+     * initialization and all data sent to the agent must be silently discarded.
+     */
     private static File makeDirs(File possibleConfigDir) throws IOException {
         boolean alreadyExists = possibleConfigDir.exists();
         // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
@@ -607,7 +615,7 @@ public final class Auklet {
         LOGGER.info("Shutting down agent.");
         boolean jvmHookIsShuttingDown = this.shutdownHook != null && viaJvmHook;
         if (!jvmHookIsShuttingDown) Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
-        if(isAndroid()) this.metrics.shutdown();
+        if (isAndroid()) this.metrics.shutdown();
         this.sink.shutdown();
         this.api.shutdown();
     }
