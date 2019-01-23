@@ -60,7 +60,7 @@ public final class AndroidMetrics {
                     total = work + Long.parseLong(s[4]) + Long.parseLong(s[5]) +
                             Long.parseLong(s[6]) + Long.parseLong(s[7]);
                 } catch (IOException e) {
-                    LOGGER.error("auklet", "Unable to obtain CPU Usage", e);
+                    LOGGER.error("Unable to obtain CPU Usage", e);
                     return;
                 }
 
