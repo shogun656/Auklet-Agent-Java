@@ -5,6 +5,8 @@ import android.content.Context;
 import android.os.Build;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import io.auklet.Auklet;
+import io.auklet.AukletException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,12 +22,11 @@ import java.util.concurrent.TimeUnit;
  * <p>CPU Usage can only be retrieved for devices running on Android 7 or older. If your device is running on
  * something newer than Android 7 than the CPU Usage will return 0.</p>
  */
-public final class AndroidMetrics {
+public final class AndroidMetrics extends HasAgent {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AndroidMetrics.class);
     private ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
     private ActivityManager manager;
-    private ScheduledThreadPoolExecutor cpuThread;
 
     private Long total;
     private Long totalBefore;
@@ -35,15 +36,15 @@ public final class AndroidMetrics {
     private Long workDiff;
     private float cpuUsage = 0;
 
-    public AndroidMetrics(Context context) {
-        manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+    public void start(@NonNull Auklet agent) throws AukletException {
+        this.setAgent(agent);
+        manager = (ActivityManager) agent.getContext().getSystemService(Context.ACTIVITY_SERVICE);
         manager.getMemoryInfo(memInfo);
         total = totalBefore = totalDiff = work = workBefore = workDiff = 0L;
 
         // On Android 8+, Google has restricted access to the proc files
         if (Build.VERSION.SDK_INT < 26) {
-            cpuThread =  new ScheduledThreadPoolExecutor(1, Util.createDaemonThreadFactory("Android-Metrics"));
-            cpuThread.scheduleAtFixedRate(this.calculateCPUUsage(), 0L, 1L, TimeUnit.SECONDS);
+            agent.scheduleRepeatingTask(this.calculateCPUUsage(), 0L, 1L, TimeUnit.SECONDS);
         } else {
             LOGGER.debug("We are unable to attain CPU data on Devices running Android 8+");
         }
@@ -75,13 +76,6 @@ public final class AndroidMetrics {
                 workBefore = work;
             }
         };
-    }
-
-    /** <p>Shuts down the daemon threads that calculates the CPU Usage.</p> */
-    public void shutdown() {
-        if (cpuThread != null) {
-            this.cpuThread.shutdown();
-        }
     }
 
     /** <p>Returns the Memory Usage for this Android device.</p> */

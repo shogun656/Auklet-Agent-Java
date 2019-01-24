@@ -49,11 +49,11 @@ public final class Auklet {
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
     private static final ScheduledExecutorService DAEMON = Executors.newSingleThreadScheduledExecutor(Util.createDaemonThreadFactory("Auklet"));
-    private static Context context = null;
     private static Auklet agent = null;
 
     private final String appId;
     private final String baseUrl;
+    private final Context context;
     private final File configDir;
     private final String serialPort;
     private final int mqttThreads;
@@ -75,7 +75,7 @@ public final class Auklet {
                 version = manifest.getMainAttributes().getValue("Implementation-Version");
                 version = Util.orElse(version, "unknown");
             }
-            LOGGER.info("Auklet Agent version " + version);
+            LOGGER.info("Auklet Agent version {}", version);
         } catch (SecurityException | IOException e) {
             LOGGER.warn("Could not obtain Auklet agent version from manifest.", e);
         }
@@ -85,7 +85,7 @@ public final class Auklet {
         String fromProp = System.getProperty("auklet.auto.start");
         if (Boolean.valueOf(fromEnv) || Boolean.valueOf(fromProp)) {
             LOGGER.info("Auto-start requested.");
-            init(null);
+            init(null, null);
         }
     }
 
@@ -96,13 +96,14 @@ public final class Auklet {
      * @throws IllegalStateException if the agent is already initialized.
      * @throws AukletException if the agent cannot be initialized.
      */
-    private Auklet(@Nullable Config config) throws AukletException {
+    private Auklet(@Nullable Context context, @Nullable Config config) throws AukletException {
         synchronized (LOCK) {
             // We check this in the init method to provide a proper message, in case the user accidentally
             // attempted to init twice. We check again here to prevent instantiation via reflection.
             if (agent != null) throw new IllegalStateException("Use Auklet.init() to initialize the agent.");
         }
 
+        this.context = context;
         LOGGER.debug("Parsing configuration.");
         if (config == null) config = new Config();
         this.appId = Util.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
@@ -129,7 +130,7 @@ public final class Auklet {
         // until we've validated the rest of the config, in case there is a config error; this
         // approach avoids unnecessary filesystem changes for bad configs.
         LOGGER.debug("Determining which config directory to use.");
-        this.configDir = obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
+        this.configDir = obtainConfigDir(context, Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
 
         LOGGER.debug("Configuring agent resources.");
@@ -143,8 +144,8 @@ public final class Auklet {
         }
         this.usageMonitor = new DataUsageMonitor();
 
-        if(Auklet.context != null) {
-            this.metrics = new AndroidMetrics(context);
+        if(isAndroid()) {
+            this.metrics = new AndroidMetrics();
         } else {
             this.metrics = null;
         }
@@ -179,7 +180,21 @@ public final class Auklet {
      * @return {@code true} if the agent was initialized successfully, {@code false} otherwise.
      */
     @NonNull public static Future<Boolean> init() {
-        return init(null);
+        return init(null, null);
+    }
+
+    /**
+     * <p>Initializes the agent with the given configuration values, falling back on environment
+     * variables, JVM system properties and/or default values where needed.</p>
+     *
+     * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
+     *
+     * @param context the Android Context. Can never be {@code null}.
+     * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
+     * initialized successfully or {@code false} otherwise.
+     */
+    @NonNull public static Future<Boolean> init(@NonNull Context context) {
+        return init(context, null);
     }
 
     /**
@@ -192,7 +207,22 @@ public final class Auklet {
      * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
      * initialized successfully or {@code false} otherwise.
      */
-    @NonNull public static Future<Boolean> init(@Nullable final Config config) {
+    @NonNull public static Future<Boolean> init(@NonNull Config config) {
+        return init(null, config);
+    }
+
+    /**
+     * <p>Initializes the agent with the given configuration values, falling back on environment
+     * variables, JVM system properties and/or default values where needed.</p>
+     *
+     * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
+     *
+     * @param context the Android Context. Can never be {@code null}.
+     * @param config the agent config object. May be {@code null}.
+     * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
+     * initialized successfully or {@code false} otherwise.
+     */
+    @NonNull public static Future<Boolean> init(@Nullable final Context context, @Nullable final Config config) {
         LOGGER.debug("Scheduling init task.");
         Callable<Boolean> initTask = new Callable<Boolean>() {
             @NonNull @Override public Boolean call() {
@@ -205,7 +235,7 @@ public final class Auklet {
                     }
                     LOGGER.info("Starting agent.");
                     try {
-                        agent = new Auklet(config);
+                        agent = new Auklet(context, config);
                         agent.start();
                         LOGGER.info("Agent started successfully.");
                         return true;
@@ -225,22 +255,6 @@ public final class Auklet {
             LOGGER.error("Could not init agent.", e);
             return future;
         }
-    }
-
-    /**
-     * <p>Initializes the agent with the given configuration values, falling back on environment
-     * variables, JVM system properties and/or default values where needed.</p>
-     *
-     * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
-     *
-     * @param context The Android Context. Can never be {@code null}.
-     * @param config the agent config object. May be {@code null}.
-     * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
-     * initialized successfully or {@code false} otherwise.
-     */
-    @NonNull public static Future<Boolean> init(@NonNull Context context, @Nullable final Config config) {
-        Auklet.context = context.getApplicationContext();
-        return init(config);
     }
 
     /**
@@ -395,6 +409,15 @@ public final class Auklet {
     }
 
     /**
+     * <p>Returns the android context for this instance of the agent.</p>
+     *
+     * @return may be {@code null}.
+     */
+    public Context getContext() {
+        return this.context;
+    }
+
+    /**
      * <p>Returns the android metrics for this instance of the agent.</p>
      *
      * @return never {@code null}.
@@ -409,7 +432,7 @@ public final class Auklet {
      * @return never {@code null}.
      */
     @NonNull public Boolean isAndroid() {
-        return Auklet.context != null;
+        return this.context != null;
     }
 
     /**
@@ -482,15 +505,16 @@ public final class Auklet {
      * creates/tests write access to the target config directory after determining which directory to use,
      * per the logic described in the class-level Javadoc.</p>
      *
+     * @param context the android context, possibly {@code null}.
      * @param fromConfig the value from the {@link Config} object, env var and/or JVM sysprop, possibly
      * {@code null}.
      * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
      * initialization and all data sent to the agent must be silently discarded.
      */
-    @CheckForNull private static File obtainConfigDir(@Nullable String fromConfig) {
-        if(Auklet.context != null) {
+    @CheckForNull private static File obtainConfigDir(@Nullable Context context, @Nullable String fromConfig) {
+        if(context != null) {
             try {
-                return makeDirs(new File(context.getFilesDir().getPath() + "/aukletFiles"));
+                return tryDirs(new File(context.getFilesDir().getPath() + "/aukletFiles"));
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
                 LOGGER.warn("Couldn't create a Config directory");
                 return null;
@@ -527,7 +551,7 @@ public final class Auklet {
         // Use the first directory that we can create.
         for (String dir : filteredConfigDirs) {
             try {
-                return makeDirs(new File(dir));
+                return tryDirs(new File(dir));
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
                 LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
             }
@@ -536,14 +560,13 @@ public final class Auklet {
     }
 
     /**
-     * <p>Checks the directory, the Auklet agent will use to store its configuration files, for write permissions.
-     * This method creates/tests write access to the target config directory.</p>
+     * <p>Checks the directory for write permissions or it attempts to create the directory, or it gives up.</p>
      *
      * @param possibleConfigDir the directory that needs to be checked for write permissions.
      * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
      * initialization and all data sent to the agent must be silently discarded.
      */
-    private static File makeDirs(File possibleConfigDir) throws IOException {
+    private static File tryDirs(File possibleConfigDir) throws IOException {
         boolean alreadyExists = possibleConfigDir.exists();
         // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
         // exists *as a directory*. However, this result does not imply that the JVM has
@@ -581,6 +604,7 @@ public final class Auklet {
         this.deviceAuth.start(this);
         this.usageMonitor.start(this);
         this.sink.start(this);
+        if (isAndroid()) this.metrics.start(this);
     }
 
     /**
@@ -615,7 +639,6 @@ public final class Auklet {
         LOGGER.info("Shutting down agent.");
         boolean jvmHookIsShuttingDown = this.shutdownHook != null && viaJvmHook;
         if (!jvmHookIsShuttingDown) Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
-        if (isAndroid()) this.metrics.shutdown();
         this.sink.shutdown();
         this.api.shutdown();
     }
