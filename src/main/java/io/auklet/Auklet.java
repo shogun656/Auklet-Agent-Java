@@ -116,6 +116,7 @@ public final class Auklet {
         if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty.");
         String baseUrlMaybeNull = Util.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
         this.baseUrl = Util.orElse(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
+        LOGGER.info("Base URL: {}", this.baseUrl);
         Boolean autoShutdownMaybeNull = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
         boolean autoShutdown = autoShutdownMaybeNull == null ? true : autoShutdownMaybeNull;
         Boolean uncaughtExceptionHandlerMaybeNull = Util.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
