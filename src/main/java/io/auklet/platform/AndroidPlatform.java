@@ -7,15 +7,12 @@ import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.AndroidMetrics;
 import org.msgpack.core.MessagePacker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 public class AndroidPlatform implements Platform {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AndroidPlatform.class);
 
     private final Context context;
     private final AndroidMetrics metrics;
