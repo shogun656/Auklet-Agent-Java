@@ -4,20 +4,20 @@ import android.content.Context;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.auklet.core.AndroidMetrics;
 import io.auklet.core.DataUsageMonitor;
 import io.auklet.jvm.AukletExceptionHandler;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.AukletApi;
 import io.auklet.core.Util;
+import io.auklet.platform.AndroidPlatform;
+import io.auklet.platform.JavaPlatform;
+import io.auklet.platform.Platform;
 import io.auklet.sink.*;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.jar.Manifest;
@@ -53,7 +53,7 @@ public final class Auklet {
 
     private final String appId;
     private final String baseUrl;
-    private final Context context;
+    private final Platform platform;
     private final File configDir;
     private final String serialPort;
     private final int mqttThreads;
@@ -63,7 +63,6 @@ public final class Auklet {
     private final DeviceAuth deviceAuth;
     private final AbstractSink sink;
     private final DataUsageMonitor usageMonitor;
-    private final AndroidMetrics metrics;
     private final Thread shutdownHook;
 
     static {
@@ -103,7 +102,12 @@ public final class Auklet {
             if (agent != null) throw new IllegalStateException("Use Auklet.init() to initialize the agent.");
         }
 
-        this.context = context;
+        if (context == null) {
+            this.platform = new JavaPlatform();
+        } else {
+            this.platform = new AndroidPlatform(this, context);
+        }
+
         LOGGER.debug("Parsing configuration.");
         if (config == null) config = new Config();
         this.appId = Util.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
@@ -130,7 +134,7 @@ public final class Auklet {
         // until we've validated the rest of the config, in case there is a config error; this
         // approach avoids unnecessary filesystem changes for bad configs.
         LOGGER.debug("Determining which config directory to use.");
-        this.configDir = obtainConfigDir(context, Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
+        this.configDir = obtainConfigDir(platform, Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
 
         LOGGER.debug("Configuring agent resources.");
@@ -143,12 +147,6 @@ public final class Auklet {
             this.sink = new AukletIoSink();
         }
         this.usageMonitor = new DataUsageMonitor();
-
-        if(isAndroid()) {
-            this.metrics = new AndroidMetrics();
-        } else {
-            this.metrics = null;
-        }
 
         LOGGER.debug("Configuring JVM integrations.");
         if (autoShutdown) {
@@ -409,30 +407,12 @@ public final class Auklet {
     }
 
     /**
-     * <p>Returns the android context for this instance of the agent.</p>
-     *
-     * @return may be {@code null}.
-     */
-    public Context getContext() {
-        return this.context;
-    }
-
-    /**
-     * <p>Returns the android metrics for this instance of the agent.</p>
+     * <p>Returns the platform for this instance of the agent.</p>
      *
      * @return never {@code null}.
      */
-    @NonNull public AndroidMetrics getAndroidMetrics() {
-        return this.metrics;
-    }
-
-    /**
-     * <p>Returns whether the current system is Android.</p>
-     *
-     * @return never {@code null}.
-     */
-    @NonNull public Boolean isAndroid() {
-        return this.context != null;
+    @NonNull public Platform getPlatform() {
+        return this.platform;
     }
 
     /**
@@ -505,38 +485,18 @@ public final class Auklet {
      * creates/tests write access to the target config directory after determining which directory to use,
      * per the logic described in the class-level Javadoc.</p>
      *
-     * @param context the android context, possibly {@code null}.
+     * @param platform the platform this agent is running on, never {@code null}.
      * @param fromConfig the value from the {@link Config} object, env var and/or JVM sysprop, possibly
      * {@code null}.
      * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
      * initialization and all data sent to the agent must be silently discarded.
      */
-    @CheckForNull private static File obtainConfigDir(@Nullable Context context, @Nullable String fromConfig) {
-        if(context != null) {
-            try {
-                return tryDirs(new File(context.getFilesDir().getPath() + "/aukletFiles"));
-            } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
-                LOGGER.warn("Couldn't create a Config directory");
-                return null;
-            }
-        }
-        if (Util.isNullOrEmpty(fromConfig)) LOGGER.warn("Config dir not defined, will attempt to fallback on JVM system properties.");
-        // Consider config dir settings in this order.
-        List<String> possibleConfigDirs = Arrays.asList(
-                fromConfig,
-                System.getProperty("user.dir"),
-                System.getProperty("user.home"),
-                System.getProperty("java.io.tmpdir")
-        );
-        // Drop any env vars/sysprops whose value is null, and append the auklet subdir to each remaining value.
-        List<String> filteredConfigDirs = new ArrayList<>();
-        for (String dir : possibleConfigDirs) {
-            if (!Util.isNullOrEmpty(dir)) filteredConfigDirs.add(Util.removeTrailingSlash(dir) + "/aukletFiles");
-        }
+    @CheckForNull private static File obtainConfigDir(@NonNull Platform platform, @Nullable String fromConfig) {
         // If a directory contains the auth file, use that directory.
         // We don't care if the other files don't exist because we'll create them later if needed.
         LOGGER.debug("Checking directories for existing config files.");
-        for (String dir : filteredConfigDirs) {
+        List<String> configDirs = platform.getPossibleConfigDirs(fromConfig);
+        for (String dir : configDirs) {
             File authFile = new File(dir, DeviceAuth.FILENAME);
             try {
                 if (authFile.exists()) {
@@ -547,9 +507,10 @@ public final class Auklet {
                 LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
             }
         }
+
         LOGGER.debug("No existing config files found; checking directories for suitability.");
         // Use the first directory that we can create.
-        for (String dir : filteredConfigDirs) {
+        for (String dir : configDirs) {
             try {
                 return tryDirs(new File(dir));
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
@@ -604,7 +565,6 @@ public final class Auklet {
         this.deviceAuth.start(this);
         this.usageMonitor.start(this);
         this.sink.start(this);
-        if (isAndroid()) this.metrics.start(this);
     }
 
     /**

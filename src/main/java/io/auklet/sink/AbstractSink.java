@@ -1,13 +1,11 @@
 package io.auklet.sink;
 
-import com.github.dmstocking.optional.java.util.Optional;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.HasAgent;
 import io.auklet.core.Util;
-import io.auklet.jvm.OSMX;
 import net.jcip.annotations.ThreadSafe;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -114,11 +112,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
     private void addSystemMetrics() throws AukletException {
         try {
             this.msgpack.packMapHeader(4);
-            if (getAgent().isAndroid()) {
-               addAndroidMetrics();
-            } else {
-                addUnixMetrics();
-            }
+            getAgent().getPlatform().addSystemMetrics(this.msgpack);
 
             // Add other system metrics.
             this.msgpack.packString("outboundNetwork").packDouble(0);
@@ -127,50 +121,4 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             throw new AukletException("Error while assembling msgpack payload.", e);
         }
     }
-
-    /**
-     * <p>Adds JVM Memory and CPU Usage for Unix devices to the current position in the given MessagePacker
-     * as a map object.</p>
-     *
-     * @throws IllegalArgumentException if the MessagePacker is {@code null}.
-     */
-    private void addUnixMetrics() throws IOException {
-        // Calculate memory usage.
-        double memUsage;
-        Optional<Long> freeMem = OSMX.BEAN.getFreePhysicalMemorySize();
-        Optional<Long> totalMem = OSMX.BEAN.getTotalPhysicalMemorySize();
-        if (freeMem.isPresent() && totalMem.isPresent()) {
-            memUsage = 100 * (1 - ((double) freeMem.get() / (double) totalMem.get()));
-        } else {
-            memUsage = 0d;
-        }
-        this.msgpack.packString("memoryUsage").packDouble(memUsage);
-        // Calculate CPU usage.
-        double cpuUsage;
-        Optional<Double> loadAvg = OSMX.BEAN.getSystemLoadAverage();
-        if (loadAvg.isPresent()) {
-            cpuUsage = 100 * (loadAvg.get() / OSMX.BEAN.getAvailableProcessors());
-        } else {
-            cpuUsage = 0d;
-        }
-        this.msgpack.packString("cpuUsage").packDouble(cpuUsage);
-    }
-
-    /**
-     * <p>Adds JVM Memory and CPU Usage for Android devices to the current position in the given MessagePacker
-     * as a map object.</p>
-     *
-     * @throws IllegalArgumentException if the MessagePacker is {@code null}.
-     */
-    private void addAndroidMetrics() throws IOException {
-        try {
-            this.msgpack.packString("memoryUsage").packDouble(getAgent().getAndroidMetrics().getMemoryUsage());
-            this.msgpack.packString("cpuUsage").packDouble(getAgent().getAndroidMetrics().getCPUUsage());
-        } catch (AukletException e) {
-            this.msgpack.packString("memoryUsage").packDouble(0);
-            this.msgpack.packString("cpuUsage").packDouble(0);
-            LOGGER.warn("Unable to get android memory and cpu usage");
-        }
-    }
-
 }

@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,11 +35,14 @@ public final class AndroidMetrics extends HasAgent {
     private Long workDiff;
     private float cpuUsage = 0;
 
-    public void start(@NonNull Auklet agent) throws AukletException {
-        this.setAgent(agent);
-        manager = (ActivityManager) agent.getContext().getSystemService(Context.ACTIVITY_SERVICE);
+    public AndroidMetrics(Context context) {
+        manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         manager.getMemoryInfo(memInfo);
         total = totalBefore = totalDiff = work = workBefore = workDiff = 0L;
+    }
+
+    public void start(@NonNull Auklet agent) throws AukletException {
+        this.setAgent(agent);
 
         // On Android 8+, Google has restricted access to the proc files
         if (Build.VERSION.SDK_INT < 26) {
