@@ -9,6 +9,7 @@ import io.auklet.jvm.AukletExceptionHandler;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.AukletApi;
 import io.auklet.core.Util;
+import io.auklet.platform.AbstractPlatform;
 import io.auklet.platform.AndroidPlatform;
 import io.auklet.platform.JavaPlatform;
 import io.auklet.platform.Platform;
@@ -18,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.jar.Manifest;
 
@@ -53,7 +53,7 @@ public final class Auklet {
 
     private final String appId;
     private final String baseUrl;
-    private final Platform platform;
+    private final AbstractPlatform platform;
     private final File configDir;
     private final String serialPort;
     private final int mqttThreads;
@@ -105,7 +105,7 @@ public final class Auklet {
         if (context == null) {
             this.platform = new JavaPlatform();
         } else {
-            this.platform = new AndroidPlatform(this, context);
+            this.platform = new AndroidPlatform(context);
         }
 
         LOGGER.debug("Parsing configuration.");
@@ -135,7 +135,7 @@ public final class Auklet {
         // until we've validated the rest of the config, in case there is a config error; this
         // approach avoids unnecessary filesystem changes for bad configs.
         LOGGER.debug("Determining which config directory to use.");
-        this.configDir = obtainConfigDir(platform, Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
+        this.configDir = platform.obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
 
         LOGGER.debug("Configuring agent resources.");
@@ -482,74 +482,6 @@ public final class Auklet {
     }
 
     /**
-     * <p>Returns the directory the Auklet agent will use to store its configuration files. This method
-     * creates/tests write access to the target config directory after determining which directory to use,
-     * per the logic described in the class-level Javadoc.</p>
-     *
-     * @param platform the platform this agent is running on, never {@code null}.
-     * @param fromConfig the value from the {@link Config} object, env var and/or JVM sysprop, possibly
-     * {@code null}.
-     * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
-     * initialization and all data sent to the agent must be silently discarded.
-     */
-    @CheckForNull private static File obtainConfigDir(@NonNull Platform platform, @Nullable String fromConfig) {
-        // If a directory contains the auth file, use that directory.
-        // We don't care if the other files don't exist because we'll create them later if needed.
-        LOGGER.debug("Checking directories for existing config files.");
-        List<String> configDirs = platform.getPossibleConfigDirs(fromConfig);
-        for (String dir : configDirs) {
-            File authFile = new File(dir, DeviceAuth.FILENAME);
-            try {
-                if (authFile.exists()) {
-                    LOGGER.debug("Using existing config directory: {}", dir);
-                    return new File(dir);
-                }
-            } catch (SecurityException e) {
-                LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
-            }
-        }
-
-        LOGGER.debug("No existing config files found; checking directories for suitability.");
-        // Use the first directory that we can create.
-        for (String dir : configDirs) {
-            try {
-                return tryDirs(new File(dir));
-            } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
-                LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * <p>Checks the directory for write permissions or it attempts to create the directory, or it gives up.</p>
-     *
-     * @param possibleConfigDir the directory that needs to be checked for write permissions.
-     * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
-     * initialization and all data sent to the agent must be silently discarded.
-     */
-    private static File tryDirs(File possibleConfigDir) throws IOException {
-        boolean alreadyExists = possibleConfigDir.exists();
-        // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
-        // exists *as a directory*. However, this result does not imply that the JVM has
-        // write permissions *inside* the directory, which would be the case only if the
-        // directory existed beforehand.
-        //
-        // To alleviate this, we do a test file write inside the directory *only if the
-        // directory existed beforehand*.
-        if (alreadyExists) {
-            File tempFile = File.createTempFile("auklet", null, possibleConfigDir);
-            LOGGER.debug("Using existing config directory: {}", possibleConfigDir.getPath());
-            Util.deleteQuietly(tempFile);
-            return possibleConfigDir;
-        } else if (possibleConfigDir.mkdirs()) {
-            LOGGER.debug("Created new config directory: {}", possibleConfigDir.getPath());
-            return possibleConfigDir;
-        }
-        return null;
-    }
-
-    /**
      * <p>Starts the Auklet agent by:</p>
      *
      * <ul>
@@ -566,6 +498,7 @@ public final class Auklet {
         this.deviceAuth.start(this);
         this.usageMonitor.start(this);
         this.sink.start(this);
+        this.platform.start(this);
     }
 
     /**

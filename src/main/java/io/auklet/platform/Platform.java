@@ -25,11 +25,4 @@ public interface Platform {
      * @throws IllegalArgumentException if the MessagePacker is {@code null}.
      */
     void addSystemMetrics(@NonNull MessagePacker msgpack) throws IOException;
-
-    /**
-     * <p>Returns whether the current system is Android.</p>
-     *
-     * @return never {@code null}.
-     */
-    @NonNull Boolean isAndroid();
 }

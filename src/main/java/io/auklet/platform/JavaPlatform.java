@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class JavaPlatform implements Platform {
+public class JavaPlatform extends AbstractPlatform {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaPlatform.class);
 
     @Override public List<String> getPossibleConfigDirs(@Nullable String fromConfig) {
@@ -56,9 +57,5 @@ public class JavaPlatform implements Platform {
             cpuUsage = 0d;
         }
         msgpack.packString("cpuUsage").packDouble(cpuUsage);
-    }
-
-    @Override public Boolean isAndroid() {
-        return false;
     }
 }

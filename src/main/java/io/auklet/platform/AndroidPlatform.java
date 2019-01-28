@@ -12,14 +12,18 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-public class AndroidPlatform implements Platform {
+public class AndroidPlatform extends AbstractPlatform {
 
     private final Context context;
     private final AndroidMetrics metrics;
 
-    public AndroidPlatform(Auklet agent, Context context) throws AukletException {
+    public AndroidPlatform(Context context) throws AukletException {
         this.context = context;
         this.metrics = new AndroidMetrics(context);
+    }
+
+    @Override public void start(@NonNull Auklet agent) throws AukletException {
+        this.setAgent(agent);
         this.metrics.start(agent);
     }
 
@@ -30,9 +34,5 @@ public class AndroidPlatform implements Platform {
     @Override public void addSystemMetrics(@NonNull MessagePacker msgpack) throws IOException {
         msgpack.packString("memoryUsage").packDouble(metrics.getMemoryUsage());
         msgpack.packString("cpuUsage").packDouble(metrics.getCPUUsage());
-    }
-
-    @Override public Boolean isAndroid() {
-        return true;
     }
 }
