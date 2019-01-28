@@ -1,4 +1,4 @@
-package io.auklet.jvm;
+package io.auklet.core;
 
 import io.auklet.Auklet;
 import net.jcip.annotations.Immutable;

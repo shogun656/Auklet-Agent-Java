@@ -5,7 +5,7 @@ import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.config.AukletIoBrokers;
 import io.auklet.config.AukletIoCert;
-import io.auklet.core.Util;
+import io.auklet.misc.Util;
 import net.jcip.annotations.ThreadSafe;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -49,7 +49,7 @@ public final class AukletIoSink extends AbstractSink {
             // https://github.com/eclipse/paho.mqtt.java/issues/402#issuecomment-424686340
             // MQTT threads must be daemon threads or else the JVM will hang on shutdown.
             this.executorService = Executors.newScheduledThreadPool(agent.getMqttThreads(), Util.createDaemonThreadFactory("AukletPahoMQTT-%d"));
-            org.eclipse.paho.client.mqttv3.logging.LoggerFactory.setLogger("io.auklet.core.PahoLogger");
+            org.eclipse.paho.client.mqttv3.logging.LoggerFactory.setLogger("io.auklet.misc.PahoLogger");
             this.client = new MqttAsyncClient(brokers.getUrl(), agent.getDeviceAuth().getClientId(), new MemoryPersistence(), new TimerPingSender(), executorService);
             this.client.setCallback(this.getCallback());
             this.client.setBufferOpts(this.getDisconnectBufferOptions(agent));

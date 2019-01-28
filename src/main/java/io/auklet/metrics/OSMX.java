@@ -1,4 +1,4 @@
-package io.auklet.jvm;
+package io.auklet.metrics;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import net.jcip.annotations.Immutable;

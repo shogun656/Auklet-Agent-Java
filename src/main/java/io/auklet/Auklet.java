@@ -5,10 +5,10 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.core.DataUsageMonitor;
-import io.auklet.jvm.AukletExceptionHandler;
+import io.auklet.core.AukletExceptionHandler;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.AukletApi;
-import io.auklet.core.Util;
+import io.auklet.misc.Util;
 import io.auklet.platform.AbstractPlatform;
 import io.auklet.platform.AndroidPlatform;
 import io.auklet.platform.JavaPlatform;
@@ -497,8 +497,8 @@ public final class Auklet {
         LOGGER.debug("Starting internal resources.");
         this.deviceAuth.start(this);
         this.usageMonitor.start(this);
-        this.sink.start(this);
         this.platform.start(this);
+        this.sink.start(this);
     }
 
     /**

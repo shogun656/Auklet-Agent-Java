@@ -1,4 +1,4 @@
-package io.auklet.core;
+package io.auklet.misc;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.slf4j.Logger;
@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * <p>Adapts the Paho logging framework to use SLF4J. To use this, invoke the following
  * prior to starting any MQTT client:
- * {@code org.eclipse.paho.client.mqttv3.logging.LoggerFactory.setLogger("io.auklet.core.PahoLogger");}</p>
+ * {@code org.eclipse.paho.client.mqttv3.logging.LoggerFactory.setLogger("io.auklet.misc.PahoLogger");}</p>
  *
  * <p>When enabled, all Paho MQTT loggers will retain their original class-based names and will be configured
  * via SLF4J. JUL logging levels are mapped 1-to-1 to SLF4J logging levels, except that `FINE`, `FINER` and `FINEST`

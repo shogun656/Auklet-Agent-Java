@@ -3,8 +3,8 @@ package io.auklet.platform;
 import com.github.dmstocking.optional.java.util.Optional;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.auklet.core.Util;
-import io.auklet.jvm.OSMX;
+import io.auklet.misc.Util;
+import io.auklet.metrics.OSMX;
 import org.msgpack.core.MessagePacker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * <p>This class contain Java specific helper functions.</p>
+ */
 public class JavaPlatform extends AbstractPlatform {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaPlatform.class);
@@ -58,4 +61,5 @@ public class JavaPlatform extends AbstractPlatform {
         }
         msgpack.packString("cpuUsage").packDouble(cpuUsage);
     }
+
 }

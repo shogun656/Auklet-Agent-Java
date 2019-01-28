@@ -8,7 +8,7 @@ import io.auklet.AukletException;
 import io.auklet.Config;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.HasAgent;
-import io.auklet.core.Util;
+import io.auklet.misc.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +16,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * <p>Descendants of this class implement platform specific helper functions.</p>
+ */
 public abstract class AbstractPlatform extends HasAgent implements Platform {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPlatform.class);
@@ -24,17 +27,7 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
         this.setAgent(agent);
     }
 
-    /**
-     * <p>Returns the directory the Auklet agent will use to store its configuration files. This method
-     * creates/tests write access to the target config directory after determining which directory to use,
-     * per the logic described in the class-level Javadoc.</p>
-     *
-     * @param fromConfig the value from the {@link Config} object, env var and/or JVM sysprop, possibly
-     * {@code null}.
-     * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
-     * initialization and all data sent to the agent must be silently discarded.
-     */
-    @CheckForNull public File obtainConfigDir(@Nullable String fromConfig) {
+    @CheckForNull @Override public final File obtainConfigDir(@Nullable String fromConfig) {
         // If a directory contains the auth file, use that directory.
         // We don't care if the other files don't exist because we'll create them later if needed.
         LOGGER.debug("Checking directories for existing config files.");
@@ -55,7 +48,7 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
         // Use the first directory that we can create.
         for (String dir : configDirs) {
             try {
-                return tryDirs(new File(dir));
+                return tryDir(new File(dir));
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
                 LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
             }
@@ -64,13 +57,22 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
     }
 
     /**
+     * <p>Determines the possible config directories Auklet can use based on the underlying platform.</p>
+     *
+     * @param fromConfig the value from the {@link Config} object, env var and/or JVM sysprop, possibly
+     * {@code null}.
+     * @return the list of possible config directories that we are able to use
+     */
+    @NonNull protected abstract List<String> getPossibleConfigDirs(@Nullable String fromConfig);
+
+    /**
      * <p>Checks the directory for write permissions or it attempts to create the directory, or it gives up.</p>
      *
      * @param possibleConfigDir the directory that needs to be checked for write permissions.
      * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
      * initialization and all data sent to the agent must be silently discarded.
      */
-    private File tryDirs(File possibleConfigDir) throws IOException {
+    private static File tryDir(File possibleConfigDir) throws IOException {
         boolean alreadyExists = possibleConfigDir.exists();
         // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
         // exists *as a directory*. However, this result does not imply that the JVM has
@@ -90,4 +92,5 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
         }
         return null;
     }
+
 }
