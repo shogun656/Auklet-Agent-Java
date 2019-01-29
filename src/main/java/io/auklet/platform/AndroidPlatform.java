@@ -22,6 +22,13 @@ public class AndroidPlatform extends AbstractPlatform {
     private final Context context;
     private final AndroidMetrics metrics;
 
+    /**
+     * <p>Constructor that checks to see if the Android context is {@code null} and will create the
+     * Android metrics object.</p>
+     *
+     * @param context the Android context.
+     * @throws AukletException if context is {@code null}.
+     */
     public AndroidPlatform(Object context) throws AukletException {
         if (!(context instanceof Context)) throw new AukletException("Android platform was given a non-Context object.");
         this.context = (Context) context;

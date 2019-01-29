@@ -33,6 +33,12 @@ public final class AndroidMetrics {
     private long workDiff;
     private float cpuUsage = 0;
 
+    /**
+     * <p>Constructor that creates the Activity Manager in order to be able to calculate the memory used in android.
+     * Also initializes global variables used for calculating cpu usage</p>
+     *
+     * @param context the Android context.
+     */
     public AndroidMetrics(Context context) {
         LOGGER.debug("We are unable to attain cpu data on devices running Android 8+");
         manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
