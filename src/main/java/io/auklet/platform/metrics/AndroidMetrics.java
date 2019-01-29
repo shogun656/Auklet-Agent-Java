@@ -73,13 +73,19 @@ public final class AndroidMetrics {
         return null;
     }
 
-    /** <p>Returns the memory Uuage for this Android device.</p> */
+    /** <p>Returns the memory Uuage for this Android device.</p>
+     *
+     * @return the memory usage for android.
+     */
     @NonNull public double getMemoryUsage() {
         // memInfo.totalMem needs API 16+
         return memInfo.availMem / (double) memInfo.totalMem * 100.0;
     }
 
-    /** <p>Returns the cpu usage for this Android device. Return 0 if Android 8+</p> */
+    /** <p>Returns the cpu usage for this Android device. Return 0 if Android 8+.</p>
+     *
+     * @return the cpu usage for android.
+     */
     @NonNull public float getCpuUsage() {
         return cpuUsage;
     }

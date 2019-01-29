@@ -17,6 +17,7 @@ public interface Platform {
     /**
      * <p>Adds JVM memory and cpu usage current position in the given MessagePacker as a map object.</p>
      *
+     * @param msgpack the msgpack that will be sent to auklet
      * @throws IllegalArgumentException if the MessagePacker is {@code null}.
      */
     void addSystemMetrics(@NonNull MessagePacker msgpack) throws IOException;
