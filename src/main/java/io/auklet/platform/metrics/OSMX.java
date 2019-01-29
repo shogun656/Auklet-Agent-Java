@@ -5,18 +5,18 @@ import net.jcip.annotations.Immutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.dmstocking.optional.java.util.Optional;
-
 /**
  * <p>A frontend for {@link java.lang.management.OperatingSystemMXBean},
  * {@link com.sun.management.OperatingSystemMXBean} and {@link com.sun.management.UnixOperatingSystemMXBean}, depending
  * on which OS is being used and whether or not the JVM implements the {@code com.sun} classes.</p>
  *
- * <p>Most methods in this class return {@link Optional}, and will return {@link Optional#empty()} when the underlying
- * MXBean returns a value that is considered exceptional (e.g. when
- * {@link java.lang.management.OperatingSystemMXBean#getSystemLoadAverage()} returns a negative value). Check the
- * Javadocs for the above classes for details on exceptional return values. Methods that would otherwise throw a
- * {@link SecurityException} will instead return {@link Optional#empty()}.</p>
+ * <p>Methods in this class that return strings could, if you were to use the bean object directly, throw
+ * {@link SecurityException}; instead, this class hides those exceptions and returns empty strings if this
+ * occurs.</p>
+ *
+ * <p>Methods in this class that return numeric values may return negative values under certain circumstances
+ * (see original Javadocs), and will also return negative values if the underlying method is not supported
+ * because the required {@code com.sun} class is missing.</p>
  *
  * <p>This is a singleton; use {@link #BEAN} to retrieve the instance. The {@link #BEAN} maintains no
  * state and is thus immutable.</p>
@@ -55,79 +55,83 @@ public enum OSMX {
         IS_SUN_UNIX = sunUnix;
     }
 
-    @NonNull public Optional<String> getName() {
+    @NonNull public String getName() {
         try {
-            return Optional.ofNullable(realBean.getName());
+            return realBean.getName();
         } catch (SecurityException e) {
             LOGGER.warn("Cannot get OS name", e);
-            return Optional.empty();
+            return "";
         }
     }
-    @NonNull public Optional<String> getArch() {
+    @NonNull public String getArch() {
         try {
-            return Optional.ofNullable(realBean.getArch());
+            return realBean.getArch();
         } catch (SecurityException e) {
             LOGGER.warn("Cannot get OS arch", e);
-            return Optional.empty();
+            return "";
         }
     }
-    @NonNull public Optional<String> getVersion() {
+    @NonNull public String getVersion() {
         try {
-            return Optional.ofNullable(realBean.getVersion());
+            return realBean.getVersion();
         } catch (SecurityException e) {
             LOGGER.warn("Cannot get OS version", e);
-            return Optional.empty();
+            return "";
         }
     }
     public int getAvailableProcessors() {
         return realBean.getAvailableProcessors();
     }
-    @NonNull public Optional<Double> getSystemLoadAverage() {
-        return convertDoubleLessThanZero(realBean.getSystemLoadAverage());
-    }
-    @NonNull public Optional<Long> getCommittedVirtualMemorySize() {
+    public double getSystemLoadAverage() { return realBean.getSystemLoadAverage(); }
+    public long getCommittedVirtualMemorySize() {
         long value = -1;
         if (IS_SUN) value = asSun().getCommittedVirtualMemorySize();
-        return convertLongNegativeOne(value);
+        return value;
     }
-    @NonNull public Optional<Long> getTotalSwapSpaceSize() {
-        if (IS_SUN) return Optional.of(asSun().getTotalSwapSpaceSize());
-        else return Optional.empty();
+    public long getTotalSwapSpaceSize() {
+        long value = -1;
+        if (IS_SUN) value = asSun().getTotalSwapSpaceSize();
+        return value;
     }
-    @NonNull public Optional<Long> getFreeSwapSpaceSize() {
-        if (IS_SUN) return Optional.of(asSun().getFreeSwapSpaceSize());
-        else return Optional.empty();
+    public long getFreeSwapSpaceSize() {
+        long value = -1;
+        if (IS_SUN) value = asSun().getFreeSwapSpaceSize();
+        return value;
     }
-    @NonNull public Optional<Long> getProcessCpuTime() {
+    public long getProcessCpuTime() {
         long value = -1;
         if (IS_SUN) value = asSun().getProcessCpuTime();
-        return convertLongNegativeOne(value);
+        return value;
     }
-    @NonNull public Optional<Long> getFreePhysicalMemorySize() {
-        if (IS_SUN) return Optional.of(asSun().getFreePhysicalMemorySize());
-        else return Optional.empty();
+    public long getFreePhysicalMemorySize() {
+        long value = -1;
+        if (IS_SUN) value = asSun().getFreePhysicalMemorySize();
+        return value;
     }
-    @NonNull public Optional<Long> getTotalPhysicalMemorySize() {
-        if (IS_SUN) return Optional.of(asSun().getTotalPhysicalMemorySize());
-        else return Optional.empty();
+    public long getTotalPhysicalMemorySize() {
+        long value = -1;
+        if (IS_SUN) value = asSun().getTotalPhysicalMemorySize();
+        return value;
     }
-    @NonNull public Optional<Double> getSystemCpuLoad() {
-        double value = 0;
+    public double getSystemCpuLoad() {
+        double value = -1;
         if (IS_SUN) value = asSun().getSystemCpuLoad();
-        return convertDoubleLessThanZero(value);
+        return value;
     }
-    @NonNull public Optional<Double> getProcessCpuLoad() {
-        double value = 0;
+    public double getProcessCpuLoad() {
+        double value = -1;
         if (IS_SUN) value = asSun().getProcessCpuLoad();
-        return convertDoubleLessThanZero(value);
+        return value;
     }
-    @NonNull public Optional<Long> getOpenFileDescriptorCount() {
-        if (IS_SUN_UNIX) return Optional.of(asSunUnix().getOpenFileDescriptorCount());
-        else return Optional.empty();
+    public long getOpenFileDescriptorCount() {
+        long value = -1;
+        if (IS_SUN_UNIX) value = asSunUnix().getOpenFileDescriptorCount();
+        return value;
     }
-    @NonNull public Optional<Long> getMaxFileDescriptorCount() {
-        if (IS_SUN_UNIX) return Optional.of(asSunUnix().getMaxFileDescriptorCount());
-        else return Optional.empty();
+    public long getMaxFileDescriptorCount() {
+        long value = -1;
+        if (IS_SUN_UNIX) value = asSunUnix().getMaxFileDescriptorCount();
+        return value;
     }
 
     // These methods return the realBean object cast to the appropriate type.
@@ -139,16 +143,6 @@ public enum OSMX {
     }
     @NonNull private static com.sun.management.UnixOperatingSystemMXBean asSunUnix() {
         return (com.sun.management.UnixOperatingSystemMXBean) realBean;
-    }
-
-    // These methods convert return values into optional equivalents.
-    @NonNull private static Optional<Long> convertLongNegativeOne(long value) {
-        if (value == -1) return Optional.empty();
-        else return Optional.of(value);
-    }
-    @NonNull private static Optional<Double> convertDoubleLessThanZero(double value) {
-        if (value < 0) return Optional.empty();
-        else return Optional.of(value);
     }
 
 }

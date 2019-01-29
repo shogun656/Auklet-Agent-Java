@@ -113,7 +113,6 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         try {
             this.msgpack.packMapHeader(4);
             getAgent().getPlatform().addSystemMetrics(this.msgpack);
-
             // Add other system metrics.
             this.msgpack.packString("outboundNetwork").packDouble(0);
             this.msgpack.packString("inboundNetwork").packDouble(0);

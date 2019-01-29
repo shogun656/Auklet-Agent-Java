@@ -1,6 +1,5 @@
 package io.auklet.platform;
 
-import com.github.dmstocking.optional.java.util.Optional;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.misc.Util;
@@ -43,19 +42,20 @@ public class JavaPlatform extends AbstractPlatform {
     @Override public void addSystemMetrics(@NonNull MessagePacker msgpack) throws IOException {
         // Calculate memory usage.
         double memUsage;
-        Optional<Long> freeMem = OSMX.BEAN.getFreePhysicalMemorySize();
-        Optional<Long> totalMem = OSMX.BEAN.getTotalPhysicalMemorySize();
-        if (freeMem.isPresent() && totalMem.isPresent()) {
-            memUsage = 100 * (1 - ((double) freeMem.get() / (double) totalMem.get()));
+        long freeMem = OSMX.BEAN.getFreePhysicalMemorySize();
+        long totalMem = OSMX.BEAN.getTotalPhysicalMemorySize();
+        if (freeMem >= 0 && totalMem >= 0) {
+            memUsage = 100 * (1 - ((double) freeMem / (double) totalMem));
         } else {
             memUsage = 0d;
         }
         msgpack.packString("memoryUsage").packDouble(memUsage);
+
         // Calculate CPU usage.
         double cpuUsage;
-        Optional<Double> loadAvg = OSMX.BEAN.getSystemLoadAverage();
-        if (loadAvg.isPresent()) {
-            cpuUsage = 100 * (loadAvg.get() / OSMX.BEAN.getAvailableProcessors());
+        double loadAvg = OSMX.BEAN.getSystemLoadAverage();
+        if (loadAvg >= 0) {
+            cpuUsage = 100 * (loadAvg / OSMX.BEAN.getAvailableProcessors());
         } else {
             cpuUsage = 0d;
         }
