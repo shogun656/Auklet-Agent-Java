@@ -103,27 +103,26 @@ public final class Auklet {
             if (agent != null) throw new IllegalStateException("Use Auklet.init() to initialize the agent.");
         }
 
-        if (context == null) {
-            this.platform = new JavaPlatform();
-        } else {
-            this.platform = new AndroidPlatform(context);
-        }
-
-        LOGGER.debug("Configuring agent resources.");
         LOGGER.debug("Parsing configuration.");
         if (config == null) config = new Config();
+
         this.appId = Util.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
-        if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty.");
         String apiKey = Util.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
+        if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty.");
         if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty.");
+
         String baseUrlMaybeNull = Util.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
         this.baseUrl = Util.orElse(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
         LOGGER.info("Base URL: {}", this.baseUrl);
+
         Boolean autoShutdownMaybeNull = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
-        boolean autoShutdown = autoShutdownMaybeNull == null ? true : autoShutdownMaybeNull;
         Boolean uncaughtExceptionHandlerMaybeNull = Util.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
+        boolean autoShutdown = autoShutdownMaybeNull == null ? true : autoShutdownMaybeNull;
         boolean uncaughtExceptionHandler = uncaughtExceptionHandlerMaybeNull == null ? true : uncaughtExceptionHandlerMaybeNull;
+
         this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
+        if (context != null && serialPort != null) throw new AukletException("Auklet can not use serial port when on an Android platform.");
+
         Integer mqttThreadsFromConfigMaybeNull = Util.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt");
         int mqttThreadsFromConfig = mqttThreadsFromConfigMaybeNull == null ? 3 : mqttThreadsFromConfigMaybeNull;
         if (mqttThreadsFromConfig < 1) mqttThreadsFromConfig = 3;
@@ -137,18 +136,21 @@ public final class Auklet {
         // until we've validated the rest of the config, in case there is a config error; this
         // approach avoids unnecessary filesystem changes for bad configs.
         LOGGER.debug("Determining which config directory to use.");
+        if (context == null) {
+            this.platform = new JavaPlatform();
+        } else {
+            this.platform = new AndroidPlatform(context);
+        }
         this.configDir = platform.obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
 
+        LOGGER.debug("Configuring agent resources.");
         this.api = new AukletApi(apiKey);
         this.deviceAuth = new DeviceAuth();
+
         // In the future we may want to make this some kind of SinkFactory.
         if (this.serialPort != null) {
-            if (context == null) {
-                this.sink = new SerialPortSink();
-            } else {
-                throw new AukletException("Auklet can not use serial port when on an Android platform.");
-            }
+            this.sink = new SerialPortSink();
         } else {
             this.sink = new AukletIoSink();
         }
@@ -166,6 +168,7 @@ public final class Auklet {
         } else {
             this.shutdownHook = null;
         }
+
         if (uncaughtExceptionHandler) {
             try {
                 Thread.setDefaultUncaughtExceptionHandler(new AukletExceptionHandler());
