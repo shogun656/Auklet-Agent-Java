@@ -1,16 +1,13 @@
 package io.auklet.platform;
 
 import android.content.Context;
-import android.os.Build;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.Config;
-import io.auklet.metrics.AndroidMetrics;
+import io.auklet.platform.metrics.AndroidMetrics;
 import org.msgpack.core.MessagePacker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;

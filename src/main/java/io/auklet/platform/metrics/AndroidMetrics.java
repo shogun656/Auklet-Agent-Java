@@ -1,4 +1,4 @@
-package io.auklet.metrics;
+package io.auklet.platform.metrics;
 
 import android.app.ActivityManager;
 import android.content.Context;

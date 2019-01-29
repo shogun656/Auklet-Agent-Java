@@ -16,3 +16,4 @@ plugins:
         - src/test/**
 exclude_patterns:
 - .devops/
+- **/PahoLogger.java

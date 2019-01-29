@@ -4,7 +4,7 @@ import com.github.dmstocking.optional.java.util.Optional;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.misc.Util;
-import io.auklet.metrics.OSMX;
+import io.auklet.platform.metrics.OSMX;
 import org.msgpack.core.MessagePacker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
