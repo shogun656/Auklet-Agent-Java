@@ -47,10 +47,11 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.initMessage(10);
+                this.initMessage(11);
                 this.msgpack
                         .packString("timestamp").packLong(System.currentTimeMillis())
-                        .packString("excType").packString(throwable.toString())
+                        .packString("excType").packString(throwable.getClass().getName())
+                        .packString("message").packString(throwable.getMessage())
                         .packString("stackTrace").packArrayHeader(stackTrace.length);
                 for (StackTraceElement ste : stackTrace) {
                     int lineNumber = ste.getLineNumber();
