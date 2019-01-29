@@ -22,9 +22,10 @@ public class AndroidPlatform extends AbstractPlatform {
     private final Context context;
     private final AndroidMetrics metrics;
 
-    public AndroidPlatform(Context context) throws AukletException {
-        this.context = context;
-        this.metrics = new AndroidMetrics(context);
+    public AndroidPlatform(Object context) throws AukletException {
+        if (!(context instanceof Context)) throw new AukletException("Android platform was given a non-Context object.");
+        this.context = (Context) context;
+        this.metrics = new AndroidMetrics(this.context);
     }
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {

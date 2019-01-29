@@ -161,6 +161,7 @@ public final class Config {
     private Boolean autoShutdown = null;
     private Boolean uncaughtExceptionHandler = null;
     private String serialPort = null;
+    private Object androidContext = null;
     private Integer mqttThreads = null;
 
     /**
@@ -246,6 +247,20 @@ public final class Config {
     }
 
     /**
+     * <p>Passes the Android context to the Auklet agent, which informs the agent that it is running
+     * in an Android app. This object must be an instance of {@code android.content.Context}, or the
+     * agent will throw an exception during initialization.</p>
+     *
+     * @param androidContext the Android context object. If {@code null}, the agent is not running
+     * in an Android app.
+     * @return {@code this}.
+     */
+    @NonNull public Config setAndroidContext(@Nullable Object androidContext) {
+        this.androidContext = androidContext;
+        return this;
+    }
+
+    /**
      * <p>Tells the Auklet agent how many MQTT threads to use.</p>
      *
      * @param mqttThreads may be {@code null}. Values less than 1 are coerced to {@code null}.
@@ -291,6 +306,9 @@ public final class Config {
     /*package*/ @CheckForNull String getSerialPort() {
         return serialPort;
     }
+
+    /** <p>Returns the Android context.</p> */
+    /*package*/ @CheckForNull Object getAndroidContext() { return androidContext; }
 
     /** <p>Returns the desired number of MQTT threads.</p> */
     /*package*/ @CheckForNull Integer getMqttThreads() { return mqttThreads; }

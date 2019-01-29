@@ -1,6 +1,5 @@
 package io.auklet;
 
-import android.content.Context;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -84,19 +83,18 @@ public final class Auklet {
         String fromProp = System.getProperty("auklet.auto.start");
         if (Boolean.valueOf(fromEnv) || Boolean.valueOf(fromProp)) {
             LOGGER.info("Auto-start requested.");
-            init(null, null);
+            init(null);
         }
     }
 
     /**
      * <p>Auklet agent constructor, called via {@link #init(Config)}.</p>
      *
-     * @param context the Android Context. Can be {@code null}.
      * @param config possibly {@code null}.
      * @throws IllegalStateException if the agent is already initialized.
      * @throws AukletException if the agent cannot be initialized.
      */
-    private Auklet(@Nullable Context context, @Nullable Config config) throws AukletException {
+    private Auklet(@Nullable Config config) throws AukletException {
         synchronized (LOCK) {
             // We check this in the init method to provide a proper message, in case the user accidentally
             // attempted to init twice. We check again here to prevent instantiation via reflection.
@@ -121,7 +119,8 @@ public final class Auklet {
         boolean uncaughtExceptionHandler = uncaughtExceptionHandlerMaybeNull == null ? true : uncaughtExceptionHandlerMaybeNull;
 
         this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
-        if (context != null && serialPort != null) throw new AukletException("Auklet can not use serial port when on an Android platform.");
+        Object androidContext = config.getAndroidContext();
+        if (androidContext != null && serialPort != null) throw new AukletException("Auklet can not use serial port when on an Android platform.");
 
         Integer mqttThreadsFromConfigMaybeNull = Util.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt");
         int mqttThreadsFromConfig = mqttThreadsFromConfigMaybeNull == null ? 3 : mqttThreadsFromConfigMaybeNull;
@@ -136,10 +135,10 @@ public final class Auklet {
         // until we've validated the rest of the config, in case there is a config error; this
         // approach avoids unnecessary filesystem changes for bad configs.
         LOGGER.debug("Determining which config directory to use.");
-        if (context == null) {
+        if (androidContext == null) {
             this.platform = new JavaPlatform();
         } else {
-            this.platform = new AndroidPlatform(context);
+            this.platform = new AndroidPlatform(androidContext);
         }
         this.configDir = platform.obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
@@ -187,21 +186,7 @@ public final class Auklet {
      * @return {@code true} if the agent was initialized successfully, {@code false} otherwise.
      */
     @NonNull public static Future<Boolean> init() {
-        return init(null, null);
-    }
-
-    /**
-     * <p>Initializes the agent with the given configuration values, falling back on environment
-     * variables, JVM system properties and/or default values where needed.</p>
-     *
-     * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
-     *
-     * @param context the Android Context. Can be {@code null}.
-     * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
-     * initialized successfully or {@code false} otherwise.
-     */
-    @NonNull public static Future<Boolean> init(@NonNull Context context) {
-        return init(context, null);
+        return init(null);
     }
 
     /**
@@ -214,22 +199,7 @@ public final class Auklet {
      * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
      * initialized successfully or {@code false} otherwise.
      */
-    @NonNull public static Future<Boolean> init(@NonNull Config config) {
-        return init(null, config);
-    }
-
-    /**
-     * <p>Initializes the agent with the given configuration values, falling back on environment
-     * variables, JVM system properties and/or default values where needed.</p>
-     *
-     * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
-     *
-     * @param context the Android Context. Can never be {@code null}.
-     * @param config the agent config object. May be {@code null}.
-     * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
-     * initialized successfully or {@code false} otherwise.
-     */
-    @NonNull public static Future<Boolean> init(@Nullable final Context context, @Nullable final Config config) {
+    @NonNull public static Future<Boolean> init(@Nullable final Config config) {
         LOGGER.debug("Scheduling init task.");
         Callable<Boolean> initTask = new Callable<Boolean>() {
             @NonNull @Override public Boolean call() {
@@ -242,7 +212,7 @@ public final class Auklet {
                     }
                     LOGGER.info("Starting agent.");
                     try {
-                        agent = new Auklet(context, config);
+                        agent = new Auklet(config);
                         agent.start();
                         LOGGER.info("Agent started successfully.");
                         return true;
