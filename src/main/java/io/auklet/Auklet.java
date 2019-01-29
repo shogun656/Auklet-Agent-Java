@@ -109,6 +109,7 @@ public final class Auklet {
             this.platform = new AndroidPlatform(context);
         }
 
+        LOGGER.debug("Configuring agent resources.");
         LOGGER.debug("Parsing configuration.");
         if (config == null) config = new Config();
         this.appId = Util.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
@@ -139,18 +140,17 @@ public final class Auklet {
         this.configDir = platform.obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
 
-        LOGGER.debug("Configuring agent resources.");
         this.api = new AukletApi(apiKey);
         this.deviceAuth = new DeviceAuth();
         // In the future we may want to make this some kind of SinkFactory.
         if (this.serialPort != null) {
-            this.sink = new SerialPortSink();
-        } else {
             if (context == null) {
-                this.sink = new AukletIoSink();
+                this.sink = new SerialPortSink();
             } else {
                 throw new AukletException("Auklet can not use serial port when on an Android platform.");
             }
+        } else {
+            this.sink = new AukletIoSink();
         }
         this.usageMonitor = new DataUsageMonitor();
 
