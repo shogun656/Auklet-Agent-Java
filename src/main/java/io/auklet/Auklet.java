@@ -91,6 +91,7 @@ public final class Auklet {
     /**
      * <p>Auklet agent constructor, called via {@link #init(Config)}.</p>
      *
+     * @param context the Android Context. Can be {@code null}.
      * @param config possibly {@code null}.
      * @throws IllegalStateException if the agent is already initialized.
      * @throws AukletException if the agent cannot be initialized.
@@ -145,7 +146,11 @@ public final class Auklet {
         if (this.serialPort != null) {
             this.sink = new SerialPortSink();
         } else {
-            this.sink = new AukletIoSink();
+            if (context == null) {
+                this.sink = new AukletIoSink();
+            } else {
+                throw new AukletException("Auklet can not use serial port when on an Android platform.");
+            }
         }
         this.usageMonitor = new DataUsageMonitor();
 
@@ -188,7 +193,7 @@ public final class Auklet {
      *
      * <p>Any error that causes the agent to fail to initialize will be logged automatically.</p>
      *
-     * @param context the Android Context. Can never be {@code null}.
+     * @param context the Android Context. Can be {@code null}.
      * @return a future whose result is never {@code null}, and is either {@code true} if the agent was
      * initialized successfully or {@code false} otherwise.
      */
