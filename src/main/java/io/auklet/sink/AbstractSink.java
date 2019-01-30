@@ -5,8 +5,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.HasAgent;
-import io.auklet.core.Util;
-import io.auklet.jvm.OSMX;
+import io.auklet.misc.Util;
 import net.jcip.annotations.ThreadSafe;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -114,25 +113,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
     private void addSystemMetrics() throws AukletException {
         try {
             this.msgpack.packMapHeader(4);
-            // Calculate memory usage.
-            double memUsage;
-            long freeMem = OSMX.BEAN.getFreePhysicalMemorySize();
-            long totalMem = OSMX.BEAN.getTotalPhysicalMemorySize();
-            if (freeMem >= 0 && totalMem >= 0) {
-                memUsage = 100 * (1 - ((double) freeMem / (double) totalMem));
-            } else {
-                memUsage = 0d;
-            }
-            this.msgpack.packString("memoryUsage").packDouble(memUsage);
-            // Calculate CPU usage.
-            double cpuUsage;
-            double loadAvg = OSMX.BEAN.getSystemLoadAverage();
-            if (loadAvg >= 0) {
-                cpuUsage = 100 * (loadAvg / OSMX.BEAN.getAvailableProcessors());
-            } else {
-                cpuUsage = 0d;
-            }
-            this.msgpack.packString("cpuUsage").packDouble(cpuUsage);
+            getAgent().getPlatform().addSystemMetrics(this.msgpack);
             // Add other system metrics.
             this.msgpack.packString("outboundNetwork").packDouble(0);
             this.msgpack.packString("inboundNetwork").packDouble(0);
@@ -140,5 +121,4 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             throw new AukletException("Error while assembling msgpack payload.", e);
         }
     }
-
 }

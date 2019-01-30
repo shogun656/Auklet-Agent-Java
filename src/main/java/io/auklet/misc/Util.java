@@ -1,4 +1,4 @@
-package io.auklet.core;
+package io.auklet.misc;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
