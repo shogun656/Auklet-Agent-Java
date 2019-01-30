@@ -4,7 +4,7 @@ jobs:
     build:
         environment:
             TZ: "/usr/share/zoneinfo/America/Detroit"
-        working_directory: ~/app
+        working_directory: ~/app/circleci
         docker:
             - image: circleci/openjdk:9.0.4-jdk-sid-node-browsers
         steps:
@@ -49,9 +49,14 @@ jobs:
                 command: |
                   TERM=dumb ./gradlew dependencies
             - run:
-                name: Run Gradle Tests
+                name: Run Unit Tests
                 command: |
-                  TERM=dumb ./gradlew clean test --info
+                  if [[ -f ~/.localCircleBuild ]]; then
+                    CIRCLE_LOCAL_BUILD=true
+                  else
+                    CIRCLE_LOCAL_BUILD=false
+                  fi
+                  bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
             - run:
                 name: Run Whitesource
                 command: |
