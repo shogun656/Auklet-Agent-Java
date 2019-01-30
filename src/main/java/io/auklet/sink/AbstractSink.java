@@ -50,7 +50,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                 this.msgpack
                         .packString("timestamp").packLong(System.currentTimeMillis())
                         .packString("excType").packString(throwable.getClass().getName())
-                        .packString("message").packString(throwable.getMessage())
+                        .packString("message").packString(Util.orElse(throwable.getMessage(), ""))
                         .packString("stackTrace").packArrayHeader(stackTrace.length);
                 for (StackTraceElement ste : stackTrace) {
                     int lineNumber = ste.getLineNumber();

@@ -3,6 +3,7 @@ package io.auklet;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.auklet.misc.AukletDaemonExecutor;
 import io.auklet.core.DataUsageMonitor;
 import io.auklet.core.AukletExceptionHandler;
 import io.auklet.config.DeviceAuth;
@@ -47,7 +48,7 @@ public final class Auklet {
     public static final String VERSION;
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
-    private static final ScheduledExecutorService DAEMON = Executors.newSingleThreadScheduledExecutor(Util.createDaemonThreadFactory("Auklet"));
+    private static final ScheduledExecutorService DAEMON = new AukletDaemonExecutor(1, Util.createDaemonThreadFactory("Auklet"));
     private static Auklet agent = null;
 
     private final String appId;
