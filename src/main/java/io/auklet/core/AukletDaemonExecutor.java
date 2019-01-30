@@ -26,7 +26,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
     }
 
     /* Logs exceptions that occur in tasks. */
-    protected void afterExecute(Runnable r, Throwable t) {
+    @Override protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
         if (t == null && r instanceof Future<?>) {
             try {
