@@ -1,5 +1,7 @@
 package io.auklet.core;
 
+import io.auklet.misc.Util;
+
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -9,7 +11,6 @@ import java.nio.file.Paths;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class TestUtil {

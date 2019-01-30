@@ -45,10 +45,6 @@ jobs:
             # GRADLE
             ##
             - run:
-                name: Install Gradle dependencies
-                command: |
-                  TERM=dumb ./gradlew dependencies
-            - run:
                 name: Run Unit Tests
                 command: |
                   if [[ -f ~/.localCircleBuild ]]; then
@@ -57,6 +53,8 @@ jobs:
                     CIRCLE_LOCAL_BUILD=false
                   fi
                   bash .devops/test_and_coverage.sh $CIRCLE_LOCAL_BUILD
+            - store_artifacts:
+                 path: build/reports/jacoco/test/html
             - run:
                 name: Run Whitesource
                 command: |
