@@ -3,21 +3,22 @@ package io.auklet;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.auklet.core.AukletDaemonExecutor;
+import io.auklet.misc.AukletDaemonExecutor;
 import io.auklet.core.DataUsageMonitor;
-import io.auklet.jvm.AukletExceptionHandler;
+import io.auklet.core.AukletExceptionHandler;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.AukletApi;
-import io.auklet.core.Util;
+import io.auklet.misc.Util;
+import io.auklet.platform.AbstractPlatform;
+import io.auklet.platform.AndroidPlatform;
+import io.auklet.platform.JavaPlatform;
+import io.auklet.platform.Platform;
 import io.auklet.sink.*;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.jar.Manifest;
 
@@ -52,6 +53,7 @@ public final class Auklet {
 
     private final String appId;
     private final String baseUrl;
+    private final AbstractPlatform platform;
     private final File configDir;
     private final String serialPort;
     private final int mqttThreads;
@@ -72,7 +74,7 @@ public final class Auklet {
                 version = manifest.getMainAttributes().getValue("Implementation-Version");
                 version = Util.orElse(version, "unknown");
             }
-            LOGGER.info("Auklet Agent version " + version);
+            LOGGER.info("Auklet Agent version {}", version);
         } catch (SecurityException | IOException e) {
             LOGGER.warn("Could not obtain Auklet agent version from manifest.", e);
         }
@@ -102,18 +104,25 @@ public final class Auklet {
 
         LOGGER.debug("Parsing configuration.");
         if (config == null) config = new Config();
+
         this.appId = Util.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
-        if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty.");
         String apiKey = Util.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
+        if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty.");
         if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty.");
+
         String baseUrlMaybeNull = Util.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
         this.baseUrl = Util.orElse(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
         LOGGER.info("Base URL: {}", this.baseUrl);
+
         Boolean autoShutdownMaybeNull = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
-        boolean autoShutdown = autoShutdownMaybeNull == null ? true : autoShutdownMaybeNull;
         Boolean uncaughtExceptionHandlerMaybeNull = Util.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
+        boolean autoShutdown = autoShutdownMaybeNull == null ? true : autoShutdownMaybeNull;
         boolean uncaughtExceptionHandler = uncaughtExceptionHandlerMaybeNull == null ? true : uncaughtExceptionHandlerMaybeNull;
+
         this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
+        Object androidContext = config.getAndroidContext();
+        if (androidContext != null && serialPort != null) throw new AukletException("Auklet can not use serial port when on an Android platform.");
+
         Integer mqttThreadsFromConfigMaybeNull = Util.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt");
         int mqttThreadsFromConfig = mqttThreadsFromConfigMaybeNull == null ? 3 : mqttThreadsFromConfigMaybeNull;
         if (mqttThreadsFromConfig < 1) mqttThreadsFromConfig = 3;
@@ -127,12 +136,18 @@ public final class Auklet {
         // until we've validated the rest of the config, in case there is a config error; this
         // approach avoids unnecessary filesystem changes for bad configs.
         LOGGER.debug("Determining which config directory to use.");
-        this.configDir = obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
+        if (androidContext == null) {
+            this.platform = new JavaPlatform();
+        } else {
+            this.platform = new AndroidPlatform(androidContext);
+        }
+        this.configDir = platform.obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
 
         LOGGER.debug("Configuring agent resources.");
         this.api = new AukletApi(apiKey);
         this.deviceAuth = new DeviceAuth();
+
         // In the future we may want to make this some kind of SinkFactory.
         if (this.serialPort != null) {
             this.sink = new SerialPortSink();
@@ -153,6 +168,7 @@ public final class Auklet {
         } else {
             this.shutdownHook = null;
         }
+
         if (uncaughtExceptionHandler) {
             try {
                 Thread.setDefaultUncaughtExceptionHandler(new AukletExceptionHandler());
@@ -373,6 +389,15 @@ public final class Auklet {
     }
 
     /**
+     * <p>Returns the platform for this instance of the agent.</p>
+     *
+     * @return never {@code null}.
+     */
+    @NonNull public Platform getPlatform() {
+        return this.platform;
+    }
+
+    /**
      * <p>Schedules the given one-shot task to run on the Auklet agent's daemon executor thread.</p>
      *
      * @param command the task to execute.
@@ -438,73 +463,6 @@ public final class Auklet {
     }
 
     /**
-     * <p>Returns the directory the Auklet agent will use to store its configuration files. This method
-     * creates/tests write access to the target config directory after determining which directory to use,
-     * per the logic described in the class-level Javadoc.</p>
-     *
-     * @param fromConfig the value from the {@link Config} object, env var and/or JVM sysprop, possibly
-     * {@code null}.
-     * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
-     * initialization and all data sent to the agent must be silently discarded.
-     */
-    @CheckForNull private static File obtainConfigDir(@Nullable String fromConfig) {
-        if (Util.isNullOrEmpty(fromConfig)) LOGGER.warn("Config dir not defined, will attempt to fallback on JVM system properties.");
-        // Consider config dir settings in this order.
-        List<String> possibleConfigDirs = Arrays.asList(
-                fromConfig,
-                System.getProperty("user.dir"),
-                System.getProperty("user.home"),
-                System.getProperty("java.io.tmpdir")
-        );
-        // Drop any env vars/sysprops whose value is null, and append the auklet subdir to each remaining value.
-        List<String> filteredConfigDirs = new ArrayList<>();
-        for (String dir : possibleConfigDirs) {
-            if (!Util.isNullOrEmpty(dir)) filteredConfigDirs.add(Util.removeTrailingSlash(dir) + "/aukletFiles");
-        }
-        // If a directory contains the auth file, use that directory.
-        // We don't care if the other files don't exist because we'll create them later if needed.
-        LOGGER.debug("Checking directories for existing config files.");
-        for (String dir : filteredConfigDirs) {
-            File authFile = new File(dir, DeviceAuth.FILENAME);
-            try {
-                if (authFile.exists()) {
-                    LOGGER.debug("Using existing config directory: {}", dir);
-                    return new File(dir);
-                }
-            } catch (SecurityException e) {
-                LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
-            }
-        }
-        LOGGER.debug("No existing config files found; checking directories for suitability.");
-        // Use the first directory that we can create.
-        for (String dir : filteredConfigDirs) {
-            File possibleConfigDir = new File(dir);
-            try {
-                boolean alreadyExists = possibleConfigDir.exists();
-                // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
-                // exists *as a directory*. However, this result does not imply that the JVM has
-                // write permissions *inside* the directory, which would be the case only if the
-                // directory existed beforehand.
-                //
-                // To alleviate this, we do a test file write inside the directory *only if the
-                // directory existed beforehand*.
-                if (alreadyExists) {
-                    File tempFile = File.createTempFile("auklet", null, possibleConfigDir);
-                    LOGGER.debug("Using existing config directory: {}", dir);
-                    Util.deleteQuietly(tempFile);
-                    return possibleConfigDir;
-                } else if (possibleConfigDir.mkdirs()) {
-                    LOGGER.debug("Created new config directory: {}", dir);
-                    return possibleConfigDir;
-                }
-            } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
-                LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
-            }
-        }
-        return null;
-    }
-
-    /**
      * <p>Starts the Auklet agent by:</p>
      *
      * <ul>
@@ -520,6 +478,7 @@ public final class Auklet {
         LOGGER.debug("Starting internal resources.");
         this.deviceAuth.start(this);
         this.usageMonitor.start(this);
+        this.platform.start(this);
         this.sink.start(this);
     }
 

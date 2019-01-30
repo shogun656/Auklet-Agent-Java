@@ -1,4 +1,4 @@
-package io.auklet.core;
+package io.auklet.misc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

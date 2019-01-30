@@ -3,7 +3,7 @@ package io.auklet.config;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
-import io.auklet.core.Util;
+import io.auklet.misc.Util;
 import net.jcip.annotations.NotThreadSafe;
 import okhttp3.Request;
 import okhttp3.Response;
