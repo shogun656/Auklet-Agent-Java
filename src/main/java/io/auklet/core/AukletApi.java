@@ -2,6 +2,7 @@ package io.auklet.core;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
+import io.auklet.misc.Util;
 import net.jcip.annotations.Immutable;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
