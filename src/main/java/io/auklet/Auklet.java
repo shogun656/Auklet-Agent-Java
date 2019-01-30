@@ -201,7 +201,9 @@ public final class Auklet {
                         agent.start();
                         LOGGER.info("Agent started successfully.");
                         return true;
-                    } catch (AukletException e) {
+                    } catch (Exception e) {
+                        // Catch everything so that even programming errors result in an orderly
+                        // shutdown of the agent.
                         shutdown();
                         LOGGER.error("Could not start agent.", e);
                         return false;

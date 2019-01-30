@@ -15,7 +15,7 @@ public interface Sink {
     void send(@Nullable Throwable throwable) throws AukletException;
 
     /**
-     * <p>Shuts down this data sink and disconnects/closes any underlying resources</p>.
+     * <p>Shuts down this data sink and disconnects/closes any underlying resources.</p>
      *
      * @throws AukletException if an error occurs while closing the sink or its underlying resources.
      */
