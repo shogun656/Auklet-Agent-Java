@@ -1,19 +1,25 @@
 package io.auklet.core;
 
+import io.auklet.config.DeviceAuth;
 import io.auklet.misc.Util;
 
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class TestUtil {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceAuth.class);
+
     @Test
     void testIsNullOrEmpty() {
         assertEquals(true, Util.isNullOrEmpty(""));
@@ -46,10 +52,29 @@ class TestUtil {
     }
 
     @Test
-    void testWriteUtf8() throws IOException {
+    void testWriteUtf8() {
         String pathName = "/tmp/io.auklet.core.TestUtil.testWriteUtf8";
-        File file = new File(pathName);
-        Util.writeUtf8(file, "0");
-        assertEquals("0", new String(Files.readAllBytes(Paths.get(pathName))));
+        try {
+            File file = new File(pathName);
+            Util.writeUtf8(file, "0");
+            assertEquals("0", new String(Files.readAllBytes(Paths.get(pathName))));
+        } catch (IOException e) {
+            LOGGER.warn("io.auklet.core.TestUtil.testWriteUtf8: Count not run test");
+        }
+    }
+
+    @Test
+    void testWrite() {
+        String pathName = "/tmp/io.auklet.core.TestUtil.testWrite";
+        try {
+            String data = "0";
+            byte[] bytes = data.getBytes("UTF-8");
+            File file = new File(pathName);
+            Util.write(file, bytes);
+            assertEquals("0", new String(Files.readAllBytes(Paths.get(pathName))));
+        } catch (IOException e) {
+            LOGGER.warn("io.auklet.core.TestUtil.testWrite: Count not run test");
+        }
+
     }
 }
