@@ -13,11 +13,11 @@ bash .devops/tests.sh
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   # The test reporter will throw a HTTP 409 error if we rebuild in circle because
   # a test report was already posted for that commit. The below check mitigates this.
-  JACOCO_SOURCE_PATH=src/main/java
-  CC_TEST_REPORTER_ID=c6075c2dabb85c477addbae6616cf72773be68603af742860f40894d0b103c2e
+  export CC_TEST_REPORTER_ID=c6075c2dabb85c477addbae6616cf72773be68603af742860f40894d0b103c2e
   # Set -e is disabled momentarily to be able to output the error message to log.txt file.
   set +e
-  ./cc-test-reporter format-coverage build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
+  JACOCO_SOURCE_PATH=src/main/java \
+    ./cc-test-reporter format-coverage ./build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
   ./cc-test-reporter upload-coverage 2>&1 | tee exit_message.txt
   result=$?
   set -e
