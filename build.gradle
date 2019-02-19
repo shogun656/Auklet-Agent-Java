@@ -32,21 +32,23 @@ dependencies {
     compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
     compile "org.slf4j:slf4j-api:1.7.25"
     compile "com.github.stephenc.jcip:jcip-annotations:1.0-1"
+    compile("com.google.android:android:4.1.1.4") {
+        transitive = false
+    }
     // End-users never need to re-include this library in their list of dependencies, and those
     // that do so may run into legal issues if they distribute it alongside an Oracle JRE/JDK.
     // See https://stackoverflow.com/a/36198568 for details.
-    compileOnly "com.github.spotbugs:spotbugs-annotations:3.1.10"
+    compile "com.github.spotbugs:spotbugs-annotations:3.1.10"
     compileOnly "com.github.purejavacomm:purejavacomm:1.0.1.RELEASE"
     compileOnly "uk.org.lidalia:sysout-over-slf4j:1.0.2"
-    compileOnly("com.google.android:android:4.1.1.4") {
-        transitive = false
-    }
-//    testCompile "org.slf4j:slf4j-simple:1.7.25"
     testCompile 'uk.org.lidalia:slf4j-test:1.1.0'
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testCompile 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
-    testCompile 'org.mockito:mockito-core:2.23.4'
-    testCompile 'org.powermock:powermock-api-mockito:1.6.6'
+    testCompile 'org.mockito:mockito-inline:2.23.4'
+//    testCompile 'org.powermock:powermock-api-mockito2:2.0.0'
+    testCompile("com.google.android:android-test:4.1.1.4") {
+        transitive = false
+    }
 }
 
 // Compilation configuration

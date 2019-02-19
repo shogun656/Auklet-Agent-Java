@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TestConfig {
     private Config config = new Config();
-    private class TestObject { }
+    private class TestObject {}
     private TestObject testObject = new TestObject();
 
     @Test void testSetAppId() {

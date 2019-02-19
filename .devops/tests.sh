@@ -2,7 +2,7 @@
 
 mkdir tmp
 
-touch tmp/io.auklet.core.TestUtil.testDeleteQuietly
+touch tmp/io.auklet.core.TestUtil.testDeleteQuietly tmp/AukletAuth
 
 gradle test jacocoTestReport
 

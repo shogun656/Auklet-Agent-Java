@@ -1,7 +1,9 @@
 package io.auklet.misc;
 
 import io.auklet.AukletException;
+import io.auklet.config.AukletIoBrokers;
 import io.auklet.misc.Util;
+import org.apache.commons.lang3.JavaVersion;
 import org.junit.jupiter.api.Test;
 
 import mjson.Json;
@@ -85,6 +87,10 @@ class TestUtil {
 
     @Test void testReadJson() {
         assertNotEquals("{}", Util.readJson("{1:1}"));
+    }
+
+    @Test void testGetJsonSchema() throws AukletException {
+        System.out.print(getClass().getName());
     }
 
     @Test void testGetMacAddressHash() {
