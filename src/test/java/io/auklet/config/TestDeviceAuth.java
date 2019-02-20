@@ -1,79 +1,77 @@
 package io.auklet.config;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.Config;
-import io.auklet.config.DeviceAuth;
-import io.auklet.config.AbstractConfigFileFromApi;
-
 import mjson.Json;
+import okhttp3.Request.Builder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestDeviceAuth {
-    private DeviceAuth deviceAuth;
-    private Config config;
     private Json jsonConfig;
+    private DeviceAuth deviceAuth;
 
     @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
-        deviceAuth = new DeviceAuth();
 
-        jsonConfig = Json.object().set("organization", 0)
-                                  .set("client_id", 0)
-                                  .set("id", 0)
-                                  .set("client_password", 0);
+        jsonConfig = Json.object().set("organization", "organization_value")
+                                  .set("client_id", "client_id_value")
+                                  .set("id", "id_value")
+                                  .set("client_password", "client_password_value");
 
-        config = new Config();
-        config.setAppId("0123456789101112");
-        config.setApiKey("123");
+        Config config = new Config().setAppId("0123456789101112")
+                                    .setApiKey("123");
+
+        deviceAuth = Mockito.spy(DeviceAuth.class);
+        Mockito.doReturn(jsonConfig).when(deviceAuth).loadConfig();
+        Mockito.doReturn(jsonConfig).when(deviceAuth).makeJsonRequest(any(Builder.class));
 
         Constructor<Auklet> aukletConstructor = Auklet.class.getDeclaredConstructor(config.getClass());
         aukletConstructor.setAccessible(true);
         Auklet auklet = aukletConstructor.newInstance(config);
 
-//        final AbstractConfigFileFromApi abstractConfigFileFromApi = Mockito.mock(AbstractConfigFileFromApi.class);
-//        Mockito.when(abstractConfigFileFromApi.loadConfig()).thenReturn(mockedLoadConfig());
-
-        final DeviceAuth deviceAuth = Mockito.mock(DeviceAuth.class);
-        Mockito.when(deviceAuth.fetchFromApi()).thenReturn(Json.object());
-        Mockito.when(deviceAuth.loadConfig()).thenReturn(jsonConfig);
-
-        System.out.print("Before start");
         deviceAuth.start(auklet);
     }
 
     @Test void testGetName() {
-            assertEquals("AukletAuth", deviceAuth.getName());
+        assertEquals("AukletAuth", deviceAuth.getName());
     }
 
     @Test void testGetOrganizationId() {
-        System.out.print(deviceAuth.getOrganizationId());
+        assertEquals("organization_value", deviceAuth.getOrganizationId());
     }
 
     @Test void testGetClientId() {
-
+        assertEquals("client_id_value", deviceAuth.getClientId());
     }
 
     @Test void testGetClientUsername() {
-
+        assertEquals("id_value", deviceAuth.getClientUsername());
     }
 
     @Test void testGetClientPassword() {
-
+        assertEquals("client_password_value", deviceAuth.getClientPassword());
     }
 
     @Test void testGetMqttEventsTopic() {
+        assertEquals("java/events/organization_value/id_value", deviceAuth.getMqttEventsTopic());
+    }
 
+    @Test void testReadWriteFromToDisk() throws AukletException {
+        deviceAuth.writeToDisk(jsonConfig);
+        assertEquals(jsonConfig, deviceAuth.readFromDisk());
+    }
+
+    @Test void testFetchFromApi() throws AukletException {
+        assertEquals(jsonConfig, deviceAuth.fetchFromApi());
     }
 }

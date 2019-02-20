@@ -32,7 +32,7 @@ dependencies {
     compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
     compile "org.slf4j:slf4j-api:1.7.25"
     compile "com.github.stephenc.jcip:jcip-annotations:1.0-1"
-    compile("com.google.android:android:4.1.1.4") {
+    compileOnly("com.google.android:android:4.1.1.4") {
         transitive = false
     }
     // End-users never need to re-include this library in their list of dependencies, and those
