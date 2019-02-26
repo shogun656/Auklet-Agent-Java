@@ -44,8 +44,9 @@ dependencies {
     testCompile 'uk.org.lidalia:slf4j-test:1.1.0'
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testCompile 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+    testCompile 'org.hamcrest:hamcrest-junit:2.0.0.0'
     testCompile 'org.mockito:mockito-inline:2.23.4'
-//    testCompile 'org.powermock:powermock-api-mockito2:2.0.0'
+    testCompile 'org.powermock:powermock-api-mockito2:2.0.0'
     testCompile("com.google.android:android-test:4.1.1.4") {
         transitive = false
     }
