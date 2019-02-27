@@ -1,13 +1,16 @@
 package io.auklet;
 
-import io.auklet.AukletException;
-
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.TestInstance;
 
-class TestAukletException {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class AukletExceptionTest {
+    AukletException aukletException;
+
     @Test void TestEmptyAukletException() {
-        AukletException aukletException = new AukletException();
+        aukletException = new AukletException();
         try {
             throw aukletException;
         } catch (AukletException e) {
@@ -16,7 +19,7 @@ class TestAukletException {
     }
 
     @Test void TestStringAukletException() {
-        AukletException aukletException = new AukletException("message");
+        aukletException = new AukletException("message");
         try {
             throw aukletException;
         } catch (AukletException e) {
@@ -26,7 +29,7 @@ class TestAukletException {
 
     @Test void TestStringThrowableAukletException() {
         Throwable cause = new Throwable();
-        AukletException aukletException = new AukletException("message", cause);
+        aukletException = new AukletException("message", cause);
         try {
             throw aukletException;
         } catch (AukletException e) {
@@ -36,7 +39,7 @@ class TestAukletException {
 
     @Test void TestThrowableAukletException() {
         Throwable cause = new Throwable();
-        AukletException aukletException = new AukletException(cause);
+        aukletException = new AukletException(cause);
         try {
             throw aukletException;
         } catch (AukletException e) {

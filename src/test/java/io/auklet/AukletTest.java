@@ -6,13 +6,11 @@ import io.auklet.core.DataUsageMonitor;
 import io.auklet.platform.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
 import org.junit.jupiter.api.TestInstance;
 import uk.org.lidalia.slf4jtest.TestLogger;
 import uk.org.lidalia.slf4jtest.TestLoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.TimeUnit;
 
@@ -21,21 +19,28 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TestAuklet {
+class AukletTest extends TestingTools {
     private Auklet auklet;
     private TestLogger logger = TestLoggerFactory.getTestLogger(Auklet.class);
+    private Runnable runnable;
 
     @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
+        auklet = aukletConstructor();
+
         Config config = new Config().setAppId("0123456789101112")
                 .setApiKey("123");
 
-        Constructor<Auklet> aukletConstructor = Auklet.class.getDeclaredConstructor(config.getClass());
-        aukletConstructor.setAccessible(true);
-        auklet = aukletConstructor.newInstance(config);
+        runnable = new Runnable() {
+            @Override
+            public void run() {
 
-        Auklet.init(config);
+            }
+        };
+
+        auklet.init(config);
     }
 
+    //TODO: Fix/complete test
     @Test void testSend() {
         auklet.send(null);
         String loggingResult = logger.getLoggingEvents().asList().toString();
@@ -94,22 +99,10 @@ class TestAuklet {
     }
 
     @Test void testScheduleOneShotTask() throws AukletException {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        };
-        System.out.println(auklet.scheduleOneShotTask(runnable, 1, TimeUnit.SECONDS));
+        assertNotNull(auklet.scheduleOneShotTask(runnable, 1, TimeUnit.SECONDS));
     }
 
     @Test void testScheduleRepeatingTask() throws AukletException {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        };
-        System.out.println(auklet.scheduleRepeatingTask(runnable, 1,1, TimeUnit.SECONDS));
+        assertNotNull(auklet.scheduleRepeatingTask(runnable, 1,1, TimeUnit.SECONDS));
     }
 }

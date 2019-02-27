@@ -1,15 +1,22 @@
 package io.auklet;
 
-import io.auklet.Config;
-
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class TestConfig {
-    private Config config = new Config();
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ConfigTest {
+    private Config config;
     private class TestObject {}
-    private TestObject testObject = new TestObject();
+    private TestObject testObject;
+
+    @BeforeAll void setup() {
+        config = new Config();
+        testObject = new TestObject();
+    }
 
     @Test void testSetAppId() {
         assertNotNull(config.setAppId(null));
@@ -99,5 +106,3 @@ class TestConfig {
         assertNotNull(config.getMqttThreads());
     }
 }
-
-

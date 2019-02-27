@@ -1,25 +1,19 @@
 package io.auklet.misc;
 
-import io.auklet.AukletException;
-import io.auklet.config.AukletIoBrokers;
-import io.auklet.misc.Util;
-import org.apache.commons.lang3.JavaVersion;
 import org.junit.jupiter.api.Test;
 
-import mjson.Json;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestUtil {
+class UtilTest {
     @Test void testIsNullOrEmpty() {
         assertEquals(true, Util.isNullOrEmpty(""));
         assertEquals(false, Util.isNullOrEmpty("1"));
@@ -41,21 +35,21 @@ class TestUtil {
     }
 
     @Test void testDeleteQuietly() {
-        String pathname = "./tmp/io.auklet.misc.TestUtil.testDeleteQuietly";
+        String pathname = "./tmp/io.auklet.misc.UtilTest.testDeleteQuietly";
         File file = new File(pathname);
         Util.deleteQuietly(file);
         assertEquals(false, file.isFile());
     }
 
     @Test void testWriteUtf8() throws IOException {
-        String pathname = "./tmp/io.auklet.misc.TestUtil.testWriteUtf8";
+        String pathname = "./tmp/io.auklet.misc.UtilTest.testWriteUtf8";
         File file = new File(pathname);
         Util.writeUtf8(file, "0");
         assertEquals("0", new String(Files.readAllBytes(Paths.get(pathname))));
     }
 
     @Test void testWrite() throws IOException {
-        String pathname = "./tmp/io.auklet.misc.TestUtil.testWrite";
+        String pathname = "./tmp/io.auklet.misc.UtilTest.testWrite";
         String data = "0";
         byte[] bytes = data.getBytes("UTF-8");
         File file = new File(pathname);
@@ -64,7 +58,7 @@ class TestUtil {
     }
 
     @Test void testRead() throws IOException {
-        String pathname = "./tmp/io.auklet.misc.TestUtil.testRead";
+        String pathname = "./tmp/io.auklet.misc.UtilTest.testRead";
         String data = "0";
         byte[] bytes = data.getBytes("UTF-8");
         FileOutputStream writeFile = new FileOutputStream(pathname);
@@ -87,10 +81,6 @@ class TestUtil {
 
     @Test void testReadJson() {
         assertNotEquals("{}", Util.readJson("{1:1}"));
-    }
-
-    @Test void testGetJsonSchema() throws AukletException {
-        System.out.print(getClass().getName());
     }
 
     @Test void testGetMacAddressHash() {

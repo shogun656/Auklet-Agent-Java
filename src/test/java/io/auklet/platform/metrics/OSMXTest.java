@@ -1,12 +1,10 @@
 package io.auklet.platform.metrics;
 
-import io.auklet.platform.metrics.OSMX;
-
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-class testOSMX {
+class OSMXTest {
     @Test void testGetName() {
         assertNotEquals("", OSMX.BEAN.getName());
     }

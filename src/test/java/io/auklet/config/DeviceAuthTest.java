@@ -2,7 +2,7 @@ package io.auklet.config;
 
 import io.auklet.Auklet;
 import io.auklet.AukletException;
-import io.auklet.Config;
+import io.auklet.TestingTools;
 import mjson.Json;
 import okhttp3.Request.Builder;
 import org.junit.jupiter.api.BeforeAll;
@@ -10,34 +10,28 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TestDeviceAuth {
+class DeviceAuthTest extends TestingTools {
+    private Auklet auklet;
     private Json jsonConfig;
     private DeviceAuth deviceAuth;
 
     @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
-
         jsonConfig = Json.object().set("organization", "organization_value")
                                   .set("client_id", "client_id_value")
                                   .set("id", "id_value")
                                   .set("client_password", "client_password_value");
 
-        Config config = new Config().setAppId("0123456789101112")
-                                    .setApiKey("123");
+        auklet = aukletConstructor();
 
         deviceAuth = Mockito.spy(DeviceAuth.class);
         Mockito.doReturn(jsonConfig).when(deviceAuth).loadConfig();
         Mockito.doReturn(jsonConfig).when(deviceAuth).makeJsonRequest(any(Builder.class));
-
-        Constructor<Auklet> aukletConstructor = Auklet.class.getDeclaredConstructor(config.getClass());
-        aukletConstructor.setAccessible(true);
-        Auklet auklet = aukletConstructor.newInstance(config);
 
         deviceAuth.start(auklet);
     }

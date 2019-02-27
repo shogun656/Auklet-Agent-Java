@@ -8,12 +8,12 @@ import org.msgpack.core.MessagePack;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestJavaPlatform {
+class JavaPlatformTest {
     private JavaPlatform javaPlatform;
-    protected final MessageBufferPacker msgpack = MessagePack.newDefaultBufferPacker();
+    private final MessageBufferPacker msgpack = MessagePack.newDefaultBufferPacker();
 
     @BeforeAll void setup() {
         javaPlatform = new JavaPlatform();

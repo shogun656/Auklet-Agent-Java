@@ -1,29 +1,25 @@
 package io.auklet.core;
 
-import io.auklet.AukletException;
 import io.auklet.TestingTools;
-
 import io.auklet.config.DataUsageLimit;
 import io.auklet.config.DataUsageTracker;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.FieldSetter;
-import org.powermock.reflect.Whitebox;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TestDataUsageMonitor extends TestingTools {
+class DataUsageMonitorTest extends TestingTools {
     private DataUsageMonitor dataUsageMonitor;
     private DataUsageLimit mockedDataUsageLimit;
     private DataUsageTracker mockedDataUsageTracker;
 
     @BeforeAll
-    void setup() throws AukletException, RuntimeException, NoSuchFieldException {
+    void setup() throws RuntimeException, NoSuchFieldException {
         dataUsageMonitor = new DataUsageMonitor();
 
         mockedDataUsageLimit = Mockito.spy(DataUsageLimit.class);
@@ -41,7 +37,7 @@ class TestDataUsageMonitor extends TestingTools {
 
     @Test void testAddMoreData() {
         dataUsageMonitor.addMoreData(0);
-        // TODO: 2/22/19 CREATE ACTUAL TEST
+        // TODO: Create test
     }
 
     @Test void testWillExceedLimit() {

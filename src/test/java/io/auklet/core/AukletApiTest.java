@@ -1,23 +1,21 @@
 package io.auklet.core;
 
-import io.auklet.Auklet;
 import io.auklet.AukletException;
-import io.auklet.core.AukletApi;
-
 import okhttp3.Request;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-class TestAukletApi {
+class AukletApiTest {
     @Test void testAukletApi() throws AukletException {
         try {
-            AukletApi aukletApi = new AukletApi("");
+            new AukletApi("");
         } catch(AukletException e) {
             assertEquals("io.auklet.AukletException: API key is null or empty.", e.toString());
         }
-        AukletApi aukletApi = new AukletApi("0");
+        //TODO: Create test
+        new AukletApi("0");
     }
 
     @Test void testDoRequest() throws AukletException {

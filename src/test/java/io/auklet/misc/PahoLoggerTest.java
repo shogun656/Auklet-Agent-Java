@@ -15,12 +15,12 @@ import java.util.ResourceBundle;
 import static org.eclipse.paho.client.mqttv3.logging.Logger.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS) class TestPahoLogger {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS) class PahoLoggerTest {
     private PahoLogger pahoLogger = new PahoLogger();
-    private TestLogger logger = TestLoggerFactory.getTestLogger("TestPahoLogger");
+    private TestLogger logger = TestLoggerFactory.getTestLogger("PahoLoggerTest");
 
     @BeforeAll void setup() {
-        this.pahoLogger.initialise(null, "TestPahoLogger", null);
+        this.pahoLogger.initialise(null, "PahoLoggerTest", null);
     }
 
     @AfterEach void clearTestLoggerFactory() {
