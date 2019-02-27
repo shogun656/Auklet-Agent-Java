@@ -1,8 +1,5 @@
 package io.auklet.misc;
 
-import io.auklet.Auklet;
-import io.auklet.misc.PahoLogger;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -10,8 +7,9 @@ import org.junit.jupiter.api.TestInstance;
 import uk.org.lidalia.slf4jtest.TestLogger;
 import uk.org.lidalia.slf4jtest.TestLoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.ResourceBundle;
 
 import static org.eclipse.paho.client.mqttv3.logging.Logger.*;
@@ -58,99 +56,60 @@ import static org.junit.jupiter.api.Assertions.*;
         assertEquals(false, pahoLogger.isLoggable(0));
     }
 
-    @Test void testSevere() {
-        String message = "TestSevere";
-        pahoLogger.severe("SourceClass", "SourceMethod", message);
+    @Test void testSevere() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        testPahoLevels("TestSevere", "severe");
+    }
+
+    @Test void testWarning() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        testPahoLevels("TestWarning", "warning");
+    }
+
+    @Test void testInfo() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        testPahoLevels("TestInfo", "info");
+    }
+
+    @Test void testConfig() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        testPahoLevels("TestConfig", "config");
+    }
+
+    @Test void testFine() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        testPahoLevels("TestFine", "fine");
+    }
+
+    @Test void testFiner() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        testPahoLevels("TestFiner", "finer");
+    }
+
+    @Test void testFinest() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        testPahoLevels("TestFinest", "finest");
+    }
+
+    @Test void testLog() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        testPahoLogTrace("TestLog", "log");
+    }
+
+    @Test void testTrace() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        testPahoLogTrace("TestTrace", "trace");
+    }
+
+    private void testPahoLevels(String message, String level) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        Method testMethod3Args = (pahoLogger.getClass().getDeclaredMethod(level, String.class, String.class, String.class));
+        testMethod3Args.invoke(pahoLogger, "SourceClass", "SourceMethod", message);
         assertEquals(true, logger.getLoggingEvents().toString().contains(message));
 
-        pahoLogger.severe("SourceClass", "SourceMethod", message, null);
+        Method testMethod4Args = (pahoLogger.getClass().getDeclaredMethod(level, String.class, String.class, String.class, Object[].class));
+        testMethod4Args.invoke(pahoLogger, "SourceClass", "SourceMethod", message, null);
         assertEquals(true, logger.getLoggingEvents().toString().contains(message));
 
-        pahoLogger.severe("SourceClass", "SourceMethod", message, null, null);
+        Method testMethod5Args = (pahoLogger.getClass().getDeclaredMethod(level, String.class, String.class, String.class, Object[].class, Throwable.class));
+        testMethod5Args.invoke(pahoLogger, "SourceClass", "SourceMethod", message, null, null);
         assertEquals(true, logger.getLoggingEvents().toString().contains(message));
     }
 
-    @Test void testWarning() {
-        String message = "TestWarning";
-        pahoLogger.warning("SourceClass", "SourceMethod", message);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.warning("SourceClass", "SourceMethod", message, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.warning("SourceClass", "SourceMethod", message, null, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-    }
-
-    @Test void testInfo() {
-        String message = "TestInfo";
-        pahoLogger.info("SourceClass", "SourceMethod", message);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.info("SourceClass", "SourceMethod", message, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.info("SourceClass", "SourceMethod", message, null, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-    }
-
-    @Test void testConfig() {
-        String message = "TestConfig";
-        pahoLogger.config("SourceClass", "SourceMethod", message);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.config("SourceClass", "SourceMethod", message, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.config("SourceClass", "SourceMethod", message, null, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-    }
-
-    @Test void testFine() {
-        String message = "TestFine";
-        pahoLogger.fine("SourceClass", "SourceMethod", message);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.fine("SourceClass", "SourceMethod", message, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.fine("SourceClass", "SourceMethod", message, null, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-    }
-
-    @Test void testFiner() {
-        String message = "TestFiner";
-        pahoLogger.finer("SourceClass", "SourceMethod", message);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.finer("SourceClass", "SourceMethod", message, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.finer("SourceClass", "SourceMethod", message, null, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-    }
-
-    @Test void testFinest() {
-        String message = "TestFinest";
-        pahoLogger.finest("SourceClass", "SourceMethod", message);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.finest("SourceClass", "SourceMethod", message, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-
-        pahoLogger.finest("SourceClass", "SourceMethod", message, null, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
-    }
-
-    @Test void testLog() {
-        String message = "TestLog";
-        pahoLogger.log(0, "SourceClass", "SourceMethod", message, null, null);
-        assertEquals(false, logger.getLoggingEvents().asList().toString().contains(message));
-    }
-
-    @Test void testTrace() {
-        String message = "TestTrace";
-        pahoLogger.trace(0, "SourceClass", "SourceMethod", message, null, null);
+    private void testPahoLogTrace(String message, String type) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Method testMethod3Args = (pahoLogger.getClass().getDeclaredMethod(type, int.class, String.class, String.class, String.class, Object[].class, Throwable.class));
+        testMethod3Args.invoke(pahoLogger, 0, "SourceClass", "SourceMethod", message, null, null);
         assertEquals(false, logger.getLoggingEvents().asList().toString().contains(message));
     }
 }
