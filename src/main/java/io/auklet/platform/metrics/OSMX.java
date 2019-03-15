@@ -16,7 +16,9 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Methods in this class that return numeric values may return negative values under certain circumstances
  * (see original Javadocs), and will also return negative values if the underlying method is not supported
- * because the required {@code com.sun} class is missing.</p>
+ * because the required {@code com.sun} class is missing. If the {@code java.lang.management} classes are
+ * missing, methods that return strings will return an empty string, {@link #getSystemLoadAverage()} will
+ * return -1, and {@link #getAvailableProcessors()} will return 0.</p>
  *
  * <p>This is a singleton; use {@link #BEAN} to retrieve the instance. The {@link #BEAN} maintains no
  * state and is thus immutable.</p>
@@ -27,7 +29,8 @@ public enum OSMX {
     BEAN;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OSMX.class);
-    private static final java.lang.management.OperatingSystemMXBean realBean;
+    private static final Object realBean;
+    private static final boolean EXISTS;
     private static final boolean IS_SUN;
     private static final boolean IS_SUN_UNIX;
 
@@ -35,54 +38,74 @@ public enum OSMX {
     // so that our (static) fields are initialized upon classload, prior to any
     // deserialization taking place.
     static {
-        realBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+        Object bean = null;
+        boolean exists = false;
         boolean sun = false;
         boolean sunUnix = false;
         try {
-            sun = realBean instanceof com.sun.management.OperatingSystemMXBean; // NOSONAR
+            bean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+            exists = true;
         } catch (NoClassDefFoundError e) {
-            LOGGER.warn("com.sun.management.OperatingSystemMXBean does not exist; system/JVM memory and CPU stats will not be available.");
+            LOGGER.warn("java.lang.management classes do not exist; system/JVM memory and CPU stats will not be available.");
         }
-        if (sun) {
+        if (bean != null) {
             try {
-                sunUnix = realBean instanceof com.sun.management.UnixOperatingSystemMXBean; // NOSONAR
-                LOGGER.info("Running on Unix platform.");
+                sun = bean instanceof com.sun.management.OperatingSystemMXBean; // NOSONAR
             } catch (NoClassDefFoundError e) {
-                LOGGER.info("Running on non-Unix platform.");
+                LOGGER.warn("com.sun.management.OperatingSystemMXBean does not exist; system/JVM memory and CPU stats will not be available.");
+            }
+            if (sun) {
+                try {
+                    sunUnix = bean instanceof com.sun.management.UnixOperatingSystemMXBean; // NOSONAR
+                    LOGGER.info("Running on Unix platform.");
+                } catch (NoClassDefFoundError e) {
+                    LOGGER.info("Running on non-Unix platform.");
+                }
             }
         }
+        realBean = bean;
+        EXISTS = exists;
         IS_SUN = sun;
         IS_SUN_UNIX = sunUnix;
     }
 
     @NonNull public String getName() {
+        if (!EXISTS) return "";
         try {
-            return realBean.getName();
+            return get().getName();
         } catch (SecurityException e) {
             LOGGER.warn("Cannot get OS name", e);
             return "";
         }
     }
     @NonNull public String getArch() {
+        if (!EXISTS) return "";
         try {
-            return realBean.getArch();
+            return get().getArch();
         } catch (SecurityException e) {
             LOGGER.warn("Cannot get OS arch", e);
             return "";
         }
     }
     @NonNull public String getVersion() {
+        if (!EXISTS) return "";
         try {
-            return realBean.getVersion();
+            return get().getVersion();
         } catch (SecurityException e) {
             LOGGER.warn("Cannot get OS version", e);
             return "";
         }
     }
     public int getAvailableProcessors() {
-        return realBean.getAvailableProcessors();
+        int value = 0;
+        if (EXISTS) value = get().getAvailableProcessors();
+        return value;
     }
-    public double getSystemLoadAverage() { return realBean.getSystemLoadAverage(); }
+    public double getSystemLoadAverage() {
+        double value = -1;
+        if (EXISTS) value = get().getSystemLoadAverage();
+        return value;
+    }
     public long getCommittedVirtualMemorySize() {
         long value = -1;
         if (IS_SUN) value = asSun().getCommittedVirtualMemorySize();
@@ -137,7 +160,10 @@ public enum OSMX {
     // These methods return the realBean object cast to the appropriate type.
     // Calls to these methods must always be guarded by checking the corresponding
     // boolean flag via an if/else statement. Do not use ternary operators for this,
-    // as it will cause NoClassDefFoundErrors on JVMs that lack com.sun packages.
+    // as it will cause NoClassDefFoundErrors on JVMs that lack the required packages.
+    @NonNull private static java.lang.management.OperatingSystemMXBean get() {
+        return (java.lang.management.OperatingSystemMXBean) realBean;
+    }
     @NonNull private static com.sun.management.OperatingSystemMXBean asSun() {
         return (com.sun.management.OperatingSystemMXBean) realBean;
     }
