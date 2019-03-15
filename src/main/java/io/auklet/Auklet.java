@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.jar.Manifest;
 
@@ -175,6 +176,18 @@ public final class Auklet {
             } catch (SecurityException e) {
                 throw new AukletException("Could not set default uncaught exception handler.", e);
             }
+        }
+
+        Map<Thread, StackTraceElement[]> stacks = Thread.getAllStackTraces();
+        for (Map.Entry<Thread, StackTraceElement[]> stack : stacks.entrySet()) {
+            Thread thread = stack.getKey();
+            StackTraceElement[] stackTrace = stack.getValue();
+            LOGGER.debug("new thread");
+            LOGGER.debug(thread.getName());
+            LOGGER.debug(thread.toString());
+            LOGGER.debug(thread.getThreadGroup().getName());
+            LOGGER.debug(thread.getThreadGroup().toString());
+            LOGGER.debug(String.valueOf(stackTrace.length));
         }
     }
 
