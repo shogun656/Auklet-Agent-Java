@@ -46,14 +46,14 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
     /**
      * A {@link FutureTask} that the {@link AukletDaemonExecutor} will not log if it is cancelled.
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public static final class CancelSilentlyFutureTask<V> extends FutureTask<V> {
-        /** @inheritDoc */
+        /** {@inheritDoc} */
         public CancelSilentlyFutureTask(Callable<V> callable) {
             super(callable);
         }
-        /** @inheritDoc */
+        /** {@inheritDoc} */
         public CancelSilentlyFutureTask(Runnable runnable, V result) {
             super(runnable, result);
         }
