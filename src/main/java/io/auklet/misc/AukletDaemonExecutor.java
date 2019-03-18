@@ -40,7 +40,8 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
                 Thread.currentThread().interrupt();
             }
         }
-        if (t != null) LOGGER.warn("Exception in Auklet daemon task.", t);
+        if (t instanceof CancellationException) LOGGER.warn("Auklet daemon task cancelled.", t);
+        else if (t != null) LOGGER.warn("Exception in Auklet daemon task.", t);
     }
 
     /* Decorates CancelSilentlyFutureTasks so that afterExecute() knows about them. */
