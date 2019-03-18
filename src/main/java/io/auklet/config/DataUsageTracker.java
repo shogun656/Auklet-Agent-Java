@@ -84,9 +84,9 @@ public final class DataUsageTracker extends AbstractConfigFile {
             synchronized (this.lock) {
                 if (this.currentWriteTask != null) currentWriteTask.cancel(false);
                 // Queue the new write task.
-                Callable<Void> writeTask = new Callable<Void>() {
+                this.currentWriteTask = this.getAgent().scheduleOneShotTask(new AukletDaemonExecutor.CancelSilentlyRunnable() {
                     @Override
-                    public Void call() {
+                    public void run() {
                         // This task is no longer pending, so clear its status.
                         synchronized (lock) {
                             currentWriteTask = null;
@@ -96,13 +96,8 @@ public final class DataUsageTracker extends AbstractConfigFile {
                         } catch (IOException | SecurityException e) {
                             LOGGER.warn("Could not save data usage to disk.", e);
                         }
-                        return null;
                     }
-                };
-                this.currentWriteTask = this.getAgent().scheduleOneShotTask(
-                        new AukletDaemonExecutor.CancelSilentlyFutureTask<>(writeTask),
-                        5, TimeUnit.SECONDS // 5-second cooldown.
-                );
+                }, 5, TimeUnit.SECONDS); // 5-second cooldown.
             }
         } catch (AukletException e) {
             LOGGER.warn("Could not queue data usage save task.", e);
