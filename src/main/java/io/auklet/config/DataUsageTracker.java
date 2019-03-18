@@ -3,6 +3,7 @@ package io.auklet.config;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
+import io.auklet.misc.AukletDaemonExecutor;
 import io.auklet.misc.Util;
 import mjson.Json;
 import net.jcip.annotations.NotThreadSafe;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -82,9 +84,9 @@ public final class DataUsageTracker extends AbstractConfigFile {
             synchronized (this.lock) {
                 if (this.currentWriteTask != null) currentWriteTask.cancel(false);
                 // Queue the new write task.
-                this.currentWriteTask = this.getAgent().scheduleOneShotTask(new Runnable() {
+                Callable<Void> writeTask = new Callable<Void>() {
                     @Override
-                    public void run() {
+                    public Void call() {
                         // This task is no longer pending, so clear its status.
                         synchronized (lock) {
                             currentWriteTask = null;
@@ -94,8 +96,13 @@ public final class DataUsageTracker extends AbstractConfigFile {
                         } catch (IOException | SecurityException e) {
                             LOGGER.warn("Could not save data usage to disk.", e);
                         }
+                        return null;
                     }
-                }, 5, TimeUnit.SECONDS); // 5-second cooldown.
+                };
+                this.currentWriteTask = this.getAgent().scheduleOneShotTask(
+                        new AukletDaemonExecutor.CancelSilentlyFutureTask<>(writeTask),
+                        5, TimeUnit.SECONDS // 5-second cooldown.
+                );
             }
         } catch (AukletException e) {
             LOGGER.warn("Could not queue data usage save task.", e);

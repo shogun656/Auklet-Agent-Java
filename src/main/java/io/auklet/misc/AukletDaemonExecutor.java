@@ -29,11 +29,11 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
     @Override protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
         if (t == null && r instanceof Future<?>) {
+            Future<?> future = (Future<?>) r;
             try {
-                Future<?> future = (Future<?>) r;
                 if (future.isDone()) future.get();
             } catch (CancellationException ce) {
-                t = ce;
+                if (!(future instanceof CancelSilentlyFutureTask)) t = ce;
             } catch (ExecutionException ee) {
                 t = ee.getCause();
             } catch (InterruptedException ie) {
@@ -41,6 +41,22 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
             }
         }
         if (t != null) LOGGER.warn("Exception in Auklet daemon task.", t);
+    }
+
+    /**
+     * A {@link FutureTask} that the {@link AukletDaemonExecutor} will not log if it is cancelled.
+     *
+     * @inheritDoc
+     */
+    public static final class CancelSilentlyFutureTask<V> extends FutureTask<V> {
+        /** @inheritDoc */
+        public CancelSilentlyFutureTask(Callable<V> callable) {
+            super(callable);
+        }
+        /** @inheritDoc */
+        public CancelSilentlyFutureTask(Runnable runnable, V result) {
+            super(runnable, result);
+        }
     }
 
 }
