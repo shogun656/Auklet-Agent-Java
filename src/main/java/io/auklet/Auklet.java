@@ -398,22 +398,6 @@ public final class Auklet {
     }
 
     /**
-     * <p>Executes the given one-shot task immediately in the Auklet agent's daemon executor thread.</p>
-     *
-     * @param command the task to execute.
-     * @throws AukletException to wrap any underlying exceptions.
-     * @see ExecutorService#execute(Runnable)
-     */
-    @NonNull public void doOneShotTask(@NonNull Runnable command) throws AukletException {
-        if (command == null) throw new AukletException("Daemon task is null.");
-        try {
-            DAEMON.execute(command);
-        } catch (RejectedExecutionException e) {
-            throw new AukletException("Could not schedule one-shot task.", e);
-        }
-    }
-
-    /**
      * <p>Schedules the given one-shot task to run on the Auklet agent's daemon executor thread.</p>
      *
      * @param command the task to execute.
