@@ -45,6 +45,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
     }
 
     /* Decorates CancelSilentlyFutureTasks so that afterExecute() knows about them. */
+    @Override
     protected <V> RunnableScheduledFuture<V> decorateTask(
             Runnable r, RunnableScheduledFuture<V> task) {
         return r instanceof CancelSilentlyRunnable ? new CancelSilentlyRSF<>(task) : task;
@@ -55,7 +56,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
      *
      * {@inheritDoc}
      */
-    public static abstract class CancelSilentlyRunnable implements Runnable {};
+    public abstract static class CancelSilentlyRunnable implements Runnable {}
 
     /*
      * Internal version of CancelSilentlyRunnable that is required by the
