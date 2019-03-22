@@ -19,7 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.CodeSource;
 import java.util.concurrent.*;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 /**
@@ -68,13 +72,34 @@ public final class Auklet {
     static {
         // Extract Auklet agent version from the manifest.
         String version = "unknown";
-        try (InputStream manifestStream = Auklet.class.getClassLoader().getResourceAsStream("META-INF/MANIFEST.MF")) {
-            if (manifestStream != null) {
-                Manifest manifest = new Manifest(manifestStream);
-                version = manifest.getMainAttributes().getValue("Implementation-Version");
-                version = Util.orElse(version, "unknown");
+        try {
+            // We can't use Auklet.class.getResourceAsStream() here because the classloader
+            // in question is not a URLClassLoader pointing to the Auklet agent JAR. This is
+            // because we're in a static initializer. Because of this, we have to obtain a
+            // URL object pointing to the JAR file on disk and load that as a JarFile object.
+            CodeSource cs = Auklet.class.getProtectionDomain().getCodeSource();
+            // We cannot control if the CodeSource is available. If it is not, don't bother
+            // notifying the end user.
+            if (cs != null) {
+                URL aukletUrl = cs.getLocation();
+                File aukletFile;
+                try { aukletFile = new File(aukletUrl.toURI()); }
+                catch (URISyntaxException e) { aukletFile = new File(aukletUrl.getPath()); }
+                // If the JAR file doesn't "exist", chances are there are some permissions that
+                // prevent us from reading it in this manner. Don't notify the end user.
+                if (aukletFile.exists()) {
+                    Manifest manifest = new JarFile(aukletFile).getManifest();
+                    if (manifest == null) {
+                        // If the manifest somehow cannot be found, that implies that the
+                        // Auklet agent JAR may have been modified. Warn the user about this.
+                        LOGGER.warn("Auklet agent JAR located, but no manifest was found. Has the JAR been modified?");
+                    } else {
+                        version = manifest.getMainAttributes().getValue("Implementation-Version");
+                        version = Util.orElse(version, "unknown");
+                        LOGGER.info("Auklet Agent version {}", version);
+                    }
+                }
             }
-            LOGGER.info("Auklet Agent version {}", version);
         } catch (SecurityException | IOException e) {
             LOGGER.warn("Could not obtain Auklet agent version from manifest.", e);
         }
