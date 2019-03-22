@@ -54,8 +54,9 @@ public class JavaPlatform extends AbstractPlatform {
         // Calculate CPU usage.
         double cpuUsage;
         double loadAvg = OSMX.BEAN.getSystemLoadAverage();
-        if (loadAvg >= 0) {
-            cpuUsage = 100 * (loadAvg / OSMX.BEAN.getAvailableProcessors());
+        int processors = OSMX.BEAN.getAvailableProcessors();
+        if (loadAvg >= 0 && processors > 0) {
+            cpuUsage = 100 * (loadAvg / processors);
         } else {
             cpuUsage = 0d;
         }
