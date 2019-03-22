@@ -34,7 +34,7 @@ public class JavaPlatform extends AbstractPlatform {
         // Drop any env vars/sysprops whose value is null, and append the auklet subdir to each remaining value.
         List<String> filteredConfigDirs = new ArrayList<>();
         for (String dir : possibleConfigDirs) {
-            if (!Util.isNullOrEmpty(dir)) filteredConfigDirs.add(Util.removeTrailingSlash(dir) + "/aukletFiles");
+            if (!Util.isNullOrEmpty(dir)) filteredConfigDirs.add(Util.removeTrailingSlash(dir) + "/.auklet");
         }
         return filteredConfigDirs;
     }
