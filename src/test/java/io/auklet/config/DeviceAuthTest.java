@@ -27,7 +27,7 @@ class DeviceAuthTest extends TestingTools {
                                   .set("id", "id_value")
                                   .set("client_password", "client_password_value");
 
-        auklet = aukletConstructor();
+        auklet = aukletConstructor(null);
 
         deviceAuth = Mockito.spy(DeviceAuth.class);
         Mockito.doReturn(jsonConfig).when(deviceAuth).loadConfig();

@@ -36,7 +36,7 @@ dependencies {
     // that do so may run into legal issues if they distribute it alongside an Oracle JRE/JDK.
     // See https://stackoverflow.com/a/36198568 for details.
     compile "com.github.spotbugs:spotbugs-annotations:3.1.10"
-    compileOnly "com.github.purejavacomm:purejavacomm:1.0.1.RELEASE"
+    compile "com.github.purejavacomm:purejavacomm:1.0.1.RELEASE"
     compileOnly "uk.org.lidalia:sysout-over-slf4j:1.0.2"
     compileOnly("com.google.android:android:4.1.1.4") {
         transitive = false
@@ -49,6 +49,7 @@ dependencies {
     testCompile("com.google.android:android-test:4.1.1.4") {
         transitive = false
     }
+    compile 'org.scream3r:jssc:2.8.0'
 }
 
 // Compilation configuration

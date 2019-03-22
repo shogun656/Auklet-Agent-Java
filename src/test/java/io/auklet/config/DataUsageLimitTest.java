@@ -20,7 +20,7 @@ class DataUsageLimitTest extends TestingTools {
     @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
         dataUsageLimit = Mockito.spy(DataUsageLimit.class);
         Mockito.doReturn(jsonDataLimits).when(dataUsageLimit).loadConfig();
-        dataUsageLimit.start(aukletConstructor());
+        dataUsageLimit.start(aukletConstructor(null));
     }
 
     @Test void testGetName() {

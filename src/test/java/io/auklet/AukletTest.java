@@ -25,7 +25,7 @@ class AukletTest extends TestingTools {
     private Runnable runnable;
 
     @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
-        auklet = aukletConstructor();
+        auklet = aukletConstructor(null);
 
         Config config = new Config().setAppId("0123456789101112")
                 .setApiKey("123");

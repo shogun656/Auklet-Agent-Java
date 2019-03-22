@@ -1,4 +1,3 @@
-//TODO: Finish test module
 //package io.auklet.platform.metrics;
 //
 //import org.junit.jupiter.api.BeforeAll;
@@ -6,14 +5,16 @@
 //import org.junit.jupiter.api.TestInstance;
 //
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-//class AndroidMetricsTest {
-//    AndroidMetrics androidMetrics;
+//final class AndroidMetricsTest {
+//    private AndroidMetrics androidMetrics;
 //
 //    @BeforeAll void setup() {
-//        androidMetrics = new AndroidMetrics();
+//        androidMetrics = new AndroidMetrics(null);
+//
 //    }
 //
 //    @Test void testCalculateCpuUsage() {
 //
 //    }
+//
 //}

@@ -58,9 +58,11 @@ public class TestingTools {
             .set("brokers", "0.0.0.0")
             .set("port", "0000");
 
-    protected Auklet aukletConstructor() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
-        Config config = new Config().setAppId("0123456789101112")
-                .setApiKey("123");
+    protected Auklet aukletConstructor(Config config) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
+        if (config == null) {
+            config = new Config().setAppId("0123456789101112")
+                    .setApiKey("123");
+        }
 
         Constructor<Auklet> aukletConstructor = Auklet.class.getDeclaredConstructor(config.getClass());
         aukletConstructor.setAccessible(true);
