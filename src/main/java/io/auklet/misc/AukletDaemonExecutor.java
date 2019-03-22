@@ -16,7 +16,7 @@ import java.util.concurrent.*;
 public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletDaemonExecutor.class);
-    private final Object LOCK = new Object();
+    private final Object lock = new Object();
     private boolean logCancelExceptions = true;
 
     /**
@@ -35,7 +35,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
      * @param enabled {@code true} to log these exceptions, {@code false} to skip logging.
      */
     public void logCancelExceptions(boolean enabled) {
-        synchronized(LOCK) { logCancelExceptions = enabled; }
+        synchronized(lock) { logCancelExceptions = enabled; }
     }
 
     /* Logs exceptions that occur in tasks. */
@@ -55,7 +55,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
         }
         if (t instanceof CancellationException) {
             boolean logThis;
-            synchronized(LOCK) { logThis = logCancelExceptions; }
+            synchronized(lock) { logThis = logCancelExceptions; }
             if (logThis) LOGGER.warn("Auklet daemon task cancelled.", t);
         }
         else if (t != null) LOGGER.warn("Exception in Auklet daemon task.", t);

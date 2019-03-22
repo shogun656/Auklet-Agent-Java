@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.concurrent.ScheduledExecutorService;
 
 /** <p>The default Auklet data sink, which sends data to {@code auklet.io} via MQTT.</p> */
 @ThreadSafe
