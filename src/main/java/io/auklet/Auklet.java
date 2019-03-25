@@ -72,8 +72,8 @@ public final class Auklet {
         } catch (Throwable e) {
             LOGGER.warn("Could not obtain Auklet agent version from manifest.", e);
         }
+        LOGGER.info("Auklet Agent version {}", version);
         VERSION = version;
-        LOGGER.info("Auklet agent version " + VERSION);
         // Initialize the Auklet agent if requested via env var or JVM sysprop.
         String fromEnv = System.getenv("AUKLET_AUTO_START");
         String fromProp = System.getProperty("auklet.auto.start");
