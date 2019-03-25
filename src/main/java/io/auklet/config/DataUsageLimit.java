@@ -74,7 +74,11 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
 
     @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
         if (contents == null) throw new AukletException("Input is null.");
-        Util.writeUtf8(this.file, contents.toString());
+        try {
+            Util.writeUtf8(this.file, contents.toString());
+        } catch (IOException e) {
+            throw new AukletException("Could not save data usage limits to disk.", e);
+        }
     }
 
     /**
