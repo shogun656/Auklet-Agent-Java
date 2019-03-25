@@ -7,6 +7,7 @@ import android.os.Build;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.AukletException;
+import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,11 +21,13 @@ import java.io.IOException;
  * <p>CPU usage can only be retrieved on Android 7 or lower. When running on Android 8+,
  * this class will always report {@code 0} for CPU usage.</p>
  */
+@ThreadSafe
 public final class AndroidMetrics {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AndroidMetrics.class);
     private final ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
 
+    private final Object lock = new Object();
     private long total = 0L;
     private long totalBefore = 0L;
     private long totalDiff = 0L;
@@ -51,9 +54,15 @@ public final class AndroidMetrics {
         return new Runnable() {
             @Override
             public void run() {
+                // Obtain current CPU load.
+                String[] s;
                 try (BufferedReader reader = new BufferedReader(new FileReader("/proc/stat"))) {
-                    // Obtain current CPU Load
-                    String[] s = reader.readLine().split("[ ]+", 9);
+                    s = reader.readLine().split("[ ]+", 9);
+                } catch (IOException e) {
+                    LOGGER.warn("Unable to obtain CPU usage", e);
+                    return;
+                }
+                synchronized (lock) {
                     work = Long.parseLong(s[1]) + Long.parseLong(s[2]) + Long.parseLong(s[3]);
                     total = work + Long.parseLong(s[4]) + Long.parseLong(s[5]) +
                             Long.parseLong(s[6]) + Long.parseLong(s[7]);
@@ -65,9 +74,6 @@ public final class AndroidMetrics {
                     }
                     totalBefore = total;
                     workBefore = work;
-                } catch (IOException e) {
-                    LOGGER.warn("Unable to obtain CPU usage", e);
-                    return;
                 }
             }
         };
@@ -89,7 +95,9 @@ public final class AndroidMetrics {
      * @return a non-negative value.
      */
     public float getCpuUsage() {
-        return cpuUsage;
+        synchronized (lock) {
+            return cpuUsage;
+        }
     }
 
 }
