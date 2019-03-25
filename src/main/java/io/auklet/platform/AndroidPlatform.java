@@ -1,11 +1,11 @@
 package io.auklet.platform;
 
 import android.content.Context;
+import android.os.Build;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
-import io.auklet.Config;
 import io.auklet.platform.metrics.AndroidMetrics;
 import net.jcip.annotations.Immutable;
 import org.msgpack.core.MessagePacker;
@@ -30,6 +30,7 @@ public final class AndroidPlatform extends AbstractPlatform {
      */
     public AndroidPlatform(@NonNull Object context) throws AukletException {
         if (!(context instanceof Context)) throw new AukletException("Android platform was given a non-Context object.");
+        if (Build.VERSION.SDK_INT < 16) throw new AukletException("Unsupported Android API level: " + Build.VERSION.SDK_INT);
         this.context = (Context) context;
         this.metrics = new AndroidMetrics(this.context);
     }
