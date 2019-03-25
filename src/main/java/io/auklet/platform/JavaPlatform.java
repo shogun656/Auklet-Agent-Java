@@ -2,8 +2,10 @@ package io.auklet.platform;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.auklet.AukletException;
 import io.auklet.misc.Util;
 import io.auklet.platform.metrics.OSMX;
+import net.jcip.annotations.Immutable;
 import org.msgpack.core.MessagePacker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +15,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class JavaPlatform extends AbstractPlatform {
 /** <p>Platform methods specific to Java SE (and variants).</p> */
+@Immutable
+public final class JavaPlatform extends AbstractPlatform {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaPlatform.class);
 
@@ -37,7 +40,8 @@ public class JavaPlatform extends AbstractPlatform {
         return filteredConfigDirs;
     }
 
-    @Override public void addSystemMetrics(@NonNull MessagePacker msgpack) throws IOException {
+    @Override public void addSystemMetrics(@NonNull MessagePacker msgpack) throws AukletException, IOException {
+        if (msgpack == null) throw new AukletException("msgpack is null.");
         // Calculate memory usage.
         double memUsage;
         long freeMem = OSMX.BEAN.getFreePhysicalMemorySize();
