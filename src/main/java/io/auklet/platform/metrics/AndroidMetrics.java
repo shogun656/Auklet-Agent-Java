@@ -48,6 +48,15 @@ public final class AndroidMetrics {
         this.activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
     }
 
+    /**
+     * <p>Returns a runnable task that periodically gets system CPU usage from the
+     * Android device on which the agent is running. Android has no APIs available to
+     * obtain this information, so we have to use a background thread to read the
+     * {@code /proc/stat} file.</p>
+     *
+     * @return {@code null} iff running on Android 8 or higher, in which case no
+     * background task will be executed.
+     */
     @Nullable public Runnable calculateCpuUsage() {
         if (Build.VERSION.SDK_INT >= 26) return null;
         return new Runnable() {
@@ -92,7 +101,7 @@ public final class AndroidMetrics {
     /**
      * <p>Returns the CPU usage of the OS on which this agent is running.</p>
      *
-     * @return a non-negative value. If running on Android 8 or lower, will always be zero.
+     * @return a non-negative value. If running on Android 8 or higher, will always be zero.
      */
     public float getCpuUsage() {
         synchronized (lock) {
