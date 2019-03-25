@@ -24,7 +24,7 @@ public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFr
      * @throws AukletException if the request is {@code null}, or if the request fails or has an error.
      */
     @NonNull protected final Json makeJsonRequest(@NonNull Request.Builder request) throws AukletException {
-        if (request == null) throw new AukletException("JSON HTTP request is null");
+        if (request == null) throw new AukletException("JSON HTTP request is null.");
         try (Response response = this.getAgent().getApi().doRequest(request)) {
             String responseString = response.body().string();
             if (response.isSuccessful()) {

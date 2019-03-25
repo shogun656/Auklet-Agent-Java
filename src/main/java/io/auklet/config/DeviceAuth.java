@@ -135,7 +135,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
     }
 
     @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
-        if (contents == null) throw new AukletException("Input is null");
+        if (contents == null) throw new AukletException("Input is null.");
         try {
             // Encrypt and save the JSON string to disk.
             this.aesCipher.init(Cipher.ENCRYPT_MODE, this.aesKey);

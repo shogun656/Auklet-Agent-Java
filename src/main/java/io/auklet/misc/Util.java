@@ -251,7 +251,7 @@ public final class Util {
      * @throws AukletException if schema validation fails.
      */
     @NonNull public static Json validateJson(@NonNull Json json, @NonNull String clazz) throws AukletException {
-        if (json == null) throw new AukletException("Input is null");
+        if (json == null) throw new AukletException("Input is null.");
         Json schemaValidation = getJsonSchema(clazz).validate(json);
         if (schemaValidation.is("ok", true)) return json;
         List<Json> errors = schemaValidation.at("errors").asJsonList();
