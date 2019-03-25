@@ -112,7 +112,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
     private void addSystemMetrics() throws AukletException {
         try {
             this.msgpack.packMapHeader(4);
-            getAgent().getPlatform().addSystemMetrics(this.msgpack);
+            this.getAgent().getPlatform().addSystemMetrics(this.msgpack);
             // Add other system metrics.
             this.msgpack.packString("outboundNetwork").packDouble(0);
             this.msgpack.packString("inboundNetwork").packDouble(0);
