@@ -23,8 +23,8 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * <p>The <i>device authentication file</i> contains the Auklet organization ID to which the application ID
- * belongs, as well as the credentials used to authenticate to the {@code auklet.io} data pipeline.</p>
+ * <p>This config file contains the Auklet organization ID to which the application ID belongs,
+ * as well as the credentials used to authenticate to the {@code auklet.io} data pipeline.</p>
  */
 @NotThreadSafe
 public final class DeviceAuth extends AbstractJsonConfigFileFromApi {

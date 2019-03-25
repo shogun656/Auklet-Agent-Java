@@ -13,10 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * <p>This class contain Java specific helper functions.</p>
- */
 public class JavaPlatform extends AbstractPlatform {
+/** <p>Platform methods specific to Java SE (and variants).</p> */
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaPlatform.class);
 

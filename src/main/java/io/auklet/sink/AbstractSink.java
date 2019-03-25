@@ -105,9 +105,8 @@ public abstract class AbstractSink extends HasAgent implements Sink {
     }
 
     /**
-     * <p>Adds JVM system metrics to the current position in the given MessagePacker as a map object.</p>
+     * <p>Adds system metrics to the current position in the given MessagePacker as a map object.</p>
      *
-     * @throws IllegalArgumentException if the MessagePacker is {@code null}.
      * @throws AukletException if an error occurs while assembling the message.
      */
     private void addSystemMetrics() throws AukletException {

@@ -10,12 +10,14 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * <p>The platform in which Auklet will be running on.</p>
+ * <p>The platform on which Auklet is running. After initialization, the agent has a reference to exactly
+ * one instance of this interface that provides behavior appropriate to the underlying platform (Java SE,
+ * Android, etc.)</p>
  */
 public interface Platform {
 
     /**
-     * <p>Adds JVM memory and cpu usage current position in the given MessagePacker as a map object.</p>
+     * <p>Adds OS memory/CPU usage metrics to the given MessagePack as map entries.</p>
      *
      * @param msgpack the msgpack that will be sent to auklet
      * @throws IOException if the MessagePacker is {@code null}.

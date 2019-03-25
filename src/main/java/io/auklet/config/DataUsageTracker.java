@@ -15,8 +15,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * <p>The <i>data usage tracker file</i> is used to persist between restarts the amount of data that has
- * been sent by the Auklet agent to the sink.</p>
+ * <p>This config file persists between agent restarts the amount of data that has been sent by
+ * the Auklet agent to the sink, pursuant to the defined {@link DataUsageLimit}.</p>
  */
 @NotThreadSafe
 public final class DataUsageTracker extends AbstractConfigFile {

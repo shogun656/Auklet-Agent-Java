@@ -16,7 +16,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 /**
- * <p>This is the CA certificate for establishing SSL connections to the {@code auklet.io} data pipeline.</p>
+ * <p>This config file contains the MQTT CA certificate for {@code auklet.io}.</p>
  */
 @NotThreadSafe
 public final class AukletIoCert extends AbstractConfigFileFromApi<String> {

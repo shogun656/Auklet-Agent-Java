@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * <p>This file contains MQTT connection information for sending data to {@code auklet.io}.</p>
+ * <p>This config file contains MQTT connection information for sending data to {@code auklet.io}.</p>
  */
 @NotThreadSafe
 public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {

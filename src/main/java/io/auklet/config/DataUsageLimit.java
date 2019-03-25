@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * <p>The <i>data usage limit file</i> contains the configuration values, for this agent's app ID,
+ * <p>This config file contains the configuration values, defined at the Auklet application (app ID) level,
  * that control how much data the agent emits to the sink.</p>
  */
 @NotThreadSafe
