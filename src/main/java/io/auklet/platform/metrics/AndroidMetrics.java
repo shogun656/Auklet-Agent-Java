@@ -85,14 +85,13 @@ public final class AndroidMetrics {
      * @return a non-negative value.
      */
     public double getMemoryUsage() {
-        // memInfo.totalMem needs API 16+
         return memInfo.availMem / (double) memInfo.totalMem * 100.0;
     }
 
     /**
      * <p>Returns the CPU usage of the OS on which this agent is running.</p>
      *
-     * @return a non-negative value.
+     * @return a non-negative value. If running on Android 8 or lower, will always be zero.
      */
     public float getCpuUsage() {
         synchronized (lock) {
