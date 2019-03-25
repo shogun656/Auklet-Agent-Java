@@ -25,7 +25,7 @@ import java.io.IOException;
 public final class AndroidMetrics {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AndroidMetrics.class);
-    private final ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+    private final ActivityManager activityManager;
 
     private final Object lock = new Object();
     private long total = 0L;
@@ -37,7 +37,7 @@ public final class AndroidMetrics {
     private float cpuUsage = 0;
 
     /**
-     * <p>Creates the {@link ActivityManager} which is used to collect memory usage.</p>
+     * <p>Constructor.</p>
      *
      * @param context the Android context.
      * @throws AukletException if context is {@code null}.
@@ -45,8 +45,7 @@ public final class AndroidMetrics {
     public AndroidMetrics(@NonNull Context context) throws AukletException {
         if (context == null) throw new AukletException("Android context is null.");
         if (Build.VERSION.SDK_INT >= 26) LOGGER.warn("Running on Android 8 or higher; system CPU stats will not be available.");
-        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        manager.getMemoryInfo(memInfo);
+        this.activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
     }
 
     @Nullable public Runnable calculateCpuUsage() {
@@ -85,6 +84,8 @@ public final class AndroidMetrics {
      * @return a non-negative value.
      */
     public double getMemoryUsage() {
+        ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memInfo);
         return memInfo.availMem / (double) memInfo.totalMem * 100.0;
     }
 
