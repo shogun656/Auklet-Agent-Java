@@ -47,7 +47,7 @@ public final class Auklet {
     public static final String VERSION;
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
-    private static final ScheduledExecutorService DAEMON = new AukletDaemonExecutor(1, Util.createDaemonThreadFactory("Auklet"));
+    private static final AukletDaemonExecutor DAEMON = new AukletDaemonExecutor(1, Util.createDaemonThreadFactory("Auklet"));
     private static Auklet agent = null;
 
     private final String appId;
@@ -280,8 +280,11 @@ public final class Auklet {
                         LOGGER.debug("Ignoring shutdown request because agent is null.");
                         return;
                     }
+                    // Do not log cancelled tasks during shutdown.
+                    DAEMON.logCancelExceptions(false);
                     agent.doShutdown(false);
                     agent = null;
+                    DAEMON.logCancelExceptions(true);
                 }
             }
         };
