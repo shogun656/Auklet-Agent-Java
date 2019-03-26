@@ -2,7 +2,7 @@ package io.auklet.misc;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import net.jcip.annotations.Immutable;
+import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +14,12 @@ import java.util.concurrent.*;
  * <p>To prevent an infinite loop, exceptions that are logged by this executor are not submitted
  * to the Auklet data sink and are only logged to SLF4J.</p>
  */
-@Immutable
+@ThreadSafe
 public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletDaemonExecutor.class);
+    private final Object lock = new Object();
+    private boolean logCancelExceptions = true;
 
     /**
      * Constructor.
@@ -27,6 +29,15 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
      */
     public AukletDaemonExecutor(int corePoolSize, @NonNull ThreadFactory threadFactory) {
         super(corePoolSize, threadFactory);
+    }
+
+    /**
+     * <p>Configures the executor to enable/disable logging of {@link CancellationException}s.</p>
+     *
+     * @param enabled {@code true} to log these exceptions, {@code false} to skip logging.
+     */
+    public void logCancelExceptions(boolean enabled) {
+        synchronized(lock) { logCancelExceptions = enabled; }
     }
 
     /* Logs exceptions that occur in tasks. */
@@ -44,7 +55,11 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
                 Thread.currentThread().interrupt();
             }
         }
-        if (t instanceof CancellationException) LOGGER.warn("Auklet daemon task cancelled.", t);
+        if (t instanceof CancellationException) {
+            boolean logThis;
+            synchronized(lock) { logThis = logCancelExceptions; }
+            if (logThis) LOGGER.warn("Auklet daemon task cancelled.", t);
+        }
         else if (t != null) LOGGER.warn("Exception in Auklet daemon task.", t);
     }
 

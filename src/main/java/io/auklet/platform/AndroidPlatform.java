@@ -48,7 +48,7 @@ public final class AndroidPlatform extends AbstractPlatform {
      * @return a list with exactly one element: {@code context.getFilesDir().getPath() + "/aukletFiles"}.
      */
     @Override public List<String> getPossibleConfigDirs(@Nullable String fromConfig) {
-        return Collections.singletonList(this.context.getFilesDir().getPath() + "/aukletFiles");
+        return Collections.singletonList(this.context.getFilesDir().getPath() + "/.auklet");
     }
 
     @Override public void addSystemMetrics(@NonNull MessagePacker msgpack) throws AukletException, IOException {
