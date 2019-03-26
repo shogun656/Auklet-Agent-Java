@@ -51,7 +51,7 @@ public class AndroidPlatform extends AbstractPlatform {
      * exactly 1 element
      */
     @Override public List<String> getPossibleConfigDirs(@Nullable String fromConfig) {
-        return Collections.singletonList(this.context.getFilesDir().getPath() + "/aukletFiles");
+        return Collections.singletonList(this.context.getFilesDir().getPath() + "/.auklet");
     }
 
     @Override public void addSystemMetrics(@NonNull MessagePacker msgpack) throws IOException {
