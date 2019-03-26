@@ -37,4 +37,13 @@ public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFr
         }
     }
 
+    @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
+        if (contents == null) throw new AukletException("Input is null.");
+        try {
+            Util.writeUtf8(this.file, contents.toString());
+        } catch (IOException e) {
+            throw new AukletException("Could not save JSON file to disk.", e);
+        }
+    }
+
 }
