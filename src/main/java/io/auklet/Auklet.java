@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.concurrent.*;
-import java.util.jar.Manifest;
 
 /**
  * <p>The entry point for the Auklet agent for Java and related languages/platforms.</p>
@@ -66,18 +65,14 @@ public final class Auklet {
     private final Thread shutdownHook;
 
     static {
-        // Extract Auklet agent version from the manifest.
+        // Extract Auklet agent version from the BuildConfig class.
         String version = "unknown";
-        try (InputStream manifestStream = Auklet.class.getClassLoader().getResourceAsStream("META-INF/MANIFEST.MF")) {
-            if (manifestStream != null) {
-                Manifest manifest = new Manifest(manifestStream);
-                version = manifest.getMainAttributes().getValue("Implementation-Version");
-                version = Util.orElse(version, "unknown");
-            }
-            LOGGER.info("Auklet Agent version {}", version);
-        } catch (SecurityException | IOException e) {
+        try {
+            version = BuildConfig.AGENT_VERSION;
+        } catch (RuntimeException | NoClassDefFoundError e) {
             LOGGER.warn("Could not obtain Auklet agent version from manifest.", e);
         }
+        LOGGER.info("Auklet Agent version {}", version);
         VERSION = version;
         // Initialize the Auklet agent if requested via env var or JVM sysprop.
         String fromEnv = System.getenv("AUKLET_AUTO_START");
