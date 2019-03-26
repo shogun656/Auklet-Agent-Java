@@ -15,7 +15,7 @@ description = 'Official Auklet SDK for Java and other JVM languages.'
 buildConfig {
     buildConfigField('String', 'AGENT_VERSION', "\"${version}\"")
 }
-tasks.withType(BuildConfigTask::class) {
+generateBuildConfig {
     addGeneratedAnnotation = false
 }
 
