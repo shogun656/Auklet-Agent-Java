@@ -1,5 +1,7 @@
 package io.auklet.misc;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +27,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
      * @param corePoolSize the number of threads in this executor.
      * @param threadFactory the thread factory to use.
      */
-    public AukletDaemonExecutor(int corePoolSize, ThreadFactory threadFactory) {
+    public AukletDaemonExecutor(int corePoolSize, @NonNull ThreadFactory threadFactory) {
         super(corePoolSize, threadFactory);
     }
 
@@ -39,7 +41,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
     }
 
     /* Logs exceptions that occur in tasks. */
-    @Override protected void afterExecute(Runnable r, Throwable t) {
+    @Override protected void afterExecute(@Nullable Runnable r, @Nullable Throwable t) {
         super.afterExecute(r, t);
         if (t == null && r instanceof Future<?>) {
             Future<?> future = (Future<?>) r;
@@ -64,7 +66,8 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
     /* Decorates CancelSilentlyFutureTasks so that afterExecute() knows about them. */
     @Override
     protected <V> RunnableScheduledFuture<V> decorateTask(
-            Runnable r, RunnableScheduledFuture<V> task) {
+            @Nullable Runnable r, @NonNull RunnableScheduledFuture<V> task) {
+        if (task == null) throw new IllegalArgumentException("Task is null.");
         return r instanceof CancelSilentlyRunnable ? new CancelSilentlyRSF<>(task) : task;
     }
 
@@ -82,13 +85,16 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
      */
     private static final class CancelSilentlyRSF<V> implements RunnableScheduledFuture<V> {
         private final RunnableScheduledFuture<V> task;
-        private CancelSilentlyRSF(RunnableScheduledFuture<V> task) { this.task = task; }
+        private CancelSilentlyRSF(@NonNull RunnableScheduledFuture<V> task) {
+            if (task == null) throw new IllegalArgumentException("Task is null");
+            this.task = task;
+        }
         @Override
         public boolean isPeriodic() { return task.isPeriodic(); }
         @Override
-        public long getDelay(TimeUnit unit) { return task.getDelay(unit); }
+        public long getDelay(@Nullable TimeUnit unit) { return task.getDelay(unit); }
         @Override
-        public int compareTo(Delayed o) { return task.compareTo(o); }
+        public int compareTo(@Nullable Delayed o) { return task.compareTo(o); }
         @Override
         public void run() { task.run(); }
         @Override
@@ -100,7 +106,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
         @Override
         public V get() throws InterruptedException, ExecutionException { return task.get(); }
         @Override
-        public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        public V get(long timeout, @Nullable TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
             return task.get(timeout, unit);
         }
     }

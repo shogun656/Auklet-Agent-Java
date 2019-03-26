@@ -137,7 +137,7 @@ public final class Auklet {
             this.platform = new AndroidPlatform(androidContext);
         }
         this.configDir = platform.obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
-        if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details");
+        if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details.");
 
         LOGGER.debug("Configuring agent resources.");
         this.api = new AukletApi(apiKey);
