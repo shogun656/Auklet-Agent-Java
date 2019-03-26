@@ -45,7 +45,7 @@ public final class AndroidPlatform extends AbstractPlatform {
      * <p>Returns the directory used by the agent on Android to store config files.</p>
      *
      * @param fromConfig unused.
-     * @return a list with exactly one element: {@code context.getFilesDir().getPath() + "/aukletFiles"}.
+     * @return a list with exactly one element: {@code context.getFilesDir().getPath() + "/.auklet"}.
      */
     @Override public List<String> getPossibleConfigDirs(@Nullable String fromConfig) {
         return Collections.singletonList(this.context.getFilesDir().getPath() + "/.auklet");
