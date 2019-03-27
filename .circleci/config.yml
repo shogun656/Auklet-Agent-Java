@@ -6,7 +6,7 @@ jobs:
             TZ: "/usr/share/zoneinfo/America/Detroit"
         working_directory: ~/app
         docker:
-            - image: circleci/openjdk:9.0.4-jdk-sid-node-browsers
+            - image: circleci/openjdk:11.0.1-jdk-sid-node-browsers
         steps:
 
             ##
