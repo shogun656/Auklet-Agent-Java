@@ -73,6 +73,13 @@ Auklet.init(new Auklet.Config()
 Auklet.send(new Exception())
 ```
 
+#### Note Regarding TLS Support
+The auklet.io data pipeline uses TLS 1.2. According to [Android docs](https://developer.android.com/reference/javax/net/ssl/SSLSocket#protocols), TLS 1.2 is enabled by default starting with API level 20 (Android version 4.4W). If your application supports API levels 16 through 19, you may need to do additional work to ensure that TLS 1.2 is available.
+
+If TLS 1.2 is not available on a device, the Auklet agent will fail to initialize and will log relevant messages to SLF4J, but this will not interrupt your application. Notably, since `Auklet.init()` never throws any exceptions, you will not be notified by the agent if it fails to initialize for this reason, so you should take care to ensure TLS 1.2 is available prior to invoking `Auklet.init()`.
+
+You may find [this post](https://medium.com/tech-quizlet/working-with-tls-1-2-on-android-4-4-and-lower-f4f5205629a) relevant in adding TLS 1.2 compatibility for devices on API levels 16 through 19.
+
 # Compiling/Running Locally
 Auklet for Java uses Gradle 4 and requires Java 7+ to compile (Java 9+ recommended).
 
