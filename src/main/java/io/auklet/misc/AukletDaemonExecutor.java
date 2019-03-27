@@ -71,11 +71,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
         return r instanceof CancelSilentlyRunnable ? new CancelSilentlyRSF<>(task) : task;
     }
 
-    /**
-     * A {@link Runnable} that the {@link AukletDaemonExecutor} will not log if it is cancelled.
-     *
-     * {@inheritDoc}
-     */
+    /** A {@link Runnable} that the {@link AukletDaemonExecutor} will not log if it is cancelled. */
     public abstract static class CancelSilentlyRunnable implements Runnable {}
 
     /*
