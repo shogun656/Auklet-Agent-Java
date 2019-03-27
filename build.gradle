@@ -116,6 +116,9 @@ test {
 javadoc {
     source = sourceSets.main.allJava
     classpath = configurations.compileClasspath
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
 
 // Packaging configurations
