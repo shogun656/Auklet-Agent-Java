@@ -33,10 +33,13 @@ dependencies {
     compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
     compile "org.slf4j:slf4j-api:1.7.25"
     compile "com.github.stephenc.jcip:jcip-annotations:1.0-1"
-    // End-users never need to re-include this library in their list of dependencies, and those
-    // that do so may run into legal issues if they distribute it alongside an Oracle JRE/JDK.
-    // See https://stackoverflow.com/a/36198568 for details.
+    // End-users never need to re-include SpotBugs Annotations in their list of dependencies,
+    // and those that do so may run into legal issues if they distribute it alongside an
+    // Oracle JRE/JDK. See https://stackoverflow.com/a/36198568 for details.
+    // Also, SpotBugs Annotations requires Java 8.
     compileOnly "com.github.spotbugs:spotbugs-annotations:3.1.10"
+    // purejavacomm requires Java 8. If you are using purejavacomm, you should also include
+    // sysout-over-slf4j so that purejavacomm's logging uses SLF4J.
     compileOnly "com.github.purejavacomm:purejavacomm:1.0.1.RELEASE"
     compileOnly "uk.org.lidalia:sysout-over-slf4j:1.0.2"
     compileOnly("com.google.android:android:4.1.1.4") {
