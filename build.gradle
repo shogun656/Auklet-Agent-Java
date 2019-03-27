@@ -53,6 +53,28 @@ allprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            // When compiling with JDK 7, warnings are generated because SpotBugs Annotations
+            // and purejavacomm are compiled for Java 8. These warnings seem to be silenceable
+            // only with "-Xlint:none", but Oracle docs are not clear on what other warnings
+            // are silenced by doing this, so don't try to silence those warnings.
+
+            // On JDK 8, when env var JDK7_HOME is set (should only be set when Gradle itself is not
+            // run with JDK 7, e.g. in CircleCI), use it as the bootstrap classpath to eliminate
+            // compilation warnings/enforce Java 7 syntax.
+            def jdk7Home = System.getenv("JDK7_HOME")
+            if (JavaVersion.current().isJava8() && jdk7Home) {
+                options.bootstrapClasspath = files(
+                        "${jdk7Home}/jre/lib/resources.jar",
+                        "${jdk7Home}/jre/lib/rt.jar",
+                        "${jdk7Home}/jre/lib/sunrsasign.jar",
+                        "${jdk7Home}/jre/lib/jsse.jar",
+                        "${jdk7Home}/jre/lib/jce.jar",
+                        "${jdk7Home}/jre/lib/charsets.jar",
+                        "${jdk7Home}/jre/lib/rhino.jar",
+                        "${jdk7Home}/jre/lib/jfr.jar",
+                        "${jdk7Home}/jre/classes"
+                )
+            }
         }
     }
 }
