@@ -1,5 +1,6 @@
 package io.auklet.sink;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
@@ -64,6 +65,26 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                 this.msgpack.flush();
             } catch (IOException e) {
                 throw new AukletException("Could not assemble event message.", e);
+            }
+            byte[] payload = this.msgpack.toByteArray();
+            if (payload == null || payload.length == 0) return;
+            this.write(payload);
+        }
+    }
+
+    public void sendDatapoint(@NonNull String data, @NonNull String dataType) throws AukletException {
+        synchronized (this.msgpack) {
+            this.msgpack.clear();
+            try {
+                this.initMessage(11);
+                this.msgpack
+                        .packString("timestamp").packLong(System.currentTimeMillis())
+                        .packString("payload").packString(data)
+                        // User defined type
+                        .packString("type").packString(dataType);
+
+            } catch (IOException e) {
+                throw new AukletException("Could not assemble datapoint message.", e);
             }
             byte[] payload = this.msgpack.toByteArray();
             if (payload == null || payload.length == 0) return;

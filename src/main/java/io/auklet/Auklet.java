@@ -266,6 +266,22 @@ public final class Auklet {
         }
     }
 
+    public static void sendDatapoint(@NonNull String dataString, @NonNull String dataType) {
+        LOGGER.debug("Scheduling datapoint send task.");
+        Runnable sendTask = new Runnable() {
+            @Override
+            public void run() {
+                synchronized (LOCK) {
+                    if (agent == null) {
+                        LOGGER.debug("Ignoring send request because agent is null.");
+                        return;
+                    }
+                }
+                agent.doSend(null, dataString, dataType)
+            }
+        };
+    }
+
     /**
      * <p>Shuts down the agent and closes/disconnects from any underlying resources. Calling this method more
      * than once has no effect; therefore, explicitly calling this method when the agent has been initialized
@@ -504,6 +520,24 @@ public final class Auklet {
             LOGGER.warn("Could not queue event send task.", e);
         }
     }
+
+    private void doDatapointSend(@NonNull final String data, @NonNull final String dataType) {
+        try {
+            this.scheduleOneShotTask(new Runnable() {
+                @Override public void run() {
+                    try {
+                        LOGGER.debug("Sending datapoint: {}-{}", dataType, data);
+                        sink.sendDatapoint(data, dataType);
+                    } catch (AukletException e) {
+                        LOGGER.warn("Could not send datapoint.", e);
+                    }
+                    }
+                }, 0, TimeUnit.SECONDS); // 5-second cooldown.
+            } catch (AukletException e) {
+                LOGGER.warn("Could not queue datapoint send task.", e);
+            }
+        }
+    };
 
     /**
      * <p>Shuts down the Auklet agent.</p>
