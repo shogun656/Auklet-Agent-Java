@@ -68,7 +68,7 @@ public final class Auklet {
         // Extract Auklet agent version from the BuildConfig class.
         String version = "unknown";
         try {
-            version = BuildConfig.AGENT_VERSION;
+            version = BuildConfig.VERSION;
         } catch (RuntimeException | NoClassDefFoundError e) {
             LOGGER.warn("Could not obtain Auklet agent version from manifest.", e);
         }
