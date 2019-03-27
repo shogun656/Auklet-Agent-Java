@@ -9,6 +9,8 @@ import io.auklet.AukletException;
 import io.auklet.platform.metrics.AndroidMetrics;
 import net.jcip.annotations.Immutable;
 import org.msgpack.core.MessagePacker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -19,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 @Immutable
 public final class AndroidPlatform extends AbstractPlatform {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AndroidPlatform.class);
     private final Context context;
     private final AndroidMetrics metrics;
 
@@ -31,6 +34,7 @@ public final class AndroidPlatform extends AbstractPlatform {
     public AndroidPlatform(@NonNull Object context) throws AukletException {
         if (!(context instanceof Context)) throw new AukletException("Android platform was given a non-Context object.");
         if (Build.VERSION.SDK_INT < 16) throw new AukletException("Unsupported Android API level: " + Build.VERSION.SDK_INT);
+        if (Build.VERSION.SDK_INT < 20) LOGGER.warn("Android API level {} does not have TLS 1.2 enabled by default. Agent may not init or function correctly without an update to the Android security provider.", Build.VERSION.SDK_INT);
         this.context = (Context) context;
         this.metrics = new AndroidMetrics(this.context);
     }
