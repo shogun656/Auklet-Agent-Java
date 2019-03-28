@@ -5,6 +5,7 @@ import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.config.AukletIoBrokers;
 import io.auklet.config.AukletIoCert;
+import io.auklet.misc.Tls12SocketFactory;
 import io.auklet.misc.Util;
 import io.auklet.misc.AukletDaemonExecutor;
 import net.jcip.annotations.ThreadSafe;
@@ -195,7 +196,7 @@ public final class AukletIoSink extends AbstractSink {
             tmf.init(ca);
             SSLContext context = SSLContext.getInstance("TLSv1.2");
             context.init(null, tmf.getTrustManagers(), null);
-            return context.getSocketFactory();
+            return new Tls12SocketFactory(context);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
             throw new AukletException("Error while setting up MQTT SSL socket factory.", e);
         }
