@@ -20,7 +20,7 @@ import java.util.*;
  * <p>These loggers are designed to work with JUL resource bundles, but do not require them.</p>
  */
 @NotThreadSafe
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // Used by AukletIoSink
 public final class PahoLogger implements org.eclipse.paho.client.mqttv3.logging.Logger {
 
     private Logger logger = null;

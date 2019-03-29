@@ -3,7 +3,7 @@ package io.auklet;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.auklet.misc.AukletDaemonExecutor;
+import io.auklet.core.AukletDaemonExecutor;
 import io.auklet.core.DataUsageMonitor;
 import io.auklet.core.AukletExceptionHandler;
 import io.auklet.config.DeviceAuth;
