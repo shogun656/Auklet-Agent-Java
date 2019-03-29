@@ -19,16 +19,16 @@ repositories {
     google()
 }
 dependencies {
-    compile "com.squareup.okhttp3:okhttp:3.12.0"
-    compile "com.squareup.okhttp3:logging-interceptor:3.12.0"
-    compile("org.sharegov:mjson:1.4.1") {
+    implementation "com.squareup.okhttp3:okhttp:3.12.0"
+    implementation "com.squareup.okhttp3:logging-interceptor:3.12.0"
+    implementation("org.sharegov:mjson:1.4.1") {
         // Junit is an accidental non-test-scoped dependency, so we need to exclude it.
         exclude group: "junit"
     }
-    compile "org.msgpack:msgpack-core:0.8.16"
-    compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
-    compile "org.slf4j:slf4j-api:1.7.25"
-    compile "com.github.stephenc.jcip:jcip-annotations:1.0-1"
+    implementation "org.msgpack:msgpack-core:0.8.16"
+    implementation "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
+    implementation "org.slf4j:slf4j-api:1.7.25"
+    implementation "com.github.stephenc.jcip:jcip-annotations:1.0-1"
     // End-users never need to re-include SpotBugs Annotations in their list of dependencies,
     // and those that do so may run into legal issues if they distribute it alongside an
     // Oracle JRE/JDK. See https://stackoverflow.com/a/36198568 for details.
@@ -41,7 +41,7 @@ dependencies {
     compileOnly("com.google.android:android:4.1.1.4") {
         transitive = false
     }
-    testCompile "org.slf4j:slf4j-simple:1.7.25"
+    testRuntimeOnly "org.slf4j:slf4j-simple:1.7.25"
 }
 
 allprojects {
