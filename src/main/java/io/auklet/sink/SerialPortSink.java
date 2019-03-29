@@ -54,32 +54,32 @@ public final class SerialPortSink extends AbstractSink {
      * map with 2 elements: the name of the target MQTT topic and the event payload.</p>
      */
     @Override public void send(@Nullable Throwable throwable) throws AukletException {
-        synchronized (this.lock) {
-            synchronized (this.msgpack) {
-                try {
-                    LOGGER.debug("Adding MQTT info to payload.");
-                    this.msgpack.packMapHeader(2)
-                            .packString("topic").packString(this.getAgent().getDeviceAuth().getMqttEventsTopic())
-                            .packString("payload"); // The value will be set by calling super.write().
-                } catch (IOException e) {
-                    throw new AukletException("Could not assemble event message.", e);
-                }
-                super.send(throwable);
+        synchronized (this.msgpack) {
+            try {
+                LOGGER.debug("Adding MQTT info to payload.");
+                this.msgpack.packMapHeader(2)
+                        .packString("topic").packString(this.getAgent().getDeviceAuth().getMqttEventsTopic())
+                        .packString("payload"); // The value will be set by calling super.write().
+            } catch (IOException e) {
+                throw new AukletException("Could not assemble event message.", e);
             }
+            super.send(throwable);
         }
     }
 
     @Override protected void write(@NonNull byte[] bytes) throws AukletException {
-        try {
-            int size = bytes.length;
-            boolean willExceedLimit = this.getAgent().getUsageMonitor().willExceedLimit(size);
-            if (!willExceedLimit) {
-                this.out.write(bytes);
-                this.out.flush();
-                this.getAgent().getUsageMonitor().addMoreData(size);
+        synchronized (this.lock) {
+            try {
+                int size = bytes.length;
+                boolean willExceedLimit = this.getAgent().getUsageMonitor().willExceedLimit(size);
+                if (!willExceedLimit) {
+                    this.out.write(bytes);
+                    this.out.flush();
+                    this.getAgent().getUsageMonitor().addMoreData(size);
+                }
+            } catch (IOException e) {
+                throw new AukletException("Could not write data to serial port.", e);
             }
-        } catch (IOException e) {
-            throw new AukletException("Could not write data to serial port.", e);
         }
     }
 
