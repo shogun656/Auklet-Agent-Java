@@ -1,5 +1,6 @@
 package io.auklet.misc;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.AukletException;
@@ -52,30 +53,30 @@ public final class Tls12SocketFactory extends SSLSocketFactory {
     }
 
     @Override public Socket createSocket() throws IOException {
-        return setSocketOnlyTls12(delegateFactory.createSocket());
+        return tls12Only(delegateFactory.createSocket());
     }
 
     @Override public Socket createSocket(@NonNull Socket s, @Nullable String host, int port, boolean autoClose) throws IOException {
-        return setSocketOnlyTls12(delegateFactory.createSocket(s, host, port, autoClose));
+        return tls12Only(delegateFactory.createSocket(s, host, port, autoClose));
     }
 
     @Override public Socket createSocket(@Nullable String host, int port) throws IOException {
-        return setSocketOnlyTls12(delegateFactory.createSocket(host, port));
+        return tls12Only(delegateFactory.createSocket(host, port));
     }
 
     @Override public Socket createSocket(@Nullable String host, int port, @Nullable InetAddress localHost, int localPort) throws IOException {
-        return setSocketOnlyTls12(delegateFactory.createSocket(host, port, localHost, localPort));
+        return tls12Only(delegateFactory.createSocket(host, port, localHost, localPort));
     }
 
     @Override public Socket createSocket(@NonNull InetAddress host, int port) throws IOException {
-        return setSocketOnlyTls12(delegateFactory.createSocket(host, port));
+        return tls12Only(delegateFactory.createSocket(host, port));
     }
 
     @Override public Socket createSocket(@NonNull InetAddress address, int port, @Nullable InetAddress localAddress, int localPort) throws IOException {
-        return setSocketOnlyTls12(delegateFactory.createSocket(address, port, localAddress, localPort));
+        return tls12Only(delegateFactory.createSocket(address, port, localAddress, localPort));
     }
 
-    private Socket setSocketOnlyTls12(@Nullable Socket socket) {
+    @CheckForNull private Socket tls12Only(@Nullable Socket socket) {
         if (socket == null) throw new IllegalArgumentException("Socket is null.");
         if (socket instanceof SSLSocket) ((SSLSocket) socket).setEnabledProtocols(new String[]{"TLSv1.2"});
         return socket;
