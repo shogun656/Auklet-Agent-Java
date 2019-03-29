@@ -34,7 +34,7 @@ public final class Tls12SocketFactory extends SSLSocketFactory {
     public Tls12SocketFactory(@Nullable SSLContext context) throws AukletException {
         try {
             if (context == null) {
-                context = SSLContext.getInstance("TLS");
+                context = SSLContext.getInstance("TLSv1.2");
                 context.init(null, null, null);
             }
             delegateFactory = context.getSocketFactory();
