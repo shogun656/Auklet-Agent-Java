@@ -14,6 +14,7 @@ import io.auklet.platform.AndroidPlatform;
 import io.auklet.platform.JavaPlatform;
 import io.auklet.platform.Platform;
 import io.auklet.sink.*;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ public final class Auklet {
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
     private static final AukletDaemonExecutor DAEMON = new AukletDaemonExecutor(1, Util.createDaemonThreadFactory("Auklet"));
-    private static Auklet agent = null;
+    @GuardedBy("LOCK") private static Auklet agent = null;
 
     private final String appId;
     private final String baseUrl;

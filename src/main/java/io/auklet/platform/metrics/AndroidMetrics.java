@@ -7,6 +7,7 @@ import android.os.Build;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.AukletException;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,13 +29,13 @@ public final class AndroidMetrics {
     private final ActivityManager activityManager;
 
     private final Object lock = new Object();
-    private long total = 0L;
-    private long totalBefore = 0L;
-    private long totalDiff = 0L;
-    private long work = 0L;
-    private long workBefore = 0L;
-    private long workDiff = 0L;
-    private float cpuUsage = 0;
+    @GuardedBy("lock") private long total = 0L;
+    @GuardedBy("lock") private long totalBefore = 0L;
+    @GuardedBy("lock") private long totalDiff = 0L;
+    @GuardedBy("lock") private long work = 0L;
+    @GuardedBy("lock") private long workBefore = 0L;
+    @GuardedBy("lock") private long workDiff = 0L;
+    @GuardedBy("lock") private float cpuUsage = 0;
 
     /**
      * <p>Constructor.</p>

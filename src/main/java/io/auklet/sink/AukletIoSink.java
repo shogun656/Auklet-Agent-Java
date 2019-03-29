@@ -8,6 +8,7 @@ import io.auklet.config.AukletIoCert;
 import io.auklet.misc.Tls12SocketFactory;
 import io.auklet.misc.Util;
 import io.auklet.misc.AukletDaemonExecutor;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -28,8 +29,8 @@ public final class AukletIoSink extends AbstractSink {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoSink.class);
     private final Object lock = new Object();
-    private AukletDaemonExecutor executorService;
-    private MqttAsyncClient client;
+    @GuardedBy("lock") private AukletDaemonExecutor executorService;
+    @GuardedBy("lock") private MqttAsyncClient client;
 
     /**
      * <p>Constructs the underlying MQTT client.</p>

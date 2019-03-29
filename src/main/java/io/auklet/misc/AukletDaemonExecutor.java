@@ -2,6 +2,7 @@ package io.auklet.misc;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ public final class AukletDaemonExecutor extends ScheduledThreadPoolExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletDaemonExecutor.class);
     private final Object lock = new Object();
-    private boolean logCancelExceptions = true;
+    @GuardedBy("lock") private boolean logCancelExceptions = true;
 
     /**
      * Constructor.

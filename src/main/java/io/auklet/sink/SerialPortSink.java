@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +22,8 @@ public final class SerialPortSink extends AbstractSink {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SerialPortSink.class);
     private final Object lock = new Object();
-    private SerialPort port;
-    private OutputStream out;
+    @GuardedBy("lock") private SerialPort port;
+    @GuardedBy("lock") private OutputStream out;
 
     /**
      * <p>Constructs the serial data sink and opens the underlying serial port.</p>

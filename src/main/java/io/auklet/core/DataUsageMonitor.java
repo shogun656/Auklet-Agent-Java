@@ -5,6 +5,7 @@ import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.config.DataUsageLimit;
 import io.auklet.config.DataUsageTracker;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +27,10 @@ public final class DataUsageMonitor extends HasAgent {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataUsageMonitor.class);
     private final Object lock = new Object();
-    private DataUsageLimit limit;
-    private DataUsageTracker tracker;
-    private boolean awaitingMonthlyReset = false;
-    private int hoursSinceConfigRefresh = 0;
+    @GuardedBy("lock") private DataUsageLimit limit;
+    @GuardedBy("lock") private DataUsageTracker tracker;
+    @GuardedBy("lock") private boolean awaitingMonthlyReset = false;
+    @GuardedBy("lock") private int hoursSinceConfigRefresh = 0;
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
         LOGGER.info("Starting data usage monitor service.");

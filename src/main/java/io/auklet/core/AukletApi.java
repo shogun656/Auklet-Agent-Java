@@ -3,6 +3,7 @@ package io.auklet.core;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
 import io.auklet.misc.Util;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.Immutable;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
@@ -40,7 +41,7 @@ public final class AukletApi {
     private static final Logger HTTP_LOGGER = LoggerFactory.getLogger("io.auklet.http");
     private static final HttpLoggingInterceptor INTERCEPTOR = AukletApi.createLogger();
     private final String apiKey;
-    private final OkHttpClient httpClient;
+    @GuardedBy("itself") private final OkHttpClient httpClient;
 
     /**
      * <p>Constructor.</p>
