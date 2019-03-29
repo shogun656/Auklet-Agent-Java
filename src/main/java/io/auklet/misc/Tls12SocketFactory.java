@@ -14,7 +14,7 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * <p>A custom SSL socket factory that only supports TLS 1.2. This class adds compatibility for SSL connections
- * on Android versions less than 4.4W.</p>
+ * on Android versions less than 4.4W, but is safe to use in Android 4.4W+ and non-Android environments.</p>
  *
  * <p>Derived from https://gist.githubusercontent.com/fkrauthan/ac8624466a4dee4fd02f/raw/309efc30e31c96a932ab9d19bf4d73b286b00573/TLSSocketFactory.java.</p>
  *
