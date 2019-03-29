@@ -6,6 +6,7 @@ import io.auklet.AukletException;
 import io.auklet.core.AukletDaemonExecutor;
 import io.auklet.misc.Util;
 import mjson.Json;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,8 @@ public final class DataUsageTracker extends AbstractConfigFile {
     private static final String USAGE_KEY = "usage";
 
     private final Object lock = new Object();
-    private ScheduledFuture<?> currentWriteTask;
-    private long bytesSent = 0L;
+    @GuardedBy("lock") private ScheduledFuture<?> currentWriteTask;
+    @GuardedBy("lock") private long bytesSent = 0L;
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
         LOGGER.debug("Loading data usage tracker file.");
@@ -85,7 +86,7 @@ public final class DataUsageTracker extends AbstractConfigFile {
      *
      * @param givenUsage the usage value to write.
      */
-    private void saveUsage(final long givenUsage) {
+    @GuardedBy("lock") private void saveUsage(final long givenUsage) {
         try {
             // If there is already a pending write task, cancel it.
             if (this.currentWriteTask != null) currentWriteTask.cancel(false);
@@ -116,7 +117,7 @@ public final class DataUsageTracker extends AbstractConfigFile {
      * @throws IOException if an error occurs while writing the file.
      * @throws SecurityException if an error occurs while writing the file.
      */
-    private void writeUsageToDisk(long usage) throws IOException {
+    @GuardedBy("lock") private void writeUsageToDisk(long usage) throws IOException {
         Json usageJson = Json.object();
         usageJson.set(USAGE_KEY, usage);
         Util.writeUtf8(this.file, usageJson.toString());

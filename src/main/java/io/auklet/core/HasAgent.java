@@ -3,6 +3,7 @@ package io.auklet.core;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
 /**
@@ -23,7 +24,7 @@ import net.jcip.annotations.ThreadSafe;
 public abstract class HasAgent {
 
     private final Object lock = new Object();
-    private Auklet agent = null;
+    @GuardedBy("lock") private Auklet agent = null;
 
     /**
      * <p>Invokes the post-construction start logic for this object. Implementations are required to invoke
