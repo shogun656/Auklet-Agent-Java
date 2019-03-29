@@ -4,7 +4,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.AukletException;
 import io.auklet.misc.Util;
-import io.auklet.platform.metrics.OSMX;
+import io.auklet.misc.OSMX;
 import net.jcip.annotations.Immutable;
 import org.msgpack.core.MessagePacker;
 import org.slf4j.Logger;
