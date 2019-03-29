@@ -76,6 +76,7 @@ public final class Tls12SocketFactory extends SSLSocketFactory {
     }
 
     private Socket setSocketOnlyTls12(@Nullable Socket socket) {
+        if (socket == null) throw new IllegalArgumentException("Socket is null.");
         if (socket instanceof SSLSocket) ((SSLSocket) socket).setEnabledProtocols(new String[]{"TLSv1.2"});
         return socket;
     }
