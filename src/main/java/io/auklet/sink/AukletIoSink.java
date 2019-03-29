@@ -7,7 +7,7 @@ import io.auklet.config.AukletIoBrokers;
 import io.auklet.config.AukletIoCert;
 import io.auklet.misc.Tls12SocketFactory;
 import io.auklet.misc.Util;
-import io.auklet.misc.AukletDaemonExecutor;
+import io.auklet.core.AukletDaemonExecutor;
 import net.jcip.annotations.ThreadSafe;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
