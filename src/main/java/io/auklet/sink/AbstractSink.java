@@ -7,6 +7,7 @@ import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.HasAgent;
 import io.auklet.misc.Util;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -28,7 +29,7 @@ import java.util.UUID;
 public abstract class AbstractSink extends HasAgent implements Sink {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSink.class);
-    protected final MessageBufferPacker msgpack = MessagePack.newDefaultBufferPacker();
+    @GuardedBy("itself") protected final MessageBufferPacker msgpack = MessagePack.newDefaultBufferPacker();
 
     @Override public void shutdown() {
         synchronized (this.msgpack) {
@@ -98,7 +99,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
      * @param bytes the byte array, never {@code null} or empty.
      * @throws AukletException if the data cannot be written.
      */
-    protected abstract void write(@NonNull byte[] bytes) throws AukletException;
+    @GuardedBy("msgpack") protected abstract void write(@NonNull byte[] bytes) throws AukletException;
 
     /**
      * <p>Starts assembling an Auklet-compatible MessagePack message, which is defined as a MessagePack
@@ -108,7 +109,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
      * @throws AukletException if the map size is less than 7, or if an error occurs while assembling the
      * message payload.
      */
-    private void initMessage(int mapSize) throws AukletException {
+    @GuardedBy("msgpack") private void initMessage(int mapSize) throws AukletException {
         if (mapSize < 7) throw new AukletException("Message size is too small.");
         try {
             this.msgpack.packMapHeader(mapSize)
@@ -126,15 +127,14 @@ public abstract class AbstractSink extends HasAgent implements Sink {
     }
 
     /**
-     * <p>Adds JVM system metrics to the current position in the given MessagePacker as a map object.</p>
+     * <p>Adds system metrics to the current position in the given MessagePacker as a map object.</p>
      *
-     * @throws IllegalArgumentException if the MessagePacker is {@code null}.
      * @throws AukletException if an error occurs while assembling the message.
      */
-    private void addSystemMetrics() throws AukletException {
+    @GuardedBy("msgpack") private void addSystemMetrics() throws AukletException {
         try {
             this.msgpack.packMapHeader(4);
-            getAgent().getPlatform().addSystemMetrics(this.msgpack);
+            this.getAgent().getPlatform().addSystemMetrics(this.msgpack);
             // Add other system metrics.
             this.msgpack.packString("outboundNetwork").packDouble(0);
             this.msgpack.packString("inboundNetwork").packDouble(0);

@@ -1,57 +1,78 @@
-// Plugins
 plugins {
+    id 'idea'
     id 'java'
+    id 'de.fuerstenau.buildconfig' version '1.1.8'
     id 'maven'
     id 'maven-publish'
     id 'com.jfrog.bintray' version '1.8.4'
 }
 
-// Project info
 group "${theGroup}"
 version "${theVersion}"
 description = 'Official Auklet SDK for Java and other JVM languages.'
 
-// Java version
 sourceCompatibility = 7
 targetCompatibility = 7
 
-// Dependencies
 repositories {
     jcenter()
     google()
 }
 dependencies {
-    compile "com.squareup.okhttp3:okhttp:3.12.0"
-    compile "com.squareup.okhttp3:logging-interceptor:3.12.0"
-    compile("org.sharegov:mjson:1.4.1") {
+    implementation "com.squareup.okhttp3:okhttp:3.12.0"
+    implementation "com.squareup.okhttp3:logging-interceptor:3.12.0"
+    implementation("org.sharegov:mjson:1.4.1") {
         // Junit is an accidental non-test-scoped dependency, so we need to exclude it.
         exclude group: "junit"
     }
-    compile "org.msgpack:msgpack-core:0.8.16"
-    compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
-    compile "org.slf4j:slf4j-api:1.7.25"
-    compile "com.github.stephenc.jcip:jcip-annotations:1.0-1"
-    // End-users never need to re-include this library in their list of dependencies, and those
-    // that do so may run into legal issues if they distribute it alongside an Oracle JRE/JDK.
-    // See https://stackoverflow.com/a/36198568 for details.
+    implementation "org.msgpack:msgpack-core:0.8.16"
+    implementation "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
+    implementation "org.slf4j:slf4j-api:1.7.25"
+    implementation "com.github.stephenc.jcip:jcip-annotations:1.0-1"
+    // End-users never need to re-include SpotBugs Annotations in their list of dependencies,
+    // and those that do so may run into legal issues if they distribute it alongside an
+    // Oracle JRE/JDK. See https://stackoverflow.com/a/36198568 for details.
+    // Also, SpotBugs Annotations requires Java 8.
     compileOnly "com.github.spotbugs:spotbugs-annotations:3.1.10"
+    // purejavacomm requires Java 8. If you are using purejavacomm, you should also include
+    // sysout-over-slf4j so that purejavacomm's logging uses SLF4J.
     compileOnly "com.github.purejavacomm:purejavacomm:1.0.1.RELEASE"
     compileOnly "uk.org.lidalia:sysout-over-slf4j:1.0.2"
     compileOnly("com.google.android:android:4.1.1.4") {
         transitive = false
     }
-    testCompile "org.slf4j:slf4j-simple:1.7.25"
+    testRuntimeOnly "org.slf4j:slf4j-simple:1.7.25"
 }
 
-// Compilation configuration
 allprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            // When compiling with JDK 7, warnings are generated because SpotBugs Annotations
+            // and purejavacomm are compiled for Java 8. These warnings seem to be silenceable
+            // only with "-Xlint:none", but Oracle docs are not clear on what other warnings
+            // are silenced by doing this, so don't try to silence those warnings.
+
+            // On JDK 8, when env var JDK7_HOME is set (should only be set when Gradle itself is not
+            // run with JDK 7, e.g. in CircleCI), use it as the bootstrap classpath to eliminate
+            // compilation warnings/enforce Java 7 syntax.
+            def jdk7Home = System.getenv("JDK7_HOME")
+            if (JavaVersion.current().isJava8() && jdk7Home) {
+                options.bootstrapClasspath = files(
+                        "${jdk7Home}/jre/lib/resources.jar",
+                        "${jdk7Home}/jre/lib/rt.jar",
+                        "${jdk7Home}/jre/lib/sunrsasign.jar",
+                        "${jdk7Home}/jre/lib/jsse.jar",
+                        "${jdk7Home}/jre/lib/jce.jar",
+                        "${jdk7Home}/jre/lib/charsets.jar",
+                        "${jdk7Home}/jre/lib/rhino.jar",
+                        "${jdk7Home}/jre/lib/jfr.jar",
+                        "${jdk7Home}/jre/classes"
+                )
+            }
         }
     }
 }
-
 // Module export (compile-time Java 9+)
 if (JavaVersion.current().isJava9Compatible()) {
     sourceSets {
@@ -80,18 +101,18 @@ if (JavaVersion.current().isJava9Compatible()) {
     }
 }
 
-// Test configuration
 test {
     testLogging.showStandardStreams = true
 }
 
-// Javadoc configuration
 javadoc {
     source = sourceSets.main.allJava
     classpath = configurations.compileClasspath
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
 
-// Packaging configurations
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.allSource
@@ -115,7 +136,6 @@ jar {
     }
 }
 
-// Deployment configurations
 def pomConfig = {
     licenses {
         license {

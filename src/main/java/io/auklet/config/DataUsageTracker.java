@@ -3,10 +3,11 @@ package io.auklet.config;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
-import io.auklet.misc.AukletDaemonExecutor;
+import io.auklet.core.AukletDaemonExecutor;
 import io.auklet.misc.Util;
 import mjson.Json;
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +16,10 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * <p>The <i>data usage tracker file</i> is used to persist between restarts the amount of data that has
- * been sent by the Auklet agent to the sink.</p>
+ * <p>This config file persists between agent restarts the amount of data that has been sent by
+ * the Auklet agent to the sink, pursuant to the defined {@link DataUsageLimit}.</p>
  */
-@NotThreadSafe
+@ThreadSafe
 public final class DataUsageTracker extends AbstractConfigFile {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataUsageTracker.class);
@@ -26,8 +27,8 @@ public final class DataUsageTracker extends AbstractConfigFile {
     private static final String USAGE_KEY = "usage";
 
     private final Object lock = new Object();
-    private ScheduledFuture<?> currentWriteTask;
-    private long bytesSent = 0L;
+    @GuardedBy("lock") private ScheduledFuture<?> currentWriteTask;
+    @GuardedBy("lock") private long bytesSent = 0L;
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
         LOGGER.debug("Loading data usage tracker file.");
@@ -53,7 +54,11 @@ public final class DataUsageTracker extends AbstractConfigFile {
      *
      * @return the number of bytes sent.
      */
-    public long getBytesSent() { return this.bytesSent; }
+    public long getBytesSent() {
+        synchronized (lock) {
+            return this.bytesSent;
+        }
+    }
 
     /**
      * <p>Adds the input number of bytes to the current amount of bytes sent.</p>
@@ -62,14 +67,18 @@ public final class DataUsageTracker extends AbstractConfigFile {
      */
     public void addMoreData(long moreBytes) {
         if (moreBytes < 1) return;
-        this.bytesSent += moreBytes;
-        this.saveUsage(this.bytesSent);
+        synchronized (lock) {
+            this.bytesSent += moreBytes;
+            this.saveUsage(this.bytesSent);
+        }
     }
 
     /** <p>Resets the data usage to zero.</p> */
     public void reset() {
-        this.bytesSent = 0L;
-        this.saveUsage(this.bytesSent);
+        synchronized (lock) {
+            this.bytesSent = 0L;
+            this.saveUsage(this.bytesSent);
+        }
     }
 
     /**
@@ -77,27 +86,25 @@ public final class DataUsageTracker extends AbstractConfigFile {
      *
      * @param givenUsage the usage value to write.
      */
-    private void saveUsage(final long givenUsage) {
+    @GuardedBy("lock") private void saveUsage(final long givenUsage) {
         try {
             // If there is already a pending write task, cancel it.
-            synchronized (this.lock) {
-                if (this.currentWriteTask != null) currentWriteTask.cancel(false);
-                // Queue the new write task.
-                this.currentWriteTask = this.getAgent().scheduleOneShotTask(new AukletDaemonExecutor.CancelSilentlyRunnable() {
-                    @Override
-                    public void run() {
-                        // This task is no longer pending, so clear its status.
-                        synchronized (lock) {
-                            currentWriteTask = null;
-                        }
-                        try {
-                            writeUsageToDisk(givenUsage);
-                        } catch (IOException | SecurityException e) {
-                            LOGGER.warn("Could not save data usage to disk.", e);
-                        }
+            if (this.currentWriteTask != null) currentWriteTask.cancel(false);
+            // Queue the new write task.
+            this.currentWriteTask = this.getAgent().scheduleOneShotTask(new AukletDaemonExecutor.CancelSilentlyRunnable() {
+                @Override
+                public void run() {
+                    // This task is no longer pending, so clear its status.
+                    synchronized (lock) {
+                        currentWriteTask = null;
                     }
-                }, 5, TimeUnit.SECONDS); // 5-second cooldown.
-            }
+                    try {
+                        writeUsageToDisk(givenUsage);
+                    } catch (IOException | SecurityException e) {
+                        LOGGER.warn("Could not save data usage to disk.", e);
+                    }
+                }
+            }, 5, TimeUnit.SECONDS); // 5-second cooldown.
         } catch (AukletException e) {
             LOGGER.warn("Could not queue data usage save task.", e);
         }
@@ -110,7 +117,7 @@ public final class DataUsageTracker extends AbstractConfigFile {
      * @throws IOException if an error occurs while writing the file.
      * @throws SecurityException if an error occurs while writing the file.
      */
-    private void writeUsageToDisk(long usage) throws IOException {
+    @GuardedBy("lock") private void writeUsageToDisk(long usage) throws IOException {
         Json usageJson = Json.object();
         usageJson.set(USAGE_KEY, usage);
         Util.writeUtf8(this.file, usageJson.toString());
