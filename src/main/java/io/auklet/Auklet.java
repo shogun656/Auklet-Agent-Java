@@ -266,7 +266,13 @@ public final class Auklet {
         }
     }
 
-    public static void sendDatapoint(@NonNull String dataString, @NonNull String dataType) {
+    /**
+     * <p>Sends the given string of dataString and dataType as a <i>datapoint</i>.</p>
+     *
+     * @param dataString
+     * @param dataType
+     */
+    public static void sendDatapoint(@NonNull final String dataString, @NonNull final String dataType) {
         LOGGER.debug("Scheduling datapoint send task.");
         Runnable sendTask = new Runnable() {
             @Override
@@ -277,9 +283,14 @@ public final class Auklet {
                         return;
                     }
                 }
-                agent.doSend(null, dataString, dataType)
+                agent.doDatapointSend(dataString, dataType);
             }
         };
+        try {
+            DAEMON.submit(sendTask);
+        } catch (RejectedExecutionException e) {
+            LOGGER.error("Could not send datapoint.", e);
+        }
     }
 
     /**
@@ -521,6 +532,11 @@ public final class Auklet {
         }
     }
 
+    /**
+     * <p>Queues a task to submit the given datapoint to the data sink.</p>
+     * @param data
+     * @param dataType
+     */
     private void doDatapointSend(@NonNull final String data, @NonNull final String dataType) {
         try {
             this.scheduleOneShotTask(new Runnable() {
@@ -537,7 +553,7 @@ public final class Auklet {
                 LOGGER.warn("Could not queue datapoint send task.", e);
             }
         }
-    };
+    }
 
     /**
      * <p>Shuts down the Auklet agent.</p>
