@@ -1,6 +1,5 @@
 package io.auklet.sink;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;

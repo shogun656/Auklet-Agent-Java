@@ -539,18 +539,18 @@ public final class Auklet {
     private void doDatapointSend(@NonNull final String data, @NonNull final String dataType) {
         try {
             this.scheduleOneShotTask(new Runnable() {
-                @Override public void run() {
+                @Override
+                public void run() {
                     try {
                         LOGGER.debug("Sending datapoint: {}-{}", dataType, data);
                         sink.sendDatapoint(data, dataType);
                     } catch (AukletException e) {
                         LOGGER.warn("Could not send datapoint.", e);
                     }
-                    }
-                }, 0, TimeUnit.SECONDS); // 5-second cooldown.
-            } catch (AukletException e) {
-                LOGGER.warn("Could not queue datapoint send task.", e);
-            }
+                }
+            }, 0, TimeUnit.SECONDS); // 5-second cooldown.
+        } catch (AukletException e) {
+            LOGGER.warn("Could not queue datapoint send task.", e);
         }
     }
 
