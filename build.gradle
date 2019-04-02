@@ -111,6 +111,11 @@ javadoc {
     if (JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }
+    if (JavaVersion.current().isJava8Compatible()) {
+        // We get class version mismatch warnings on Java 7 that would cause
+        // Javadoc to fail with this option enabled, so we don't enable it on 7.
+        options.addBooleanOption('Xwerror', true)
+    }
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
