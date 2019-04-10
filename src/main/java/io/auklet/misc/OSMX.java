@@ -1,4 +1,4 @@
-package io.auklet.platform.metrics;
+package io.auklet.misc;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import net.jcip.annotations.Immutable;
@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <p>A frontend for {@link java.lang.management.OperatingSystemMXBean},
- * {@link com.sun.management.OperatingSystemMXBean} and {@link com.sun.management.UnixOperatingSystemMXBean}, depending
- * on which OS is being used and whether or not the JVM implements the {@code com.sun} classes.</p>
+ * {@link com.sun.management.OperatingSystemMXBean} and {@link com.sun.management.UnixOperatingSystemMXBean},
+ * depending on which OS is being used and whether or not the JVM implements these classes.</p>
  *
  * <p>Methods in this class that return strings could, if you were to use the bean object directly, throw
  * {@link SecurityException}; instead, this class hides those exceptions and returns empty strings if this

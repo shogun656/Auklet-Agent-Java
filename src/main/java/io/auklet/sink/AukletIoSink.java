@@ -5,8 +5,10 @@ import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.config.AukletIoBrokers;
 import io.auklet.config.AukletIoCert;
+import io.auklet.core.AukletDaemonExecutor;
+import io.auklet.misc.Tls12SocketFactory;
 import io.auklet.misc.Util;
-import io.auklet.misc.AukletDaemonExecutor;
+import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -20,7 +22,6 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.concurrent.ScheduledExecutorService;
 
 /** <p>The default Auklet data sink, which sends data to {@code auklet.io} via MQTT.</p> */
 @ThreadSafe
@@ -28,8 +29,8 @@ public final class AukletIoSink extends AbstractSink {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AukletIoSink.class);
     private final Object lock = new Object();
-    private ScheduledExecutorService executorService;
-    private MqttAsyncClient client;
+    @GuardedBy("lock") private AukletDaemonExecutor executorService;
+    @GuardedBy("lock") private MqttAsyncClient client;
 
     /**
      * <p>Constructs the underlying MQTT client.</p>
@@ -83,11 +84,15 @@ public final class AukletIoSink extends AbstractSink {
             super.shutdown();
             if (this.client != null) {
                 if (this.client.isConnected()) {
+                    this.executorService.logCancelExceptions(false);
                     try {
                         // Wait 2 seconds for work to quiesce and 1 second for disconnect to finish.
                         this.client.disconnect(2000L).waitForCompletion(1000L);
                     } catch (MqttException e) {
-                        LOGGER.warn("Error while disconnecting MQTT client.", e);
+                        // TODO remove this conditional after upgrading Paho to fix this
+                        if (!e.getMessage().equals("Timed out waiting for a response from the server")) {
+                            LOGGER.warn("Error while disconnecting MQTT client.", e);
+                        }
                         try {
                             // Do not wait for work to quiesce.
                             // Wait 1ms to disconnect (effectively do not wait, but if we say 0ms
@@ -192,7 +197,7 @@ public final class AukletIoSink extends AbstractSink {
             tmf.init(ca);
             SSLContext context = SSLContext.getInstance("TLSv1.2");
             context.init(null, tmf.getTrustManagers(), null);
-            return context.getSocketFactory();
+            return new Tls12SocketFactory(context);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
             throw new AukletException("Error while setting up MQTT SSL socket factory.", e);
         }
