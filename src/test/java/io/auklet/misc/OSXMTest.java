@@ -1,4 +1,4 @@
-package io.auklet.platform.metrics;
+package io.auklet.misc;
 
 import org.junit.jupiter.api.Test;
 

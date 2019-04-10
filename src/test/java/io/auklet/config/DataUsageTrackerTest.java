@@ -1,4 +1,3 @@
-//TODO: Finish test module
 package io.auklet.config;
 
 import io.auklet.Auklet;

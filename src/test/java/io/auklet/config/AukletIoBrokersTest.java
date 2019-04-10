@@ -44,7 +44,7 @@ final class AukletIoBrokersTest extends TestingTools {
     }
 
     @Test void testWriteToDisk() throws AukletException {
-        aukletIoBrokers.file = new File("aukletFiles/TestAukletIoBroker");
+        aukletIoBrokers.file = new File("tmp/TestAukletIoBroker");
         aukletIoBrokers.writeToDisk(jsonBrokers);
         assertEquals(true, aukletIoBrokers.file.length() > 0);
     }

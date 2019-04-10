@@ -1,4 +1,3 @@
-//TODO: Finish test module
 package io.auklet.core;
 
 import edu.umd.cs.findbugs.annotations.NonNull;

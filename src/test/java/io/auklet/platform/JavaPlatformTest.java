@@ -1,5 +1,6 @@
 package io.auklet.platform;
 
+import io.auklet.AukletException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -23,7 +24,7 @@ class JavaPlatformTest {
         assertNotNull(javaPlatform.getPossibleConfigDirs(null));
     }
 
-    @Test void testAddSystemMetrics() throws IOException {
+    @Test void testAddSystemMetrics() throws IOException, AukletException {
         javaPlatform.addSystemMetrics(msgpack);
         assertNotNull(msgpack.toByteArray());
     }

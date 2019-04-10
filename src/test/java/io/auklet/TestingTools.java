@@ -68,24 +68,4 @@ public class TestingTools {
         aukletConstructor.setAccessible(true);
         return aukletConstructor.newInstance(config);
     }
-
-    protected void writeToDisk(@NonNull Auklet agent, @NonNull Json contents, @NonNull String fileName) throws AukletException {
-        File file = new File("aukletFiles/" + fileName);
-        try {
-            aesCipher = Cipher.getInstance("AES");
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-            throw new AukletException("Could not get AES cipher.", e);
-        }
-        aesKey = new SecretKeySpec(agent.getAppId().substring(0,16).getBytes(), "AES");
-
-        if (contents == null) throw new AukletException("Input is null");
-        try {
-            // Encrypt and save the JSON string to disk.
-            this.aesCipher.init(Cipher.ENCRYPT_MODE, this.aesKey);
-            byte[] encrypted = this.aesCipher.doFinal(contents.toString().getBytes("UTF-8"));
-            Util.write(file, encrypted);
-        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IOException e) {
-            throw new AukletException("Could not encrypt/save device data to disk.", e);
-        }
-    }
 }

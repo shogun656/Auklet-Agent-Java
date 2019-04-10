@@ -1,4 +1,3 @@
-//TODO: Finish test module
 package io.auklet.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -35,7 +34,11 @@ class AbstractConfigFileFromApiTest extends TestingTools {
             @NonNull
             @Override
             protected void writeToDisk(@NonNull Json contents) throws AukletException {
-                Util.writeUtf8(this.file, contents.toString());
+                try {
+                    Util.writeUtf8(this.file, contents.toString());
+                } catch (IOException e) {
+                    // Purposefully to be empty
+                }
             }
 
             @NonNull
@@ -44,7 +47,7 @@ class AbstractConfigFileFromApiTest extends TestingTools {
                 return null;
             }
         };
-        abstractConfigFileFromApi.file = new File("aukletFiles/test");
+        abstractConfigFileFromApi.file = new File(".auklet/test");
     }
 
     @Test void testLoadConfig() throws AukletException {

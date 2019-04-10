@@ -40,20 +40,6 @@ class AukletTest extends TestingTools {
         auklet.init(config);
     }
 
-    //TODO: Fix/complete test
-    @Test void testSend() {
-        auklet.send(null);
-        String loggingResult = logger.getLoggingEvents().asList().toString();
-        assertEquals(true, loggingResult.contains("Ignoring send request for null throwable."));
-        TestLoggerFactory.clear();
-
-        try {
-            throw new AukletException();
-        } catch (AukletException e) {
-            Auklet.send(e);
-        }
-    }
-
     @Test void testGetAppId() {
         assertEquals("0123456789101112", auklet.getAppId());
     }
@@ -63,7 +49,7 @@ class AukletTest extends TestingTools {
     }
 
     @Test void testGetConfigDir() {
-        assertEquals(new File("aukletFiles").getAbsoluteFile(), auklet.getConfigDir());
+        assertEquals(new File(".auklet").getAbsoluteFile(), auklet.getConfigDir());
     }
 
     @Test void testGetSerialPort() {

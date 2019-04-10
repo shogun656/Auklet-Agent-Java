@@ -1,4 +1,3 @@
-//TODO: Finish test module
 package io.auklet.core;
 
 import org.junit.jupiter.api.BeforeAll;
