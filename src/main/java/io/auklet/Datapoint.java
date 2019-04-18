@@ -5,6 +5,7 @@ import io.auklet.AukletException;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessagePacker;
+import net.jcip.annotations.GuardedBy;
 
 import java.io.*;
 import java.util.*;
@@ -30,7 +31,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -48,7 +49,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -66,7 +67,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -84,7 +85,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -102,7 +103,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -120,7 +121,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -138,7 +139,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -156,7 +157,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -174,7 +175,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -192,7 +193,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -210,7 +211,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 
@@ -228,7 +229,7 @@ public class Datapoint {
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }
-            this.datavalue = this.msgpack.toByteArray();
+            this.dataValue = this.msgpack.toByteArray();
         }
     }
 }
