@@ -3,6 +3,7 @@ package io.auklet.sink;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
+import io.auklet.Datapoint;
 import io.auklet.AukletException;
 import io.auklet.core.HasAgent;
 import io.auklet.misc.Util;
@@ -72,17 +73,27 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         }
     }
 
-    public void sendDatapoint(@NonNull String data, @NonNull String dataType) throws AukletException {
+    @Override public void send(@NonNull String dataType, @NonNull Datapoint ... datapoints) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
                 this.initMessage(11);
-                this.msgpack
-                        .packString("timestamp").packLong(System.currentTimeMillis())
-                        .packString("payload").packString(data)
-                        // User defined type
-                        .packString("type").packString(dataType);
-
+                if (data.length > 1) {
+                    thils.msgpack
+                            .packString("timestamp").packLong(System.currentTimeMillis())// User defined type
+                            .packString("type").packString(dataType)
+                            .packString("payload").packArrayHeader(data.length);
+                    for (Datapoint data: datapoints) {
+                        this.msgpack.packBinaryHeader(data.length)
+                                .addPayload(data);
+                    }
+                } else {
+                    this.msgpack
+                            .packString("timestamp").packLong(System.currentTimeMillis())
+                            .packString("payload").packArrayHeader(datapoints.length).addPayload(datapoints.dataValue)
+                            // User defined type
+                            .packString("type").packString(dataType);
+                }
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message.", e);
             }

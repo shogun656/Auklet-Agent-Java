@@ -14,6 +14,7 @@ import io.auklet.platform.AndroidPlatform;
 import io.auklet.platform.JavaPlatform;
 import io.auklet.platform.Platform;
 import io.auklet.sink.*;
+import io.auklet.Datapoint;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
@@ -268,7 +269,7 @@ public final class Auklet {
      * @param dataString
      * @param dataType
      */
-    public static void sendDatapoint(@NonNull final String dataString, @NonNull final String dataType) {
+    public static void send(String dataType, Datapoint ... datapoint) {
         LOGGER.debug("Scheduling datapoint send task.");
         Runnable sendTask = new Runnable() {
             @Override
@@ -279,7 +280,7 @@ public final class Auklet {
                         return;
                     }
                 }
-                agent.doDatapointSend(dataString, dataType);
+                agent.doSend(dataType, datapoint);
             }
         };
         try {
@@ -287,6 +288,234 @@ public final class Auklet {
         } catch (RejectedExecutionException e) {
             LOGGER.error("Could not send datapoint.", e);
         }
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, boolean ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, byte ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, short ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, int ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, long ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, BigInteger ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, float ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, double ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, byte[] ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, String ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, List ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
+    }
+
+    /**
+     * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
+     *
+     * @param dataType
+     * @param data
+     */
+    public static void send(String dataType, Map ... data) {
+        LOGGER.debug("Attempting to build datapoint object.");
+        if (data.length > 1) {
+            Datapoint[] datapoints = new Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new Datapoint(data[i])
+            }
+        } else {
+            Datapoint datapoints = new Datapoint(data);
+        }
+        this.send(dataType, datapoints)
     }
 
     /**
@@ -536,14 +765,15 @@ public final class Auklet {
      * @param data
      * @param dataType
      */
-    private void doDatapointSend(@NonNull final String data, @NonNull final String dataType) {
+    private void doSend(@NonNull final String dataType, @NonNull final Datapoint ... data) {
         try {
             this.scheduleOneShotTask(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         LOGGER.debug("Sending datapoint: {}-{}", dataType, data);
-                        sink.sendDatapoint(data, dataType);
+
+                        sink.send(dataType, data);
                     } catch (AukletException e) {
                         LOGGER.warn("Could not send datapoint.", e);
                     }
