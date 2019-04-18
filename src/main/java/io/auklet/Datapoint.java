@@ -1,3 +1,5 @@
+package io.auklet;
+
 import java.math.BigInteger;
 import io.auklet.AukletException;
 import org.msgpack.core.MessageBufferPacker;
