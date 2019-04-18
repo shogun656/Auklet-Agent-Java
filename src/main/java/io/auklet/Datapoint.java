@@ -22,7 +22,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(boolean data) {
+    public Datapoint(boolean data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -40,7 +40,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(byte data) {
+    public Datapoint(byte data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -58,7 +58,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(short data) {
+    public Datapoint(short data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -76,7 +76,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(int data) {
+    public Datapoint(int data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -94,7 +94,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(long data) {
+    public Datapoint(long data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -112,7 +112,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(BigInteger data) {
+    public Datapoint(BigInteger data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -130,7 +130,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(float data) {
+    public Datapoint(float data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -148,7 +148,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(double data) {
+    public Datapoint(double data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -166,7 +166,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(byte[] data) {
+    public Datapoint(byte[] data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -184,7 +184,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(String data) {
+    public Datapoint(String data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -202,7 +202,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(List data) {
+    public Datapoint(List data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -220,7 +220,7 @@ public class Datapoint {
      *
      * @param data
      */
-    public Datapoint(Map data) {
+    public Datapoint(Map data) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
