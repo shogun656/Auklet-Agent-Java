@@ -171,7 +171,7 @@ public class Datapoint {
             this.msgpack.clear();
             try {
                 this.msgpack.packMapHeader(1)
-                        .packString(this.dataType).packBinaryHeader(data.length).addPaylod(data);
+                        .packString(this.dataType).packBinaryHeader(data.length).addPayload(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
             }

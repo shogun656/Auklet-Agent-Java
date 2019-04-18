@@ -78,21 +78,13 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             this.msgpack.clear();
             try {
                 this.initMessage(11);
-                if (datapoints.length > 1) {
-                    this.msgpack
-                            .packString("timestamp").packLong(System.currentTimeMillis())// User defined type
-                            .packString("type").packString(dataType)
-                            .packString("payload").packArrayHeader(data.length);
-                    for (Datapoint data: datapoints) {
-                        this.msgpack.packBinaryHeader(data.length)
-                                .addPayload(data);
-                    }
-                } else {
-                    this.msgpack
-                            .packString("timestamp").packLong(System.currentTimeMillis())
-                            .packString("payload").packArrayHeader(datapoints.length).addPayload(datapoints.dataValue)
-                            // User defined type
-                            .packString("type").packString(dataType);
+                this.msgpack
+                        .packString("timestamp").packLong(System.currentTimeMillis())// User defined type
+                        .packString("type").packString(dataType)
+                        .packString("payload").packArrayHeader(data.length);
+                for (Datapoint data: datapoints) {
+                    this.msgpack.packBinaryHeader(data.length)
+                            .addPayload(data);
                 }
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message.", e);
