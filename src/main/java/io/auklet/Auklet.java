@@ -14,13 +14,13 @@ import io.auklet.platform.AndroidPlatform;
 import io.auklet.platform.JavaPlatform;
 import io.auklet.platform.Platform;
 import io.auklet.sink.*;
-import io.auklet.Datapoint;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.concurrent.*;
 
 /**
@@ -269,7 +269,7 @@ public final class Auklet {
      * @param dataString
      * @param dataType
      */
-    public static void send(String dataType, Datapoint ... datapoint) {
+    public static void send(String dataType, io.auklet.Datapoint ... datapoint) {
         LOGGER.debug("Scheduling datapoint send task.");
         Runnable sendTask = new Runnable() {
             @Override
@@ -299,12 +299,12 @@ public final class Auklet {
     public static void send(String dataType, boolean ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -318,12 +318,12 @@ public final class Auklet {
     public static void send(String dataType, byte ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -337,12 +337,12 @@ public final class Auklet {
     public static void send(String dataType, short ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -356,12 +356,12 @@ public final class Auklet {
     public static void send(String dataType, int ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -375,12 +375,12 @@ public final class Auklet {
     public static void send(String dataType, long ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -394,12 +394,12 @@ public final class Auklet {
     public static void send(String dataType, BigInteger ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -413,12 +413,12 @@ public final class Auklet {
     public static void send(String dataType, float ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -432,12 +432,12 @@ public final class Auklet {
     public static void send(String dataType, double ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -451,12 +451,12 @@ public final class Auklet {
     public static void send(String dataType, byte[] ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -470,12 +470,12 @@ public final class Auklet {
     public static void send(String dataType, String ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -489,12 +489,12 @@ public final class Auklet {
     public static void send(String dataType, List ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -508,12 +508,12 @@ public final class Auklet {
     public static void send(String dataType, Map ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
-            Datapoint[] datapoints = new Datapoint[data.length];
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i]);
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
             }
         } else {
-            Datapoint datapoints = new Datapoint(data);
+            io.auklet.Datapoint datapoints = new io.auklet.Datapoint(data);
         }
         this.send(dataType, datapoints);
     }
@@ -765,7 +765,7 @@ public final class Auklet {
      * @param data
      * @param dataType
      */
-    private void doSend(@NonNull final String dataType, @NonNull final Datapoint ... data) {
+    private void doSend(@NonNull final String dataType, @NonNull final io.auklet.Datapoint ... data) {
         try {
             this.scheduleOneShotTask(new Runnable() {
                 @Override
