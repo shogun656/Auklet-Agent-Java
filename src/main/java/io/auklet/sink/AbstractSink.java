@@ -72,7 +72,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         }
     }
 
-    public void send(@NonNull String dataType, @NonNull Datapoint ... datapoints) throws AukletException {
+    public void send(@NonNull String dataType, @NonNull io.auklet.Datapoint ... datapoints) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -81,7 +81,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                         .packString("timestamp").packLong(System.currentTimeMillis())// User defined type
                         .packString("type").packString(dataType)
                         .packString("payload").packArrayHeader(data.length);
-                for (Datapoint data : datapoints) {
+                for (io.auklet.Datapoint data : datapoints) {
                     this.msgpack.packBinaryHeader(data.length)
                             .addPayload(data);
                 }

@@ -303,7 +303,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -318,7 +318,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -333,7 +333,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -348,7 +348,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -363,7 +363,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -378,7 +378,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -393,7 +393,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -408,7 +408,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -423,7 +423,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -438,7 +438,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -453,7 +453,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -468,7 +468,7 @@ public final class Auklet {
         for (int i=0; i < data.length; i++) {
             datapoints[i] = new io.auklet.Datapoint(data[i]);
         }
-        this.sendDatapoint(dataType, datapoints);
+        this.send(dataType, datapoints);
     }
 
     /**
