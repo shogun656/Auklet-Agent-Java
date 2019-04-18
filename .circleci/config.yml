@@ -51,7 +51,7 @@ jobs:
             - run:
                 name: Run Gradle Tests
                 command: |
-                  TERM=dumb ./gradlew clean test
+                  TERM=dumb ./gradlew clean test javadoc
             - run:
                 name: Run Whitesource
                 command: |
