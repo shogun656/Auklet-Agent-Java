@@ -25,7 +25,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packBoolean(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -43,7 +43,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packByte(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -61,7 +61,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packShort(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -79,7 +79,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packInt(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -97,7 +97,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packLong(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -115,7 +115,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packBigInteger(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -133,7 +133,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packFloat(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -151,7 +151,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packDouble(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -169,7 +169,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packBinaryHeader(data.length).addPaylod(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -187,7 +187,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packString(data);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
@@ -223,7 +223,7 @@ public class Datapoint {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.msgpack.packMapheader(1)
+                this.msgpack.packMapHeader(1)
                         .packString(this.dataType).packMapHeader(data.size());
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message", e);
