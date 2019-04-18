@@ -296,7 +296,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, boolean ... data) {
+    public void send(String dataType, boolean ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -315,7 +315,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, byte ... data) {
+    public void send(String dataType, byte ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -334,7 +334,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, short ... data) {
+    public void send(String dataType, short ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -353,7 +353,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, int ... data) {
+    public void send(String dataType, int ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -372,7 +372,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, long ... data) {
+    public void send(String dataType, long ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -391,7 +391,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, BigInteger ... data) {
+    public void send(String dataType, BigInteger ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -410,7 +410,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, float ... data) {
+    public void send(String dataType, float ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -429,7 +429,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, double ... data) {
+    public void send(String dataType, double ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -448,7 +448,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, byte[] ... data) {
+    public void send(String dataType, byte[] ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -467,7 +467,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, String ... data) {
+    public void send(String dataType, String ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -486,7 +486,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, List ... data) {
+    public void send(String dataType, List ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
@@ -505,7 +505,7 @@ public final class Auklet {
      * @param dataType
      * @param data
      */
-    public static void send(String dataType, Map ... data) {
+    public void send(String dataType, Map ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
         if (data.length > 1) {
             io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];

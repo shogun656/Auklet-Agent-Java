@@ -10,7 +10,7 @@ import java.io.*;
 import java.util.*;
 
 
-public final class Datapoint {
+public class Datapoint {
 
     @GuardedBy("itself") protected final MessageBufferPacker msgpack = MessagePack.newDefaultBufferPacker();
     private final String dataType = "value";
@@ -21,7 +21,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(boolean data) {
+    public Datapoint(boolean data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -39,7 +39,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(byte data) {
+    public Datapoint(byte data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -57,7 +57,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(short data) {
+    public Datapoint(short data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -75,7 +75,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(int data) {
+    public Datapoint(int data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -93,7 +93,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(long data) {
+    public Datapoint(long data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -111,7 +111,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(BigInteger data) {
+    public Datapoint(BigInteger data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -129,7 +129,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(float data) {
+    public Datapoint(float data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -147,7 +147,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(double data) {
+    public Datapoint(double data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -165,7 +165,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(byte[] data) {
+    public Datapoint(byte[] data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -183,7 +183,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(String data) {
+    public Datapoint(String data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -201,7 +201,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(List data) {
+    public Datapoint(List data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -219,7 +219,7 @@ public final class Datapoint {
      *
      * @param data
      */
-    Datapoint(Map data) {
+    public Datapoint(Map data) {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
