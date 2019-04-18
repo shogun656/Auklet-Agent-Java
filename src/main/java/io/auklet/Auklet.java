@@ -301,12 +301,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -320,12 +320,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -339,12 +339,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -358,12 +358,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -377,12 +377,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -396,12 +396,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -415,12 +415,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -434,12 +434,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -453,12 +453,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -472,12 +472,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -491,12 +491,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
@@ -510,12 +510,12 @@ public final class Auklet {
         if (data.length > 1) {
             Datapoint[] datapoints = new Datapoint[data.length];
             for (int i=0; i < data.length; i++) {
-                datapoints[i] = new Datapoint(data[i])
+                datapoints[i] = new Datapoint(data[i]);
             }
         } else {
             Datapoint datapoints = new Datapoint(data);
         }
-        this.send(dataType, datapoints)
+        this.send(dataType, datapoints);
     }
 
     /**
