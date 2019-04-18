@@ -267,10 +267,10 @@ public final class Auklet {
     /**
      * <p>Sends the given string of dataString and dataType as a <i>datapoint</i>.</p>
      *
-     * @param dataString
-     * @param dataType
+     * @param dataType User specified string which describes the provided data
+     * @param datapoint Class containing serialized user data for mqtt transmission
      */
-    public static void send(String dataType, io.auklet.Datapoint ... datapoint) {
+    public static void send(final String dataType, final io.auklet.Datapoint ... datapoint) {
         LOGGER.debug("Scheduling datapoint send task.");
         Runnable sendTask = new Runnable() {
             @Override
@@ -294,181 +294,229 @@ public final class Auklet {
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code boolean} which is the data described by the dataType
      */
     public void sendBool(String dataType, boolean ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i = 0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code byte} which is the data described by the dataType
      */
     public void sendByte(String dataType, byte ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code short} which is the data described by the dataType
      */
     public void sendShort(String dataType, short ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code int} which is the data described by the dataType
      */
     public void sendInt(String dataType, int ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code long} which is the data described by the dataType
      */
     public void sendLong(String dataType, long ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code BigInteger} which is the data described by the dataType
      */
     public void sendBigInteger(String dataType, BigInteger ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code float} which is the data described by the dataType
      */
     public void sendFloat(String dataType, float ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code double} which is the data described by the dataType
      */
     public void sendDouble(String dataType, double ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code byte[]} which is the data described by the dataType
      */
     public void sendByteArray(String dataType, byte[] ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code String} which is the data described by the dataType
      */
     public void sendString(String dataType, String ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code List} which is the data described by the dataType
      */
     public void sendList(String dataType, List ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**
      * <p>This method sends a datapoint map (non-array) with a single element whose key is "value"</p>
      *
-     * @param dataType
-     * @param data
+     * @param dataType User specified string which describes the provided data
+     * @param data A {@code Map} which is the data described by the dataType
      */
     public void sendMap(String dataType, Map ... data) {
         LOGGER.debug("Attempting to build datapoint object.");
-        io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
-        for (int i=0; i < data.length; i++) {
-            datapoints[i] = new io.auklet.Datapoint(data[i]);
+        try {
+            io.auklet.Datapoint[] datapoints = new io.auklet.Datapoint[data.length];
+            for (int i=0; i < data.length; i++) {
+                datapoints[i] = new io.auklet.Datapoint(data[i]);
+            }
+            this.send(dataType, datapoints);
+        } catch (AukletException e) {
+            LOGGER.error("Could not send datapoint.", e);
         }
-        this.send(dataType, datapoints);
     }
 
     /**

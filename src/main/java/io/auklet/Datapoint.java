@@ -18,9 +18,10 @@ public class Datapoint {
     public byte[] dataValue;
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(boolean data) throws AukletException {
         synchronized (this.msgpack) {
@@ -36,9 +37,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(byte data) throws AukletException {
         synchronized (this.msgpack) {
@@ -54,9 +56,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(short data) throws AukletException {
         synchronized (this.msgpack) {
@@ -72,9 +75,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(int data) throws AukletException {
         synchronized (this.msgpack) {
@@ -90,9 +94,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(long data) throws AukletException {
         synchronized (this.msgpack) {
@@ -108,9 +113,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(BigInteger data) throws AukletException {
         synchronized (this.msgpack) {
@@ -126,9 +132,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(float data) throws AukletException {
         synchronized (this.msgpack) {
@@ -144,9 +151,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(double data) throws AukletException {
         synchronized (this.msgpack) {
@@ -162,9 +170,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(byte[] data) throws AukletException {
         synchronized (this.msgpack) {
@@ -180,9 +189,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(String data) throws AukletException {
         synchronized (this.msgpack) {
@@ -198,9 +208,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(List data) throws AukletException {
         synchronized (this.msgpack) {
@@ -216,9 +227,10 @@ public class Datapoint {
     }
 
     /**
-     * <p>This method returns a the byte array matching a map whose key is "value"</p>
+     * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
-     * @param data
+     * @param data data to be packed
+     * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(Map data) throws AukletException {
         synchronized (this.msgpack) {

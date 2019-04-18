@@ -52,7 +52,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                         .packString("timestamp").packLong(System.currentTimeMillis())
                         .packString("excType").packString(throwable.getClass().getName())
                         .packString("message").packString(Util.orElse(throwable.getMessage(), ""))
-                        .packString("stackTrace").packArrayHeader(stackTrace.length);
+                         .packString("stackTrace").packArrayHeader(stackTrace.length);
                 for (StackTraceElement ste : stackTrace) {
                     int lineNumber = ste.getLineNumber();
                     this.msgpack.packMapHeader(4)
@@ -78,12 +78,13 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             try {
                 this.initMessage(11);
                 this.msgpack
-                        .packString("timestamp").packLong(System.currentTimeMillis())// User defined type
+                        .packString("timestamp").packLong(System.currentTimeMillis())
+                        // User defined type
                         .packString("type").packString(dataType)
-                        .packString("payload").packArrayHeader(data.length);
-                for (io.auklet.Datapoint data : datapoints) {
-                    this.msgpack.packBinaryHeader(data.length)
-                            .addPayload(data);
+                        .packString("payload").packArrayHeader(datapoints.length);
+                for (int i=0; i<datapoints.length; i++) {
+                    this.msgpack.packBinaryHeader(datapoints[i].dataValue.length)
+                            .addPayload(datapoints[i].dataValue);
                 }
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message.", e);
