@@ -126,11 +126,6 @@ public final class AukletApi {
                 LOGGER.info("Using custom root CA.");
                 CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
                 Certificate certificate = certificateFactory.generateCertificate(rootCa);
-                try {
-                    rootCa.close();
-                } catch (IOException e) {
-                    LOGGER.warn("Error while closing custom root CA InputStream", e);
-                }
                 ca = KeyStore.getInstance(KeyStore.getDefaultType());
                 ca.load(null, null);
                 ca.setCertificateEntry("ca-certificate", certificate);
@@ -141,6 +136,11 @@ public final class AukletApi {
             builder.sslSocketFactory(new Tls12SocketFactory(context), trustManager);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
             throw new AukletException("Error while setting up HTTPS SSL socket factory.", e);
+        }
+        try {
+            if (rootCa != null) rootCa.close();
+        } catch (IOException e) {
+            LOGGER.warn("Error while closing custom root CA InputStream", e);
         }
     }
 
