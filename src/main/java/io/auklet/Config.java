@@ -76,6 +76,14 @@ import java.io.InputStream;
  *       <td>{@code https://api.auklet.io}</td>
  *     </tr>
  *     <tr>
+ *       <td>API root CA certificate</td>
+ *       <td>{@link #setRootCa(InputStream)}</td>
+ *       <td>
+ *         Setter method value
+ *       </td>
+ *       <td>{@code null} (OS/JVM truststore will be used)</td>
+ *     </tr>
+ *     <tr>
  *       <td>Config directory</td>
  *       <td>{@link #setConfigDir(String)}</td>
  *       <td>
