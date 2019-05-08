@@ -6,6 +6,8 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.misc.Util;
 import net.jcip.annotations.NotThreadSafe;
 
+import java.io.InputStream;
+
 /**
  * <p>Config object for the {@link Auklet} agent. For fluency, all setter methods in this class return
  * {@code this} to support chaining.</p>
@@ -157,6 +159,7 @@ public final class Config {
     private String appId = null;
     private String apiKey = null;
     private String baseUrl = null;
+    private InputStream rootCa = null;
     private String configDir = null;
     private Boolean autoShutdown = null;
     private Boolean uncaughtExceptionHandler = null;
@@ -197,6 +200,23 @@ public final class Config {
     @NonNull public Config setBaseUrl(@Nullable String baseUrl) {
         if (Util.isNullOrEmpty(baseUrl)) baseUrl = null;
         this.baseUrl = baseUrl;
+        return this;
+    }
+
+    /**
+     * <p>Sets the root CA certificate to be used with the Auklet API. If not {@code null}:</p>
+     *
+     * <ul>
+     *     <li>This stream must contain only one certificate.</li>
+     *     <li>The Auklet agent will close this stream after reading it.</li>
+     * </ul>
+     *
+     * @param rootCa may be {@code null}, in which case the Auklet agent will look for
+     * the API root CA certificate in the truststore provided by the OS/JVM.
+     * @return {@code this}.
+     */
+    @NonNull public Config setRootCa(@Nullable InputStream rootCa) {
+        this.rootCa = rootCa;
         return this;
     }
 
@@ -285,6 +305,11 @@ public final class Config {
     /** <p>Returns the desired API base URL.</p> */
     /*package*/ @CheckForNull String getBaseUrl() {
         return baseUrl;
+    }
+
+    /** <p>Returns the desired API root CA certificate.</p> */
+    /*package*/ @CheckForNull InputStream getRootCa() {
+        return rootCa;
     }
 
     /** <p>Returns the desired config directory.</p> */
