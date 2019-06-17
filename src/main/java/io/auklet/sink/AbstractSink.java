@@ -5,6 +5,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.HasAgent;
+import io.auklet.core.Datapoint;
 import io.auklet.misc.Util;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
@@ -72,7 +73,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         }
     }
 
-    public void send(@NonNull String dataType, @NonNull io.auklet.Datapoint datapoint) throws AukletException {
+    public void send(@NonNull String dataType, @NonNull Datapoint datapoint) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -81,9 +82,8 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                         .packString("timestamp").packLong(System.currentTimeMillis())
                         // User defined type
                         .packString("type").packString(dataType)
-                        .packString("payload").packArrayHeader(1)
-                        .packBinaryHeader(datapoint.dataValue.length)
-                        .addPayload(datapoint.dataValue);
+                        .packString("payload").packArrayHeader(1);
+                datapoint.getValue().writeTo(msgpack);
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message.", e);
             }
