@@ -283,8 +283,7 @@ public final class Auklet {
                     }
                 }
                 try {
-                    Datapoint copied = new Datapoint(datapoint);
-                    agent.doSend(dataType, copied);
+                    agent.doSend(dataType, new Datapoint(datapoint));
                 } catch (AukletException e) {
                     LOGGER.error("Could not send datapoint.", e);
                 }
