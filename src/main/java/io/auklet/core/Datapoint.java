@@ -84,6 +84,9 @@ public final class Datapoint {
                         ValueFactory.newBoolean((boolean) data)
                     );
                     break;
+                default:
+                    // This is impossible
+                    throw new AukletException("Error constructing Datapoint");
             }
         } else if (data.getClass().isArray()) {
             // construct new array of values from looping through all members
@@ -111,7 +114,7 @@ public final class Datapoint {
             );
         } else if (data instanceof Map) {
             Map<ImmutableValue, ImmutableValue> valueMap = new HashMap<ImmutableValue, ImmutableValue>();
-            Map<Object, Object> castedMap = (Map<Object, Object>) data;
+            Map<Object, Object> castedMap = (Map) data;
             for (Map.Entry<Object, Object> entry : castedMap.entrySet()) {
                 Datapoint key = new Datapoint(entry.getKey());
                 Datapoint value = new Datapoint(entry.getValue());
