@@ -114,11 +114,6 @@ public final class Auklet {
         this.baseUrl = Util.orElse(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
         LOGGER.info("Base URL: {}", this.baseUrl);
 
-        Boolean autoShutdownMaybeNull = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
-        Boolean uncaughtExceptionHandlerMaybeNull = Util.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
-        boolean autoShutdown = autoShutdownMaybeNull == null ? true : autoShutdownMaybeNull;
-        boolean uncaughtExceptionHandler = uncaughtExceptionHandlerMaybeNull == null ? true : uncaughtExceptionHandlerMaybeNull;
-
         this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
         Object androidContext = config.getAndroidContext();
         if (androidContext != null && serialPort != null) throw new AukletException("Auklet can not use serial port when on an Android platform.");
@@ -156,18 +151,31 @@ public final class Auklet {
         }
         this.usageMonitor = new DataUsageMonitor();
 
+        this.shutdownHook = configJVMIntegrations(config);
+        setUncaughtExceptionHandler(config);
+    }
+
+    public static Thread configJVMIntegrations(Config config) throws AukletException {
+        Boolean autoShutdownMaybeNull = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
+        boolean autoShutdown = autoShutdownMaybeNull == null ? true : autoShutdownMaybeNull;
+
         LOGGER.debug("Configuring JVM integrations.");
         if (autoShutdown) {
             Thread hook = createShutdownHook();
-            this.shutdownHook = hook;
             try {
                 Runtime.getRuntime().addShutdownHook(hook);
             } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
                 throw new AukletException("Could not add JVM shutdown hook.", e);
             }
+            return hook;
         } else {
-            this.shutdownHook = null;
+            return null;
         }
+    }
+
+    public static void setUncaughtExceptionHandler(Config config) throws AukletException {
+        Boolean uncaughtExceptionHandlerMaybeNull = Util.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
+        boolean uncaughtExceptionHandler = uncaughtExceptionHandlerMaybeNull == null ? true : uncaughtExceptionHandlerMaybeNull;
 
         if (uncaughtExceptionHandler) {
             try {
