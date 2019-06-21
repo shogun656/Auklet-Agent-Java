@@ -77,12 +77,12 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
-                this.initMessage(11);
+                this.initMessage(10);
                 this.msgpack
                         .packString("timestamp").packLong(System.currentTimeMillis())
                         // User defined type
                         .packString("type").packString(dataType)
-                        .packString("payload").packArrayHeader(1);
+                        .packString("payload");
                 datapoint.getValue().writeTo(this.msgpack);
                 this.msgpack.flush();
             } catch (IOException e) {
