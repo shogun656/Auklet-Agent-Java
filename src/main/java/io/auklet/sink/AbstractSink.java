@@ -83,7 +83,8 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                         // User defined type
                         .packString("type").packString(dataType)
                         .packString("payload").packArrayHeader(1);
-                datapoint.getValue().writeTo(msgpack);
+                datapoint.getValue().writeTo(this.msgpack);
+                this.msgpack.flush();
             } catch (IOException e) {
                 throw new AukletException("Could not assemble datapoint message.", e);
             }
