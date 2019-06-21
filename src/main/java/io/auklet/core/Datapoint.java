@@ -150,16 +150,18 @@ public final class Datapoint {
     }
 
     /**
+     * <p>Returns the value converted to an ImmutableValue</p>
      *
-     * @return
+     * @return The ImmutableValue object stored in this datapoint
      */
     @NonNull public ImmutableValue getValue() {
         return this.value;
     }
 
     /**
+     * <p>Currently not utilized, will evnetually return a string representation of the datapoint for logging purposes</p>
      *
-     * @return
+     * @return Empty string
      */
     public String toString() {
         return "";
