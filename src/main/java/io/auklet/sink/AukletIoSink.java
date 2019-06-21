@@ -79,7 +79,7 @@ public final class AukletIoSink extends AbstractSink {
         }
     }
 
-    
+
 
     @Override public void shutdown() {
         synchronized (this.lock) {

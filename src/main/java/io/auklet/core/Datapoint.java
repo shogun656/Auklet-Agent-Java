@@ -88,6 +88,41 @@ public final class Datapoint {
                     // This is impossible
                     throw new AukletException("Error constructing Datapoint");
             }
+        } else if (data instanceof Integer) {
+            this.value = ValueFactory.newMap(
+                    ValueFactory.newString(this.SIMPLE_KEY),
+                    ValueFactory.newInteger((int) data)
+            );
+        } else if (data instanceof Float) {
+            this.value = ValueFactory.newMap(
+                    ValueFactory.newString(this.SIMPLE_KEY),
+                    ValueFactory.newFloat((float) data)
+            );
+        } else if (data instanceof Short) {
+            this.value = ValueFactory.newMap(
+                    ValueFactory.newString(this.SIMPLE_KEY),
+                    ValueFactory.newInteger((short) data)
+            );
+        } else if (data instanceof Long) {
+            this.value = ValueFactory.newMap(
+                    ValueFactory.newString(this.SIMPLE_KEY),
+                    ValueFactory.newInteger((long) data)
+            );
+        } else if (data instanceof Double) {
+            this.value = ValueFactory.newMap(
+                    ValueFactory.newString(this.SIMPLE_KEY),
+                    ValueFactory.newFloat((double) data)
+            );
+        } else if (data instanceof Byte) {
+            this.value = ValueFactory.newMap(
+                    ValueFactory.newString(this.SIMPLE_KEY),
+                    ValueFactory.newInteger((byte) data)
+            );
+        } else if (data instanceof Boolean) {
+            this.value = ValueFactory.newMap(
+                    ValueFactory.newString(this.SIMPLE_KEY),
+                    ValueFactory.newBoolean((boolean) data)
+            );
         } else if (data.getClass().isArray()) {
             // construct new array of values from looping through all members
             List<ImmutableValue> newDatapoints = new ArrayList<ImmutableValue>();
