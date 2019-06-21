@@ -69,7 +69,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             }
             byte[] payload = this.msgpack.toByteArray();
             if (payload == null || payload.length == 0) return;
-            this.write(payload);
+            this.write(payload, this.getAgent().getDeviceAuth().getMqttEventsTopic());
         }
     }
 
@@ -90,7 +90,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
             }
             byte[] payload = this.msgpack.toByteArray();
             if (payload == null || payload.length == 0) return;
-            this.write(payload);
+            this.write(payload, this.getAgent().getDeviceAuth().getMqttDatapointsTopic());
         }
     }
 
@@ -100,7 +100,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
      * @param bytes the byte array, never {@code null} or empty.
      * @throws AukletException if the data cannot be written.
      */
-    @GuardedBy("msgpack") protected abstract void write(@NonNull byte[] bytes) throws AukletException;
+    @GuardedBy("msgpack") protected abstract void write(@NonNull byte[] bytes, @NonNull String topic) throws AukletException;
 
     /**
      * <p>Starts assembling an Auklet-compatible MessagePack message, which is defined as a MessagePack
