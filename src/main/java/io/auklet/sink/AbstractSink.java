@@ -98,6 +98,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
      * <p>Writes the given byte array to the underlying data sink.</p>
      *
      * @param bytes the byte array, never {@code null} or empty.
+     * @param topic the topic to send to, never {@code null} or empty.
      * @throws AukletException if the data cannot be written.
      */
     @GuardedBy("msgpack") protected abstract void write(@NonNull byte[] bytes, @NonNull String topic) throws AukletException;
