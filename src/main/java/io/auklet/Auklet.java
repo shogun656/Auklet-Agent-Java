@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
-import java.math.BigInteger;
 import java.util.concurrent.*;
 
 /**
@@ -269,7 +268,11 @@ public final class Auklet {
      * <p>Sends the given string of dataString and dataType as a <i>datapoint</i>.</p>
      *
      * @param dataType User specified string which describes the provided data
-     * @param datapoint Class containing serialized user data for mqtt transmission
+     * @param datapoint Any value. null, primitives/boxed primitives,
+     *                  BigIntegers, BigDecimals, Lists and Maps are all
+     *                  serialized into appropriate JSON-like structures.
+     *                  All other object types are rejected and cause an
+     *                  AukletException.
      */
     public static void send(final String dataType, final Object datapoint) {
         LOGGER.debug("Scheduling datapoint send task.");
