@@ -21,7 +21,7 @@ import java.util.*;
 @Immutable
 public final class Datapoint {
 
-    private static String simpleKey = "value";
+    private static final String SIMPLE_KEY = "value";
     private final ImmutableValue value;
     private final String asString;
 
@@ -39,7 +39,7 @@ public final class Datapoint {
         } else {
             Map.Entry<String, Value> converted = Datapoint.convertData(data).entrySet().iterator().next();
             this.value = ValueFactory.newMap(
-                    ValueFactory.newString(Datapoint.simpleKey),
+                    ValueFactory.newString(Datapoint.SIMPLE_KEY),
                     converted.getValue()
             );
             this.asString = converted.getKey();
@@ -153,11 +153,11 @@ public final class Datapoint {
     }
 
     /**
-     * <p>Currently not utilized, will evnetually return a string representation of the datapoint for logging purposes</p>
+     * <p>Returns the string representation of the value stored in the datapoint</p>
      *
-     * @return Empty string
+     * @return String representation of the current value of the datapoint
      */
-    public String toString() {
+    @NonNull public String toString() {
         return asString;
     }
 }
