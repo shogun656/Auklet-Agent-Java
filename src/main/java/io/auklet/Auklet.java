@@ -49,6 +49,7 @@ public final class Auklet {
     /** <p>The version of the Auklet agent JAR.</p> */
     public static final String VERSION;
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
+    private static final String DATAPOINT_ERROR = "Could not send datapoint.";
     private static final Object LOCK = new Object();
     private static final AukletDaemonExecutor DAEMON = new AukletDaemonExecutor(1, Util.createDaemonThreadFactory("Auklet"));
     @GuardedBy("LOCK") private static Auklet agent = null;
@@ -66,6 +67,7 @@ public final class Auklet {
     private final AbstractSink sink;
     private final DataUsageMonitor usageMonitor;
     private final Thread shutdownHook;
+
 
     static {
         // Extract Auklet agent version from the BuildConfig class.
@@ -286,9 +288,9 @@ public final class Auklet {
                     }
                 }
                 try {
-                    agent.doSend(dataType, new Datapoint(datapoint));
+                    agent.doSend(new Datapoint(dataType, datapoint));
                 } catch (AukletException e) {
-                    LOGGER.error("Could not send datapoint.", e);
+                    LOGGER.error(Auklet.DATAPOINT_ERROR, e);
                 }
 
             }
@@ -296,7 +298,7 @@ public final class Auklet {
         try {
             DAEMON.submit(sendTask);
         } catch (RejectedExecutionException e) {
-            LOGGER.error("Could not send datapoint.", e);
+            LOGGER.error(Auklet.DATAPOINT_ERROR, e);
         }
     }
 
@@ -545,17 +547,16 @@ public final class Auklet {
     /**
      * <p>Queues a task to submit the given datapoint to the data sink.</p>
      * @param data
-     * @param dataType
      */
-    private void doSend(@NonNull final String dataType, @NonNull final Datapoint data) {
+    private void doSend(@NonNull final Datapoint data) {
         try {
             this.scheduleOneShotTask(new Runnable() {
                 @Override public void run() {
                     try {
                         LOGGER.debug("Sending datapoint: {}", data.toString());
-                        sink.send(dataType, data);
+                        sink.send(data);
                     } catch (AukletException e) {
-                        LOGGER.warn("Could not send datapoint.", e);
+                        LOGGER.warn(Auklet.DATAPOINT_ERROR, e);
                     }
                 }
             }, 0, TimeUnit.SECONDS); // 5-second cooldown.

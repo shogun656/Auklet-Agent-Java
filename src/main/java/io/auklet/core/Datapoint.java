@@ -5,8 +5,6 @@ import java.math.BigDecimal;
 import io.auklet.AukletException;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import org.msgpack.core.MessageBufferPacker;
-import org.msgpack.core.MessagePack;
 import org.msgpack.value.Value;
 import org.msgpack.value.ImmutableValue;
 import org.msgpack.value.ValueFactory;
@@ -25,17 +23,21 @@ public final class Datapoint {
     private final ImmutableValue value;
     private final String asString;
 
+    public final String dataType;
+
     /**
      * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
      *
+     * @param dataType string defining the type of the data to be packed
      * @param data data to be packed
      * @throws AukletException to wrap any underlying exceptions.
      */
-    public Datapoint(@Nullable Object data) throws AukletException {
+    public Datapoint(@NonNull String dataType, @Nullable Object data) throws AukletException {
         if (data instanceof Datapoint) {
             Datapoint newDatapoint = (Datapoint) data;
             this.value = newDatapoint.getValue();
             this.asString = newDatapoint.toString();
+            this.dataType = newDatapoint.dataType;
         } else {
             Map.Entry<String, Value> converted = Datapoint.convertData(data).entrySet().iterator().next();
             this.value = ValueFactory.newMap(
@@ -43,6 +45,7 @@ public final class Datapoint {
                     converted.getValue()
             );
             this.asString = converted.getKey();
+            this.dataType = dataType;
         }
     }
 
@@ -108,23 +111,26 @@ public final class Datapoint {
                     ValueFactory.newBoolean((boolean) data));
         } else if (data.getClass().isArray() || data instanceof List) {
             // construct new array of values from looping through all members
-            List<ImmutableValue> newDatapoints = new ArrayList<>();
+            List<Value> newDatapoints = new ArrayList<>();
             Object[] objects = (Object[]) data;
             for (int i = 0; i < objects.length; i++) {
-                Datapoint newData = new Datapoint(objects[i]);
-                newDatapoints.add(newData.getValue());
+                Map<String, Value> convertedMap = Datapoint.convertData(objects[i]);
+                Map.Entry<String, Value> entryMap = convertedMap.entrySet().iterator().next();
+                newDatapoints.add(entryMap.getValue());
             }
             valueMap.put(
                     newDatapoints.toString(),
                     ValueFactory.newArray(newDatapoints)
             );
         } else if (data instanceof Map) {
-            Map<ImmutableValue, ImmutableValue> convertedMap = new HashMap<>();
+            Map<Value, Value> convertedMap = new HashMap<>();
             Map<Object, Object> castedMap = (Map) data;
             for (Map.Entry<Object, Object> entry : castedMap.entrySet()) {
-                Datapoint key = new Datapoint(entry.getKey());
-                Datapoint newValue = new Datapoint(entry.getValue());
-                convertedMap.put(key.getValue(), newValue.getValue());
+                Map<String, Value> convertedKeyMap = Datapoint.convertData(entry.getKey());
+                Map.Entry<String, Value> entryKeyMap = convertedKeyMap.entrySet().iterator().next();
+                Map<String, Value> convertedValueMap = Datapoint.convertData(entry.getValue());
+                Map.Entry<String, Value> entryValueMap = convertedValueMap.entrySet().iterator().next();
+                convertedMap.put(entryKeyMap.getValue(), entryValueMap.getValue());
             }
             valueMap.put(
                     convertedMap.toString(), ValueFactory.newMap(convertedMap)
@@ -158,6 +164,14 @@ public final class Datapoint {
      * @return String representation of the current value of the datapoint
      */
     @NonNull public String toString() {
-        return asString;
+        return this.asString;
+    }
+
+    /**
+     * <p>Returns the string which describes the data stored within the datapoint</p>
+     * @return User defined string which describes the type of data within the datapoint
+     */
+    @NonNull public String getDataType() {
+        return this.dataType;
     }
 }

@@ -73,7 +73,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         }
     }
 
-    @Override public void send(@NonNull String dataType, @NonNull Datapoint datapoint) throws AukletException {
+    @Override public void send(@NonNull Datapoint datapoint) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -81,7 +81,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                 this.msgpack
                         .packString("timestamp").packLong(System.currentTimeMillis())
                         // User defined type
-                        .packString("type").packString(dataType)
+                        .packString("type").packString(datapoint.dataType)
                         .packString("payload");
                 datapoint.getValue().writeTo(this.msgpack);
                 this.msgpack.flush();
