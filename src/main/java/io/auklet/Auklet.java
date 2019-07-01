@@ -552,7 +552,7 @@ public final class Auklet {
             this.scheduleOneShotTask(new Runnable() {
                 @Override public void run() {
                     try {
-                        LOGGER.debug("Sending datapoint: {}", dataType);
+                        LOGGER.debug("Sending datapoint: {}", data.toString());
                         sink.send(dataType, data);
                     } catch (AukletException e) {
                         LOGGER.warn("Could not send datapoint.", e);

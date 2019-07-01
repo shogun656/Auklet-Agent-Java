@@ -53,7 +53,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                         .packString("timestamp").packLong(System.currentTimeMillis())
                         .packString("excType").packString(throwable.getClass().getName())
                         .packString("message").packString(Util.orElse(throwable.getMessage(), ""))
-                         .packString("stackTrace").packArrayHeader(stackTrace.length);
+                        .packString("stackTrace").packArrayHeader(stackTrace.length);
                 for (StackTraceElement ste : stackTrace) {
                     int lineNumber = ste.getLineNumber();
                     this.msgpack.packMapHeader(4)
@@ -73,7 +73,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
         }
     }
 
-    public void send(@NonNull String dataType, @NonNull Datapoint datapoint) throws AukletException {
+    @Override public void send(@NonNull String dataType, @NonNull Datapoint datapoint) throws AukletException {
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {
@@ -98,7 +98,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
      * <p>Writes the given byte array to the underlying data sink.</p>
      *
      * @param bytes the byte array, never {@code null} or empty.
-     * @param topic the topic to send to, never {@code null} or empty.
+     * @param topic the topic to send to, never {@code null} or empty. Not all methods require this parameter.
      * @throws AukletException if the data cannot be written.
      */
     @GuardedBy("msgpack") protected abstract void write(@NonNull byte[] bytes, @NonNull String topic) throws AukletException;

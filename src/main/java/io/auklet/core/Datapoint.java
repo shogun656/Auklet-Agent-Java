@@ -16,13 +16,14 @@ import java.io.*;
 import java.util.*;
 
 /**
- *
+ * <p>Datapoints are a way to log your own custom data to the auklet backend.</p>
  */
 @Immutable
 public final class Datapoint {
 
     private static String simpleKey = "value";
     private final ImmutableValue value;
+    private final String asString;
 
     /**
      * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
@@ -31,99 +32,81 @@ public final class Datapoint {
      * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(@Nullable Object data) throws AukletException {
-
-        MessageBufferPacker msgpack = MessagePack.newDefaultBufferPacker();
-        msgpack.clear();
-        if (data == null) {
+        if (data instanceof Datapoint) {
+            Datapoint newDatapoint = (Datapoint) data;
+            this.value = newDatapoint.getValue();
+            this.asString = newDatapoint.toString();
+        } else {
+            Map.Entry<String, Value> converted = Datapoint.convertData(data).entrySet().iterator().next();
             this.value = ValueFactory.newMap(
-                ValueFactory.newString(Datapoint.simpleKey),
-                ValueFactory.newNil()
+                    ValueFactory.newString(Datapoint.simpleKey),
+                    converted.getValue()
             );
+            this.asString = converted.getKey();
+        }
+    }
+
+    @NonNull private static Map<String, Value> convertData(@Nullable Object data) throws AukletException {
+        Map<String, Value> valueMap = new HashMap<>();
+        if (data == null) {
+            valueMap.put("null", ValueFactory.newNil());
         } else if (data.getClass().isPrimitive()) {
             String className = data.getClass().getSimpleName();
             switch (className) {
                 case "Integer":
-                    this.value = ValueFactory.newMap(
-                        ValueFactory.newString(Datapoint.simpleKey),
-                        ValueFactory.newInteger((int) data)
-                    );
+                    valueMap.put(String.valueOf((int) data),
+                            ValueFactory.newInteger((int) data));
                     break;
                 case "Float":
-                    this.value = ValueFactory.newMap(
-                        ValueFactory.newString(Datapoint.simpleKey),
-                        ValueFactory.newFloat((float) data)
-                    );
+                    valueMap.put(String.valueOf((float) data),
+                            ValueFactory.newFloat((float) data));
                     break;
                 case "Short":
-                    this.value = ValueFactory.newMap(
-                        ValueFactory.newString(Datapoint.simpleKey),
-                        ValueFactory.newInteger((short) data)
-                    );
+                    valueMap.put(String.valueOf((short) data),
+                            ValueFactory.newInteger((short) data));
                     break;
                 case "Long":
-                    this.value = ValueFactory.newMap(
-                        ValueFactory.newString(Datapoint.simpleKey),
-                        ValueFactory.newInteger((long) data)
-                    );
+                    valueMap.put(String.valueOf((long) data),
+                            ValueFactory.newInteger((long) data));
                     break;
                 case "Double":
-                    this.value = ValueFactory.newMap(
-                        ValueFactory.newString(Datapoint.simpleKey),
-                        ValueFactory.newFloat((double) data)
-                    );
+                    valueMap.put(String.valueOf((double) data),
+                            ValueFactory.newFloat((double) data));
                     break;
                 case "Byte":
-                    this.value = ValueFactory.newMap(
-                        ValueFactory.newString(Datapoint.simpleKey),
-                        ValueFactory.newInteger((byte) data)
-                    );
+                    valueMap.put(String.valueOf((byte) data),
+                            ValueFactory.newInteger((byte) data));
                     break;
                 case "Boolean":
-                    this.value = ValueFactory.newMap(
-                        ValueFactory.newString(Datapoint.simpleKey),
-                        ValueFactory.newBoolean((boolean) data)
-                    );
+                    valueMap.put(String.valueOf((boolean) data),
+                            ValueFactory.newBoolean((boolean) data));
                     break;
                 default:
                     // This is impossible
                     throw new AukletException("Error constructing Datapoint");
             }
         } else if (data instanceof Integer) {
-            this.value = ValueFactory.newMap(
-                    ValueFactory.newString(Datapoint.simpleKey),
-                    ValueFactory.newInteger((int) data)
-            );
+            valueMap.put(Integer.toString((Integer) data),
+                    ValueFactory.newInteger((int) data));
         } else if (data instanceof Float) {
-            this.value = ValueFactory.newMap(
-                    ValueFactory.newString(Datapoint.simpleKey),
-                    ValueFactory.newFloat((float) data)
-            );
+            valueMap.put(Float.toString((Float) data),
+                    ValueFactory.newFloat((float) data));
         } else if (data instanceof Short) {
-            this.value = ValueFactory.newMap(
-                    ValueFactory.newString(Datapoint.simpleKey),
-                    ValueFactory.newInteger((short) data)
-            );
+            valueMap.put(Short.toString((Short) data),
+                    ValueFactory.newFloat((short) data));
         } else if (data instanceof Long) {
-            this.value = ValueFactory.newMap(
-                    ValueFactory.newString(Datapoint.simpleKey),
-                    ValueFactory.newInteger((long) data)
-            );
+            valueMap.put(Long.toString((Long) data),
+                    ValueFactory.newInteger((long) data));
         } else if (data instanceof Double) {
-            this.value = ValueFactory.newMap(
-                    ValueFactory.newString(Datapoint.simpleKey),
-                    ValueFactory.newFloat((double) data)
-            );
+            valueMap.put(Double.toString((Double) data),
+                    ValueFactory.newFloat((double) data));
         } else if (data instanceof Byte) {
-            this.value = ValueFactory.newMap(
-                    ValueFactory.newString(Datapoint.simpleKey),
-                    ValueFactory.newInteger((byte) data)
-            );
+            valueMap.put(Byte.toString((Byte) data),
+                    ValueFactory.newInteger((byte) data));
         } else if (data instanceof Boolean) {
-            this.value = ValueFactory.newMap(
-                    ValueFactory.newString(Datapoint.simpleKey),
-                    ValueFactory.newBoolean((boolean) data)
-            );
-        } else if (data.getClass().isArray()) {
+            valueMap.put(Boolean.toString((Boolean) data),
+                    ValueFactory.newBoolean((boolean) data));
+        } else if (data.getClass().isArray() || data instanceof List) {
             // construct new array of values from looping through all members
             List<ImmutableValue> newDatapoints = new ArrayList<>();
             Object[] objects = (Object[]) data;
@@ -131,57 +114,33 @@ public final class Datapoint {
                 Datapoint newData = new Datapoint(objects[i]);
                 newDatapoints.add(newData.getValue());
             }
-            this.value = ValueFactory.newMap(
-                ValueFactory.newString(Datapoint.simpleKey),
-                ValueFactory.newArray(newDatapoints)
-            );
-        } else if (data instanceof List) {
-            // construct new array of values from looping through all members
-            List<ImmutableValue> newDatapoints = new ArrayList<>();
-            List objects = (List) data;
-            for (Object object : objects) {
-                Datapoint newData = new Datapoint(object);
-                newDatapoints.add(newData.getValue());
-            }
-            this.value = ValueFactory.newMap(
-                ValueFactory.newString(Datapoint.simpleKey),
-                ValueFactory.newArray(newDatapoints)
+            valueMap.put(
+                    newDatapoints.toString(),
+                    ValueFactory.newArray(newDatapoints)
             );
         } else if (data instanceof Map) {
-            Map<ImmutableValue, ImmutableValue> valueMap = new HashMap<>();
+            Map<ImmutableValue, ImmutableValue> convertedMap = new HashMap<>();
             Map<Object, Object> castedMap = (Map) data;
             for (Map.Entry<Object, Object> entry : castedMap.entrySet()) {
                 Datapoint key = new Datapoint(entry.getKey());
                 Datapoint newValue = new Datapoint(entry.getValue());
-                valueMap.put(key.getValue(), newValue.getValue());
+                convertedMap.put(key.getValue(), newValue.getValue());
             }
-            this.value = ValueFactory.newMap(
-                ValueFactory.newString(Datapoint.simpleKey),
-                ValueFactory.newMap(valueMap)
+            valueMap.put(
+                    convertedMap.toString(), ValueFactory.newMap(convertedMap)
             );
         } else if (data instanceof String) {
-            this.value = ValueFactory.newMap(
-                ValueFactory.newString(Datapoint.simpleKey),
-                ValueFactory.newString((String) data)
-            );
+            valueMap.put((String) data, ValueFactory.newString((String) data));
         } else if (data instanceof BigInteger) {
             BigInteger newInt = (BigInteger) data;
-            this.value = ValueFactory.newMap(
-                ValueFactory.newString(Datapoint.simpleKey),
-                ValueFactory.newString(newInt.toString())
-            );
+            valueMap.put(newInt.toString(), ValueFactory.newString(newInt.toString()));
         } else if (data instanceof BigDecimal) {
             BigDecimal newDec = (BigDecimal) data;
-            this.value = ValueFactory.newMap(
-                ValueFactory.newString(Datapoint.simpleKey),
-                ValueFactory.newString(newDec.toString())
-            );
-        } else if (data instanceof Datapoint) {
-            Datapoint newDatapoint = (Datapoint) data;
-            this.value = newDatapoint.getValue();
+            valueMap.put(newDec.toString(), ValueFactory.newString(newDec.toString()));
         } else {
             throw new AukletException("We do not currently support the " + data.getClass().getName() + " class you have submitted");
         }
+        return valueMap;
     }
 
     /**
@@ -199,6 +158,6 @@ public final class Datapoint {
      * @return Empty string
      */
     public String toString() {
-        return "";
+        return asString;
     }
 }
