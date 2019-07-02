@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import io.auklet.AukletException;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import org.msgpack.value.Value;
 import org.msgpack.value.ImmutableValue;
 import org.msgpack.value.ValueFactory;
 import net.jcip.annotations.Immutable;
