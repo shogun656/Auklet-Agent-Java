@@ -110,12 +110,24 @@ public final class Datapoint {
         } else if (data instanceof Boolean) {
             valueMap.put(Boolean.toString((Boolean) data),
                     ValueFactory.newBoolean((boolean) data));
-        } else if (data.getClass().isArray() || data instanceof List) {
+        } else if (data.getClass().isArray()) {
             // construct new array of values from looping through all members
             List<ImmutableValue> newDatapoints = new ArrayList<>();
             Object[] objects = (Object[]) data;
             for (int i = 0; i < objects.length; i++) {
                 Map<String, ImmutableValue> convertedMap = Datapoint.convertData(objects[i]);
+                Map.Entry<String, ImmutableValue> entryMap = convertedMap.entrySet().iterator().next();
+                newDatapoints.add(entryMap.getValue());
+            }
+            valueMap.put(
+                    newDatapoints.toString(),
+                    ValueFactory.newArray(newDatapoints)
+            );
+        } else if (data instanceof List) {
+            List<ImmutableValue> newDatapoints = new ArrayList<>();
+            ArrayList convertedArray = (ArrayList) data;
+            for (int i = 0; i < convertedArray.size(); i++) {
+                Map<String, ImmutableValue> convertedMap = Datapoint.convertData(convertedArray.get(i));
                 Map.Entry<String, ImmutableValue> entryMap = convertedMap.entrySet().iterator().next();
                 newDatapoints.add(entryMap.getValue());
             }
