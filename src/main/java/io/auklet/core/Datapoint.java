@@ -31,6 +31,9 @@ public final class Datapoint {
      * @throws AukletException to wrap any underlying exceptions.
      */
     public Datapoint(@NonNull String dataType, @Nullable Object data) throws AukletException {
+        if (dataType == null) {
+            throw new AukletException("dataType cannot be null.");
+        }
         if (data instanceof Datapoint) {
             Datapoint newDatapoint = (Datapoint) data;
             this.value = newDatapoint.getValue();
@@ -161,7 +164,7 @@ public final class Datapoint {
      *
      * @return String representation of the current value of the datapoint
      */
-    @NonNull public String toString() {
+    @Override @NonNull public String toString() {
         return this.asString;
     }
 

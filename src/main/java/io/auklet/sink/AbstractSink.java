@@ -74,6 +74,9 @@ public abstract class AbstractSink extends HasAgent implements Sink {
     }
 
     @Override public void send(@NonNull Datapoint datapoint) throws AukletException {
+        if (datapoint == null) {
+            throw new AukletException("datapoint cannot be null.");
+        }
         synchronized (this.msgpack) {
             this.msgpack.clear();
             try {

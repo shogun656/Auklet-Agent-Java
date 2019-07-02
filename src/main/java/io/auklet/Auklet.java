@@ -276,7 +276,7 @@ public final class Auklet {
      *                  All other object types are rejected and cause an
      *                  AukletException.
      */
-    public static void send(final String dataType, final Object datapoint) {
+    public static void send(@NonNull final String dataType, @Nullable final Object datapoint) {
         LOGGER.debug("Scheduling datapoint send task.");
         Runnable sendTask = new Runnable() {
             @Override
