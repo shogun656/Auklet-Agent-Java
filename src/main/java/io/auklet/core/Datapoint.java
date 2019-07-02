@@ -22,8 +22,7 @@ public final class Datapoint {
     private static final String SIMPLE_KEY = "value";
     private final ImmutableValue value;
     private final String asString;
-
-    public final String dataType;
+    private final String dataType;
 
     /**
      * <p>Initializes a Datapoint class which packs up the passed data into messagepack byte arrays</p>
@@ -39,7 +38,7 @@ public final class Datapoint {
             this.asString = newDatapoint.toString();
             this.dataType = newDatapoint.dataType;
         } else {
-            Map.Entry<String, Value> converted = Datapoint.convertData(data).entrySet().iterator().next();
+            Map.Entry<String, ImmutableValue> converted = Datapoint.convertData(data).entrySet().iterator().next();
             this.value = ValueFactory.newMap(
                     ValueFactory.newString(Datapoint.SIMPLE_KEY),
                     converted.getValue()
@@ -49,8 +48,8 @@ public final class Datapoint {
         }
     }
 
-    @NonNull private static Map<String, Value> convertData(@Nullable Object data) throws AukletException {
-        Map<String, Value> valueMap = new HashMap<>();
+    @NonNull private static Map<String, ImmutableValue> convertData(@Nullable Object data) throws AukletException {
+        Map<String, ImmutableValue> valueMap = new HashMap<>();
         if (data == null) {
             valueMap.put("null", ValueFactory.newNil());
         } else if (data.getClass().isPrimitive()) {
@@ -111,11 +110,11 @@ public final class Datapoint {
                     ValueFactory.newBoolean((boolean) data));
         } else if (data.getClass().isArray() || data instanceof List) {
             // construct new array of values from looping through all members
-            List<Value> newDatapoints = new ArrayList<>();
+            List<ImmutableValue> newDatapoints = new ArrayList<>();
             Object[] objects = (Object[]) data;
             for (int i = 0; i < objects.length; i++) {
-                Map<String, Value> convertedMap = Datapoint.convertData(objects[i]);
-                Map.Entry<String, Value> entryMap = convertedMap.entrySet().iterator().next();
+                Map<String, ImmutableValue> convertedMap = Datapoint.convertData(objects[i]);
+                Map.Entry<String, ImmutableValue> entryMap = convertedMap.entrySet().iterator().next();
                 newDatapoints.add(entryMap.getValue());
             }
             valueMap.put(
@@ -123,13 +122,13 @@ public final class Datapoint {
                     ValueFactory.newArray(newDatapoints)
             );
         } else if (data instanceof Map) {
-            Map<Value, Value> convertedMap = new HashMap<>();
+            Map<ImmutableValue, ImmutableValue> convertedMap = new HashMap<>();
             Map<Object, Object> castedMap = (Map) data;
             for (Map.Entry<Object, Object> entry : castedMap.entrySet()) {
-                Map<String, Value> convertedKeyMap = Datapoint.convertData(entry.getKey());
-                Map.Entry<String, Value> entryKeyMap = convertedKeyMap.entrySet().iterator().next();
-                Map<String, Value> convertedValueMap = Datapoint.convertData(entry.getValue());
-                Map.Entry<String, Value> entryValueMap = convertedValueMap.entrySet().iterator().next();
+                Map<String, ImmutableValue> convertedKeyMap = Datapoint.convertData(entry.getKey());
+                Map.Entry<String, ImmutableValue> entryKeyMap = convertedKeyMap.entrySet().iterator().next();
+                Map<String, ImmutableValue> convertedValueMap = Datapoint.convertData(entry.getValue());
+                Map.Entry<String, ImmutableValue> entryValueMap = convertedValueMap.entrySet().iterator().next();
                 convertedMap.put(entryKeyMap.getValue(), entryValueMap.getValue());
             }
             valueMap.put(

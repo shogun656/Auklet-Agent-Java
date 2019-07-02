@@ -81,7 +81,7 @@ public abstract class AbstractSink extends HasAgent implements Sink {
                 this.msgpack
                         .packString("timestamp").packLong(System.currentTimeMillis())
                         // User defined type
-                        .packString("type").packString(datapoint.dataType)
+                        .packString("type").packString(datapoint.getDataType())
                         .packString("payload");
                 datapoint.getValue().writeTo(this.msgpack);
                 this.msgpack.flush();
