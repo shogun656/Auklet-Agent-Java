@@ -16,6 +16,15 @@ The Auklet Java agent is deployed to [JCenter](https://bintray.com/bintray/jcent
 
 ## Maven
 ```
+<repository>
+  <snapshots>
+    <enabled>false</enabled>
+  </snapshots>
+  <id>central</id>
+  <name>bintray</name>
+  <url>http://jcenter.bintray.com</url>
+</repository>
+
 <dependency>
   <groupId>io.auklet</groupId>
   <artifactId>auklet-agent-java</artifactId>
@@ -23,8 +32,31 @@ The Auklet Java agent is deployed to [JCenter](https://bintray.com/bintray/jcent
 </dependency>
 ```
 
-## Gradle
-`compile 'io.auklet:auklet-agent-java:<version>'`
+## Gradle (Java)
+```
+repositories {
+    // other repositories
+    jcenter()
+}
+
+implementation 'io.auklet:auklet-agent-java:<version>'
+```
+
+## Gradle (Android)
+In the project's `build.gradle` file.
+```
+allprojects {
+    repositories {
+        // other repositories
+        jcenter()
+    }
+}
+```
+
+In the module's `build.gradle` file.
+```
+implementation 'io.auklet:auklet-agent-java:<version>'
+```
 
 ## Configuration/Authorization
 To authorize your application you need to provide both an API key and app ID. These values are available in the connection settings of your application as well as during initial setup.
