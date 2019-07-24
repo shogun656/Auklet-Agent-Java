@@ -39,38 +39,52 @@ On Android, you will need to add
 ## Code
 
 ### Java
+To configure Auklet agent using env vars/JVM sysprops, all you would need is
 ```
-// Use this to start the agent using env vars/JVM sysprops...
-Auklet.init()
-// ...or use this to configure manually...
+Auklet.init();
+```
+
+To configure the Auklet agent manually, you would need to set an app id and an api key.
+```
 Auklet.init(new Auklet.Config()
     .setAppId("...")
     .setApiKey("...")
     // ...set other options here
-)
-// ...or no code at all (see below).
-
-// Explicitly send an exception to Auklet.
-Auklet.send(new Exception())
+);
 ```
 
 #### Auto-Start (Java only)
 Set the environment variable `AUKLET_AUTO_START` or the JVM system property `auklet.auto.start` to `true` to have the agent start alongside the JVM. In this configuration, the agent will only send to Auklet exceptions that are not caught within a thread or by a thread handler. If you want to explicitly catch and report some exceptions to Auklet, do not use this method.
 
 ### Android
+To configure Auklet agent using env vars/JVM sysprops, all you would need is
 ```
-// Use this to start the agent using env vars/JVM sysprops...
-Auklet.init(new Auklet.Config().setAndroidContext(getApplicationContext()))
-// ...or use this to configure manually.
+Auklet.init(new Auklet.Config().setAndroidContext(getApplicationContext()));
+```
+
+To configure the Auklet agent manually, you would need to set an app id and an api key.
+```
 Auklet.init(new Auklet.Config()
     .setAndroidContext(getApplicationContext())
     .setAppId("...")
     .setApiKey("...")
     // ...set other options here
-)
+);
+```
 
-// Explicitly send an exception to Auklet.
-Auklet.send(new Exception())
+### Sending Exceptions
+By default, Auklet sets itself as the JVM's default uncaught exception handler; thus, any exceptions that bubble up out of any thread will be sent to Auklet. This can be disabled via any one of the following:
+- `new Config().setUncaughtExceptionHandler(false)`
+- Setting env var `AUKLET_UNCAUGHT_EXCEPTION_HANDLER` to `false`
+- Setting JVM system property `auklet.uncaught.exception.handler` to `false`
+
+If you are catching the exception and not letting it bubble up, you can use this syntax to send it to Auklet.
+```
+try {
+    // code that can cause an exception
+} catch (Exception e) {
+    Auklet.send(e);
+}
 ```
 
 #### Note Regarding TLS Support
