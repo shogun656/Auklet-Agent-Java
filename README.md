@@ -53,9 +53,6 @@ Auklet.init(new Auklet.Config()
 );
 ```
 
-#### Auto-Start (Java only)
-Set the environment variable `AUKLET_AUTO_START` or the JVM system property `auklet.auto.start` to `true` to have the agent start alongside the JVM. In this configuration, the agent will only send to Auklet exceptions that are not caught within a thread or by a thread handler. If you want to explicitly catch and report some exceptions to Auklet, do not use this method.
-
 ### Android
 To configure Auklet agent using env vars/JVM sysprops, all you would need is
 ```
@@ -86,6 +83,10 @@ try {
     Auklet.send(e);
 }
 ```
+
+#### Auto-Start (Java only)
+Set the environment variable `AUKLET_AUTO_START` or the JVM system property `auklet.auto.start` to `true` to have the agent start alongside the JVM. In this configuration, the agent will only send to Auklet exceptions that are not caught within a thread or by a thread handler (see the previous section for details). If you want to explicitly catch and report some exceptions to Auklet, do not use this method.
+
 
 #### Note Regarding TLS Support
 The auklet.io data pipeline uses TLS 1.2. According to [Android docs](https://developer.android.com/reference/javax/net/ssl/SSLSocket#protocols), TLS 1.2 is enabled by default starting with API level 20 (Android version 4.4W). If your application supports API levels 16 through 19, you may need to do additional work to ensure that TLS 1.2 is available.
