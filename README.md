@@ -58,6 +58,8 @@ In the module's `build.gradle` file.
 implementation 'io.auklet:auklet-agent-java:<version>'
 ```
 
+# Code
+
 ## Configuration/Authorization
 To authorize your application you need to provide both an API key and app ID. These values are available in the connection settings of your application as well as during initial setup.
 
@@ -68,9 +70,7 @@ Unless you use the `Config` object to manually set your Auklet credentials, you 
 On Android, you will need to add
 `<uses-permission android:name="android.permission.INTERNET" />` to your manifest.
 
-## Code
-
-### Java
+## Java
 To configure Auklet agent using env vars/JVM sysprops, all you would need is
 ```
 Auklet.init();
@@ -85,7 +85,7 @@ Auklet.init(new Auklet.Config()
 );
 ```
 
-### Android
+## Android
 To configure Auklet agent using env vars/JVM sysprops, all you would need is
 ```
 Auklet.init(new Auklet.Config().setAndroidContext(getApplicationContext()));
@@ -101,7 +101,7 @@ Auklet.init(new Auklet.Config()
 );
 ```
 
-### Sending Exceptions
+## Sending Exceptions
 By default, Auklet sets itself as the JVM's default uncaught exception handler; thus, any exceptions that bubble up out of any thread will be sent to Auklet. This can be disabled via any one of the following:
 - `new Config().setUncaughtExceptionHandler(false)`
 - Setting env var `AUKLET_UNCAUGHT_EXCEPTION_HANDLER` to `false`
@@ -116,11 +116,11 @@ try {
 }
 ```
 
-#### Auto-Start (Java only)
+## Auto-Start (Java only)
 Set the environment variable `AUKLET_AUTO_START` or the JVM system property `auklet.auto.start` to `true` to have the agent start alongside the JVM. In this configuration, the agent will only send to Auklet exceptions that are not caught within a thread or by a thread handler (see the previous section for details). If you want to explicitly catch and report some exceptions to Auklet, do not use this method.
 
 
-#### Note Regarding TLS Support
+## Note Regarding TLS Support
 The auklet.io data pipeline uses TLS 1.2. According to [Android docs](https://developer.android.com/reference/javax/net/ssl/SSLSocket#protocols), TLS 1.2 is enabled by default starting with API level 20 (Android version 4.4W). If your application supports API levels 16 through 19, you may need to do additional work to ensure that TLS 1.2 is available.
 
 If TLS 1.2 is not available on a device, the Auklet agent will fail to initialize and will log relevant messages to SLF4J, but this will not interrupt your application. Notably, since `Auklet.init()` never throws any exceptions, you will not be notified by the agent if it fails to initialize for this reason, so you should take care to ensure TLS 1.2 is available prior to invoking `Auklet.init()`.
