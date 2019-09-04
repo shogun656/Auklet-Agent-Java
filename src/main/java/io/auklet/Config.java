@@ -76,8 +76,8 @@ import java.io.InputStream;
  *       <td>{@code https://api.auklet.io}</td>
  *     </tr>
  *     <tr>
- *       <td>API root CA certificate</td>
- *       <td>{@link #setRootCa(InputStream)}</td>
+ *       <td>SSL certificates</td>
+ *       <td>{@link #setSslCertificates(InputStream...)}</td>
  *       <td>
  *         Setter method value
  *       </td>
@@ -167,7 +167,7 @@ public final class Config {
     private String appId = null;
     private String apiKey = null;
     private String baseUrl = null;
-    private InputStream rootCa = null;
+    private InputStream[] sslCertificates = null;
     private String configDir = null;
     private Boolean autoShutdown = null;
     private Boolean uncaughtExceptionHandler = null;
@@ -212,19 +212,15 @@ public final class Config {
     }
 
     /**
-     * <p>Sets the root CA certificate to be used with the Auklet API. If not {@code null}:</p>
+     * <p>Sets the SSL certificates to be used with the Auklet API. If not {@code null},
+     * the Auklet agent will close all the given streams after reading them.</p>
      *
-     * <ul>
-     *     <li>This stream must contain only one certificate.</li>
-     *     <li>The Auklet agent will close this stream after reading it.</li>
-     * </ul>
-     *
-     * @param rootCa may be {@code null}, in which case the Auklet agent will look for
-     * the API root CA certificate in the truststore provided by the OS/JVM.
+     * @param sslCertificates may be {@code null}, in which case the Auklet agent will
+     * look for the SSL certificates in the truststore provided by the OS/JVM.
      * @return {@code this}.
      */
-    @NonNull public Config setRootCa(@Nullable InputStream rootCa) {
-        this.rootCa = rootCa;
+    @NonNull public Config setSslCertificates(@Nullable InputStream ... sslCertificates) {
+        this.sslCertificates = sslCertificates;
         return this;
     }
 
@@ -315,9 +311,9 @@ public final class Config {
         return baseUrl;
     }
 
-    /** <p>Returns the desired API root CA certificate.</p> */
-    /*package*/ @CheckForNull InputStream getRootCa() {
-        return rootCa;
+    /** <p>Returns the desired SSL certificates.</p> */
+    /*package*/ @CheckForNull InputStream[] getSslCertificates() {
+        return sslCertificates;
     }
 
     /** <p>Returns the desired config directory.</p> */

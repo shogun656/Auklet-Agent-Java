@@ -141,7 +141,7 @@ public final class Auklet {
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details.");
 
         LOGGER.debug("Configuring agent resources.");
-        this.api = new AukletApi(apiKey, config.getRootCa());
+        this.api = new AukletApi(apiKey, config.getSslCertificates());
         this.deviceAuth = new DeviceAuth();
 
         // In the future we may want to make this some kind of SinkFactory.

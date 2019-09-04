@@ -18,10 +18,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -58,17 +55,17 @@ public final class AukletApi {
      * <p>Constructor.</p>
      *
      * @param apiKey the Auklet API key. Never {@code null} or empty.
-     * @param rootCa the root CA Certificate to use. If {@code null}, the truststore
+     * @param sslCertificates the SSL certificates to use. If {@code null}, the truststore
      * provided by the OS/JVM will be used.
      * @throws AukletException if the API key is {@code null} or empty, or if the root CA is not
      * {@code null} and an error occurs while initializing the SSL socket factory.
      */
-    public AukletApi(@NonNull String apiKey, @Nullable InputStream rootCa) throws AukletException {
+    public AukletApi(@NonNull String apiKey, @Nullable InputStream[] sslCertificates) throws AukletException {
         if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty.");
         this.apiKey = apiKey;
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .addInterceptor(AukletApi.INTERCEPTOR);
-        AukletApi.setSslSocketFactory(builder, rootCa);
+        AukletApi.setSslSocketFactory(builder, sslCertificates);
         this.httpClient = builder.build();
     }
 
@@ -112,35 +109,47 @@ public final class AukletApi {
      * <p>Constructs/injects the appropriate SSL socket factory into the OkHttp client.</p>
      *
      * @param builder the OkHttp client builder object, never {@code null}.
-     * @param rootCa the root CA Certificate to use. If {@code null}, the truststore
+     * @param sslCertificates the SSL certificates to use. If {@code null}, the truststore
      * provided by the OS/JVM will be used.
      * @throws AukletException if the root CA is not {@code null} and an error occurs while
      * initializing the SSL socket factory.
      */
-    private static void setSslSocketFactory(@NonNull OkHttpClient.Builder builder, @Nullable InputStream rootCa) throws AukletException {
+    private static void setSslSocketFactory(@NonNull OkHttpClient.Builder builder, @Nullable InputStream[] sslCertificates) throws AukletException {
         try {
             SSLContext context = SSLContext.getInstance("TLSv1.2");
             KeyStore ca = null;
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-            if (rootCa != null) {
-                LOGGER.info("Using custom root CA.");
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            if (sslCertificates != null) {
+                LOGGER.info("Using custom SSL certificates.");
+                char[] password = "auklet".toCharArray(); // arbitrary and not secret
                 CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                Certificate certificate = certificateFactory.generateCertificate(rootCa);
                 ca = KeyStore.getInstance(KeyStore.getDefaultType());
-                ca.load(null, null);
-                ca.setCertificateEntry("ca-certificate", certificate);
+                ca.load(null, password);
+                int i = 0;
+                for (InputStream cert : sslCertificates) {
+                    Certificate certObj = certificateFactory.generateCertificate(cert);
+                    LOGGER.info("Certificate #{}: {}", i, certObj);
+                    ca.setCertificateEntry(Integer.toString(i), certObj);
+                    i++;
+                }
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                kmf.init(ca, password);
             }
             tmf.init(ca);
             X509TrustManager trustManager = (X509TrustManager) tmf.getTrustManagers()[0];
             context.init(null, trustManager == null ? null : new TrustManager[] {trustManager}, null);
             builder.sslSocketFactory(new Tls12SocketFactory(context), trustManager);
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
+        } catch (KeyStoreException | UnrecoverableKeyException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
             throw new AukletException("Error while setting up HTTPS SSL socket factory.", e);
         }
-        try {
-            if (rootCa != null) rootCa.close();
-        } catch (IOException e) {
-            LOGGER.warn("Error while closing custom root CA InputStream", e);
+        if (sslCertificates != null) {
+            for (InputStream cert : sslCertificates) {
+                try {
+                    cert.close();
+                } catch (IOException e) {
+                    LOGGER.warn("Error while closing SSL certificate InputStream", e);
+                }
+            }
         }
     }
 
