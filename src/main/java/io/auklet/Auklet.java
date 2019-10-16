@@ -76,8 +76,18 @@ public final class Auklet {
         LOGGER.info("Auklet Agent version {}", version);
         VERSION = version;
         // Initialize the Auklet agent if requested via env var or JVM sysprop.
-        String fromEnv = System.getenv("AUKLET_AUTO_START");
-        String fromProp = System.getProperty("auklet.auto.start");
+        String fromEnv = "false";
+        String fromProp = "false";
+        try {
+            fromEnv = System.getenv("AUKLET_AUTO_START");
+        } catch (SecurityException e) {
+            LOGGER.warn("Cannot check env var AUKLET_AUTO_START", e);
+        }
+        try {
+            fromProp = System.getProperty("auklet.auto.start");
+        } catch (SecurityException e) {
+            LOGGER.warn("Cannot check JVM sysprop auklet.auto.start", e);
+        }
         if (Boolean.valueOf(fromEnv) || Boolean.valueOf(fromProp)) {
             LOGGER.info("Auto-start requested.");
             init(null);
