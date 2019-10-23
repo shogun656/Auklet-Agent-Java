@@ -138,7 +138,7 @@ public final class AukletApi {
             tmf.init(ca);
             X509TrustManager trustManager = (X509TrustManager) tmf.getTrustManagers()[0];
             context.init(null, trustManager == null ? null : new TrustManager[] {trustManager}, null);
-            builder.sslSocketFactory(new Tls12SocketFactory(context), trustManager);
+            builder.sslSocketFactory(context.getSocketFactory(), trustManager);
         } catch (KeyStoreException | UnrecoverableKeyException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
             throw new AukletException("Error while setting up HTTPS SSL socket factory.", e);
         }
