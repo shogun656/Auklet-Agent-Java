@@ -15,7 +15,6 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -87,7 +86,7 @@ public final class Util {
     }
 
     /**
-     * <p>Deletes the given file and logs any exceptions that occur.</p>
+     * <p>Deletes the given file and silences any exceptions that occur.</p>
      *
      * @param file no-op if {@code null}.
      */
@@ -95,6 +94,17 @@ public final class Util {
         if (file == null) return;
         try { file.delete(); } // NOSONAR
         catch (SecurityException e) { /* Be quiet. */ }
+    }
+
+    /**
+     * <p>Closes the given closeable and silences any exceptions that occur.</p>
+     *
+     * @param c no-op if {@code null}.
+     */
+    public static void closeQuietly(@Nullable Closeable c) {
+        if (c == null) return;
+        try { c.close(); } // NOSONAR
+        catch (IOException e) { /* Be quiet. */ }
     }
 
     /**

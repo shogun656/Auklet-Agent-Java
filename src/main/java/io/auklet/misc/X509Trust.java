@@ -101,12 +101,7 @@ public final class X509Trust {
             List<X509Certificate> certList = new ArrayList<>(certificates.size());
             for (InputStream cert : certificates) {
                 certList.add((X509Certificate) certificateFactory.generateCertificate(cert));
-                // Close it after using it, just warn if we can't.
-                try {
-                    cert.close();
-                } catch (IOException e) {
-                    LOGGER.warn("Error while closing SSL certificate InputStream", e);
-                }
+                Util.closeQuietly(cert);
             }
             return new X509Trust(certList);
         } catch (CertificateException e) {
