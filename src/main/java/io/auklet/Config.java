@@ -78,7 +78,7 @@ import java.util.*;
  *     </tr>
  *     <tr>
  *       <td>SSL certificates</td>
- *       <td>{@link #setSslCertificates(List<InputStream>)}</td>
+ *       <td>{@link #setSslCertificates(List)}}</td>
  *       <td>
  *         Setter method value
  *       </td>
