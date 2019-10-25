@@ -7,6 +7,7 @@ import io.auklet.misc.Util;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.io.InputStream;
+import java.util.*;
 
 /**
  * <p>Config object for the {@link Auklet} agent. For fluency, all setter methods in this class return
@@ -77,7 +78,7 @@ import java.io.InputStream;
  *     </tr>
  *     <tr>
  *       <td>SSL certificates</td>
- *       <td>{@link #setSslCertificates(InputStream...)}</td>
+ *       <td>{@link #setSslCertificates(List<InputStream>)}</td>
  *       <td>
  *         Setter method value
  *       </td>
@@ -164,10 +165,12 @@ import java.io.InputStream;
 @NotThreadSafe
 public final class Config {
 
+    private static final Set<InputStream> NULL_INPUT_STREAM_SET = Collections.singleton(null);
+
     private String appId = null;
     private String apiKey = null;
     private String baseUrl = null;
-    private InputStream[] sslCertificates = null;
+    private List<InputStream> sslCertificates = null;
     private String configDir = null;
     private Boolean autoShutdown = null;
     private Boolean uncaughtExceptionHandler = null;
@@ -212,15 +215,21 @@ public final class Config {
     }
 
     /**
-     * <p>Sets the SSL certificates to be used with the Auklet API. If not {@code null},
-     * the Auklet agent will close all the given streams after reading them.</p>
+     * <p>Sets the SSL certificates to be used with the Auklet agent.</p>
      *
-     * @param sslCertificates may be {@code null}, in which case the Auklet agent will
-     * look for the SSL certificates in the truststore provided by the OS/JVM.
+     * <p>This method makes a shallow copy of the provided list and drops all {@code null}
+     * elements in the list. The streams in this list will <i>eventually</i> be closed
+     * by the Auklet agent; clients should not retain any reference to these streams.</p>
+     *
+     * @param sslCertificates may be {@code null} or empty, in which case the Auklet agent
+     * will look for the SSL certificates in the truststore provided by the OS/JVM.
      * @return {@code this}.
      */
-    @NonNull public Config setSslCertificates(@Nullable InputStream ... sslCertificates) {
-        this.sslCertificates = sslCertificates;
+    @NonNull public Config setSslCertificates(@Nullable List<InputStream> sslCertificates) {
+        if (sslCertificates != null) {
+            this.sslCertificates = new ArrayList<>(sslCertificates);
+            this.sslCertificates.removeAll(NULL_INPUT_STREAM_SET);
+        }
         return this;
     }
 
@@ -312,7 +321,7 @@ public final class Config {
     }
 
     /** <p>Returns the desired SSL certificates.</p> */
-    /*package*/ @CheckForNull InputStream[] getSslCertificates() {
+    /*package*/ @CheckForNull List<InputStream> getSslCertificates() {
         return sslCertificates;
     }
 

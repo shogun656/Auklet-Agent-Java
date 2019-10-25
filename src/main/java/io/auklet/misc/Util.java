@@ -14,6 +14,8 @@ import java.net.SocketException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -29,6 +31,16 @@ public final class Util {
     private static final String UTF_8 = "UTF-8";
 
     private Util() {}
+
+    /**
+     * <p>Returns whether or not a collection is either null or empty.</p>
+     *
+     * @param c the collection to check.
+     * @return {@code c == null || c.isEmpty()}
+     */
+    public static boolean isNullOrEmpty(@Nullable Collection<?> c) {
+        return c == null || c.isEmpty();
+    }
 
     /**
      * <p>Returns whether or not a string is either null or empty.</p>

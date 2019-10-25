@@ -6,8 +6,8 @@ import io.auklet.AukletException;
 import io.auklet.config.AukletIoBrokers;
 import io.auklet.config.AukletIoCert;
 import io.auklet.core.AukletDaemonExecutor;
-import io.auklet.misc.Tls12SocketFactory;
 import io.auklet.misc.Util;
+import io.auklet.misc.X509Trust;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.eclipse.paho.client.mqttv3.*;
@@ -15,13 +15,8 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.IOException;
-import java.security.*;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 
 /** <p>The default Auklet data sink, which sends data to {@code auklet.io} via MQTT.</p> */
 @ThreadSafe
@@ -176,31 +171,8 @@ public final class AukletIoSink extends AbstractSink {
         options.setKeepAliveInterval(60);
         options.setCleanSession(false);
         options.setAutomaticReconnect(true);
-        options.setSocketFactory(this.getSocketFactory(cert));
+        options.setSocketFactory(X509Trust.fromCerts(Collections.singleton(cert)).createSocketFactory());
         return options;
-    }
-
-    /**
-     * <p>Returns the MQTT SSL socket factory.</p>
-     *
-     * @param cert the Auklet SSL certificate object. Never {@code null}.
-     * @return never {@code null}.
-     * @throws AukletException if the factory cannot be constructed, or if any argument is {@code null}.
-     */
-    @NonNull private SSLSocketFactory getSocketFactory(@NonNull X509Certificate cert) throws AukletException {
-        if (cert == null) throw new AukletException("SSL cert is null.");
-        try {
-            KeyStore ca = KeyStore.getInstance(KeyStore.getDefaultType());
-            ca.load(null, null);
-            ca.setCertificateEntry("ca-certificate", cert);
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-            tmf.init(ca);
-            SSLContext context = SSLContext.getInstance("TLSv1.2");
-            context.init(null, tmf.getTrustManagers(), null);
-            return new Tls12SocketFactory(context);
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
-            throw new AukletException("Error while setting up MQTT SSL socket factory.", e);
-        }
     }
 
 }
