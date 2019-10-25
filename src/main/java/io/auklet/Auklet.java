@@ -8,7 +8,9 @@ import io.auklet.core.DataUsageMonitor;
 import io.auklet.core.AukletExceptionHandler;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.AukletApi;
-import io.auklet.misc.Util;
+import io.auklet.util.SysUtil;
+import io.auklet.util.ThreadUtil;
+import io.auklet.util.Util;
 import io.auklet.platform.AbstractPlatform;
 import io.auklet.platform.AndroidPlatform;
 import io.auklet.platform.JavaPlatform;
@@ -48,7 +50,7 @@ public final class Auklet {
     public static final String VERSION;
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
-    private static final AukletDaemonExecutor DAEMON = new AukletDaemonExecutor(1, Util.createDaemonThreadFactory("Auklet"));
+    private static final AukletDaemonExecutor DAEMON = new AukletDaemonExecutor(1, ThreadUtil.createDaemonThreadFactory("Auklet"));
     @GuardedBy("LOCK") private static Auklet agent = null;
 
     private final String appId;
@@ -111,25 +113,25 @@ public final class Auklet {
         LOGGER.debug("Parsing configuration.");
         if (config == null) config = new Config();
 
-        this.appId = Util.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
-        String apiKey = Util.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
+        this.appId = SysUtil.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
+        String apiKey = SysUtil.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
         if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty.");
         if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty.");
 
-        String baseUrlMaybeNull = Util.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
+        String baseUrlMaybeNull = SysUtil.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
         this.baseUrl = Util.orElse(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
         LOGGER.info("Base URL: {}", this.baseUrl);
 
-        Boolean autoShutdownMaybeNull = Util.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
-        Boolean uncaughtExceptionHandlerMaybeNull = Util.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
+        Boolean autoShutdownMaybeNull = SysUtil.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
+        Boolean uncaughtExceptionHandlerMaybeNull = SysUtil.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
         boolean autoShutdown = autoShutdownMaybeNull == null ? true : autoShutdownMaybeNull;
         boolean uncaughtExceptionHandler = uncaughtExceptionHandlerMaybeNull == null ? true : uncaughtExceptionHandlerMaybeNull;
 
-        this.serialPort = Util.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
+        this.serialPort = SysUtil.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
         Object androidContext = config.getAndroidContext();
         if (androidContext != null && serialPort != null) throw new AukletException("Auklet can not use serial port when on an Android platform.");
 
-        Integer mqttThreadsFromConfigMaybeNull = Util.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt");
+        Integer mqttThreadsFromConfigMaybeNull = SysUtil.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt");
         int mqttThreadsFromConfig = mqttThreadsFromConfigMaybeNull == null ? 3 : mqttThreadsFromConfigMaybeNull;
         if (mqttThreadsFromConfig < 1) mqttThreadsFromConfig = 3;
         this.mqttThreads = mqttThreadsFromConfig;
@@ -147,7 +149,7 @@ public final class Auklet {
         } else {
             this.platform = new AndroidPlatform(androidContext);
         }
-        this.configDir = platform.obtainConfigDir(Util.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
+        this.configDir = platform.obtainConfigDir(SysUtil.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details.");
 
         LOGGER.debug("Configuring agent resources.");

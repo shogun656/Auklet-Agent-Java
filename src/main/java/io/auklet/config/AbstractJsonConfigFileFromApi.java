@@ -2,7 +2,8 @@ package io.auklet.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
-import io.auklet.misc.Util;
+import io.auklet.util.FileUtil;
+import io.auklet.util.JsonUtil;
 import mjson.Json;
 import net.jcip.annotations.NotThreadSafe;
 import okhttp3.Request;
@@ -28,7 +29,7 @@ public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFr
         try (Response response = this.getAgent().getApi().doRequest(request)) {
             String responseString = response.body().string();
             if (response.isSuccessful()) {
-                return Util.validateJson(Util.readJson(responseString), this.getClass().getName());
+                return JsonUtil.validateJson(JsonUtil.readJson(responseString), this.getClass().getName());
             } else {
                 throw new AukletException(String.format("Error while getting Auklet JSON config file '%s': %s: %s", this.getName(), response.message(), responseString));
             }
@@ -40,7 +41,7 @@ public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFr
     @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
         if (contents == null) throw new AukletException("Input is null.");
         try {
-            Util.writeUtf8(this.file, contents.toString());
+            FileUtil.writeUtf8(this.file, contents.toString());
         } catch (IOException e) {
             throw new AukletException("Could not save JSON file to disk.", e);
         }

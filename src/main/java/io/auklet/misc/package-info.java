@@ -1,2 +1,2 @@
-/** <p>Classes that provide helper miscellaneous functions.</p> */
+/** <p>Classes that provide miscellaneous functionality.</p> */
 package io.auklet.misc;

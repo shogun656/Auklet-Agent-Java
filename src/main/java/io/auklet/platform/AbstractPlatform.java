@@ -8,7 +8,7 @@ import io.auklet.AukletException;
 import io.auklet.Config;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.HasAgent;
-import io.auklet.misc.Util;
+import io.auklet.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +82,7 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
         if (alreadyExists) {
             File tempFile = File.createTempFile("auklet", null, possibleConfigDir);
             LOGGER.debug("Using existing config directory: {}", possibleConfigDir.getPath());
-            Util.deleteQuietly(tempFile);
+            FileUtil.deleteQuietly(tempFile);
             return possibleConfigDir;
         } else if (possibleConfigDir.mkdirs()) {
             LOGGER.debug("Created new config directory: {}", possibleConfigDir.getPath());

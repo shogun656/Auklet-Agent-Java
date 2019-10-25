@@ -3,7 +3,8 @@ package io.auklet.core;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.AukletException;
-import io.auklet.misc.Util;
+import io.auklet.util.ThreadUtil;
+import io.auklet.util.Util;
 import io.auklet.misc.X509Trust;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.Immutable;
@@ -92,7 +93,7 @@ public final class AukletApi {
     public void shutdown() {
         synchronized (this.httpClient) {
             try {
-                Util.shutdown(this.httpClient.dispatcher().executorService());
+                ThreadUtil.shutdown(this.httpClient.dispatcher().executorService());
                 this.httpClient.connectionPool().evictAll();
                 Cache cache = this.httpClient.cache();
                 if (cache != null) cache.close();

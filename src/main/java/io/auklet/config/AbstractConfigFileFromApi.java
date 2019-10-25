@@ -3,7 +3,7 @@ package io.auklet.config;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
-import io.auklet.misc.Util;
+import io.auklet.util.FileUtil;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.io.IOException;
@@ -65,7 +65,7 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
      */
     @NonNull protected final String getStringFromDisk() throws IOException {
         try {
-            byte[] bytes = Util.read(this.file);
+            byte[] bytes = FileUtil.read(this.file);
             return new String(bytes, "UTF-8");
         } catch (SecurityException e) {
             throw new IOException(e);

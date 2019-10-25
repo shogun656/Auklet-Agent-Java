@@ -3,7 +3,7 @@ package io.auklet;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.auklet.misc.Util;
+import io.auklet.util.Util;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.io.InputStream;
