@@ -1,11 +1,9 @@
-package io.auklet.core;
+package io.auklet.net;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.AukletException;
 import io.auklet.util.ThreadUtil;
-import io.auklet.util.Util;
-import io.auklet.misc.X509Trust;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.Immutable;
 import okhttp3.Cache;
@@ -21,7 +19,8 @@ import java.io.InputStream;
 import java.util.List;
 
 /**
- * <p>All HTTP requests to the Auklet API are handled by this class.</p>
+ * <p>All HTTP requests from the Auklet agent, most of which are to the Auklet API, are
+ * handled by this class.</p>
  *
  * <p>Configuring the SLF4J logger for this class only controls logging statements for internal
  * operations (e.g. shutting down the HTTP client). To configure logging of HTTP requests/responses,
@@ -40,35 +39,31 @@ import java.util.List;
  * of the levels described above.</p>
  */
 @Immutable
-public final class AukletApi {
+public final class Https {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AukletApi.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Https.class);
     private static final Logger HTTP_LOGGER = LoggerFactory.getLogger("io.auklet.http");
-    private static final HttpLoggingInterceptor INTERCEPTOR = AukletApi.createLogger();
-    private final String apiKey;
+    private static final HttpLoggingInterceptor INTERCEPTOR = Https.createLogger();
     @GuardedBy("itself") private final OkHttpClient httpClient;
 
     /**
      * <p>Constructor.</p>
      *
-     * @param apiKey the Auklet API key. Never {@code null} or empty.
      * @param sslCertificates the SSL certificates to use. If {@code null} or empty,
      * the truststore provided by the OS/JVM will be used.
      * @throws AukletException if the API key is {@code null} or empty, or if the root CA is not
      * {@code null} and an error occurs while initializing the SSL socket factory.
      */
-    public AukletApi(@NonNull String apiKey, @Nullable List<InputStream> sslCertificates) throws AukletException {
-        if (Util.isNullOrEmpty(apiKey)) throw new AukletException("API key is null or empty.");
-        this.apiKey = apiKey;
+    public Https(@Nullable List<InputStream> sslCertificates) throws AukletException {
         X509Trust trust = X509Trust.fromStreams(sslCertificates);
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                .addInterceptor(AukletApi.INTERCEPTOR)
+                .addInterceptor(Https.INTERCEPTOR)
                 .sslSocketFactory(trust.createSocketFactory(), trust.getTrustManager());
         this.httpClient = builder.build();
     }
 
     /**
-     * <p>Makes an authenticated request to the Auklet API.</p>
+     * <p>Makes a request via OkHttp.</p>
      *
      * @param request never {@code null}.
      * @return never {@code null}.
@@ -76,9 +71,6 @@ public final class AukletApi {
      */
     @NonNull public Response doRequest(@NonNull Request.Builder request) throws AukletException {
         if (request == null) throw new AukletException("HTTP request is null.");
-        // We handle auth in this method so that the API key does not have
-        // to be shared across classes.
-        request.header("Authorization", "JWT " + this.apiKey);
         Request req = request.build();
         try {
             synchronized (this.httpClient) {
@@ -98,7 +90,7 @@ public final class AukletApi {
                 Cache cache = this.httpClient.cache();
                 if (cache != null) cache.close();
             } catch (IOException e) {
-                LOGGER.warn("Error while shutting down Auklet API.", e);
+                LOGGER.warn("Error while shutting down OkHttp.", e);
             }
         }
     }

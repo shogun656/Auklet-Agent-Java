@@ -7,7 +7,7 @@ import io.auklet.config.AukletIoBrokers;
 import io.auklet.config.AukletIoCert;
 import io.auklet.core.AukletDaemonExecutor;
 import io.auklet.util.ThreadUtil;
-import io.auklet.misc.X509Trust;
+import io.auklet.net.X509Trust;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.eclipse.paho.client.mqttv3.*;

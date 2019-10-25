@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
@@ -129,21 +128,6 @@ public final class Util {
             return hexString.toString();
         } catch (SocketException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
             LOGGER.warn("Error while calculating MAC address hash.", e);
-            return "";
-        }
-    }
-
-    /**
-     * <p>Gets the public IP address of the machine upon which this JVM is running, via
-     * {@code http://checkip.amazonaws.com}.</p>
-     *
-     * @return never {@code null}. If an error occurs, it is logged and this function returns an empty string.
-     */
-    @NonNull public static String getIpAddress() {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL("https://checkip.amazonaws.com").openStream()))) {
-            return orElse(in.readLine(), "");
-        } catch (IOException e) {
-            LOGGER.warn("Could not get public IP address.", e);
             return "";
         }
     }
