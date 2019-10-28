@@ -23,6 +23,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -76,6 +77,7 @@ public final class X509Trust {
             TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
             tmf.init(ca);
             TrustManager[] tms = tmf.getTrustManagers();
+            if (tms.length != 1) throw new AukletException("Not exactly one TrustManager: " + Arrays.toString(tms));
             TrustManager tm = tms[0];
             if (!(tm instanceof X509TrustManager))
                 throw new AukletException("TrustManager is not X509TrustManager, but is instead " + tm.getClass().getName());
