@@ -94,6 +94,7 @@ public final class X509Trust {
      *
      * @param certificates the SSL certificates to use. If {@code null} or empty,
      * the truststore provided by the OS/JVM will be used.
+     * @return never {@code null}.
      * @throws AukletException if any error occurs while parsing the certificates, or while
      * creating the trust manager or the SSL context.
      */
@@ -118,6 +119,7 @@ public final class X509Trust {
      *
      * @param certificates the SSL certificates to use. If {@code null} or empty,
      * the truststore provided by the OS/JVM will be used.
+     * @return never {@code null}.
      * @throws AukletException if any error occurs while parsing the certificates, or while
      * creating the trust manager or the SSL context.
      */
