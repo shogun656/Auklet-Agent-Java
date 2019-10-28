@@ -3,7 +3,7 @@ package io.auklet.platform;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.AukletException;
-import io.auklet.misc.Util;
+import io.auklet.util.Util;
 import io.auklet.misc.OSMX;
 import net.jcip.annotations.Immutable;
 import org.msgpack.core.MessagePacker;

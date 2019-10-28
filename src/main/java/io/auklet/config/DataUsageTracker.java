@@ -4,7 +4,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.AukletDaemonExecutor;
-import io.auklet.misc.Util;
+import io.auklet.util.FileUtil;
+import io.auklet.util.JsonUtil;
 import mjson.Json;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
@@ -37,10 +38,10 @@ public final class DataUsageTracker extends AbstractConfigFile {
             // If the file doesn't exist, create it.
             if (!this.file.exists()) this.writeUsageToDisk(0L);
             // Read from disk.
-            byte[] usageBytes = Util.read(this.file);
+            byte[] usageBytes = FileUtil.read(this.file);
             String usageString = new String(usageBytes, "UTF-8");
             // Parse the JSON and set relevant fields.
-            Json usageJson = Util.validateJson(Util.readJson(usageString), this.getClass().getName());
+            Json usageJson = JsonUtil.validateJson(JsonUtil.readJson(usageString), this.getClass().getName());
             this.bytesSent = usageJson.at(USAGE_KEY, 0L).asLong();
         } catch (IOException | SecurityException | IllegalArgumentException e) {
             LOGGER.warn("Could not read data usage tracker file from disk, assuming zero usage.", e);
@@ -120,7 +121,7 @@ public final class DataUsageTracker extends AbstractConfigFile {
     @GuardedBy("lock") private void writeUsageToDisk(long usage) throws IOException {
         Json usageJson = Json.object();
         usageJson.set(USAGE_KEY, usage);
-        Util.writeUtf8(this.file, usageJson.toString());
+        FileUtil.writeUtf8(this.file, usageJson.toString());
     }
 
 }

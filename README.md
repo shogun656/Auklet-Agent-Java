@@ -119,6 +119,34 @@ try {
 ## Auto-Start (Java only)
 Set the environment variable `AUKLET_AUTO_START` or the JVM system property `auklet.auto.start` to `true` to have the agent start alongside the JVM. In this configuration, the agent will only send to Auklet exceptions that are not caught within a thread or by a thread handler (see the previous section for details). If you want to explicitly catch and report some exceptions to Auklet, do not use this method.
 
+## HTTPS Certificates
+If you are running the Auklet agent on a platform that does not trust the root CA certificates used to communicate with the Auklet cloud, you will experience exceptions like this:
+
+```
+io.auklet.AukletException: Error while making HTTP request.
+        at io.auklet.net.Https.doRequest...
+Caused by: javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+        at sun.security.ssl.Alerts.getSSLException...
+```
+
+To fix this, you will need to pass the necessary certificates to the Auklet agent's config object. Please contact Auklet support to obtain the necessary certificate files; you will need to provide these files to the Auklet agent at runtime.
+
+Below is some sample code you can use to do this. In this example, the certificate files are included as resources in your app's JAR file and accessed via the classloader. Do not retain any references to these streams, as they will eventually be closed by the Auklet agent.
+
+```
+import java.util.Arrays;
+import io.auklet.Auklet;
+import io.auklet.Config;
+
+Auklet.init(new Config()
+    .setAppId("your-app-id")
+    .setApiKey("your-api-key")
+    .setSslCertificates(Arrays.asList(
+        YourApp.class.getResourceAsStream("/cert-1.pem"),
+        YourApp.class.getResourceAsStream("/cert-2.pem")
+    ))
+);
+```
 
 ## Note Regarding TLS Support
 The auklet.io data pipeline uses TLS 1.2. According to [Android docs](https://developer.android.com/reference/javax/net/ssl/SSLSocket#protocols), TLS 1.2 is enabled by default starting with API level 20 (Android version 4.4W). If your application supports API levels 16 through 19, you may need to do additional work to ensure that TLS 1.2 is available.
