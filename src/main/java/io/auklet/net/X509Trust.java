@@ -31,6 +31,8 @@ import java.util.List;
  * SSL trust manager. This class encapsulates the use case where only a finite set of
  * certificates can be trusted, though this class can also be used when this is not
  * the case and the default truststore provided by the OS/JVM is desired.</p>
+ *
+ * <p>After construction, the underlying SSL context is already initialized.</p>
  */
 @NotThreadSafe
 public final class X509Trust {
@@ -45,7 +47,7 @@ public final class X509Trust {
      * @param certificates the SSL certificates to use. If {@code null} or empty,
      * the truststore provided by the OS/JVM will be used.
      * @throws AukletException if any error occurs while parsing the certificates, or while
-     * creating the trust manager or the SSL context.
+     * creating the trust manager or creating/initializing the SSL context.
      */
     private X509Trust(@Nullable Collection<X509Certificate> certificates) throws AukletException {
         try {
@@ -80,7 +82,7 @@ public final class X509Trust {
             trustManager = (X509TrustManager) tm;
             // Define and initialize the context.
             context = SSLContext.getInstance("TLSv1.2");
-            context.init(null, new TrustManager[]{tm}, null);
+            context.init(null, tms, null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
             throw new AukletException("Could not create X.509 trust object.", e);
         }
@@ -131,7 +133,7 @@ public final class X509Trust {
     @NonNull public X509TrustManager getTrustManager() { return trustManager; }
 
     /**
-     * <p>Creates a returns a TLSv1.2-only SSL socket factory.</p>
+     * <p>Creates and returns a TLSv1.2-only SSL socket factory.</p>
      *
      * @return never {@code null}.
      */
