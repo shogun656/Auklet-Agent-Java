@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
 import io.auklet.util.FileUtil;
 import io.auklet.util.JsonUtil;
+import io.auklet.util.Util;
 import mjson.Json;
 import net.jcip.annotations.NotThreadSafe;
 import okhttp3.Request;
@@ -21,12 +22,16 @@ public abstract class AbstractJsonConfigFileFromApi extends AbstractConfigFileFr
      * <p>Submits a request to the Auklet API and returns the response as a JSON object.</p>
      *
      * @param request the API request. Never {@code null}.
+     * @param path the URL path - that is, the entire URL minus the protocol and host/domain.
+     * Must not be {@code null} or empty.
      * @return never {@code null}.
      * @throws AukletException if the request is {@code null}, or if the request fails or has an error.
      */
-    @NonNull protected final Json makeJsonRequest(@NonNull Request.Builder request) throws AukletException {
+    @NonNull protected final Json makeJsonRequest(@NonNull Request.Builder request, @NonNull String path) throws AukletException {
         if (request == null) throw new AukletException("JSON HTTP request is null.");
-        try (Response response = this.getAgent().doApiRequest(request)) {
+        if (Util.isNullOrEmpty(path)) throw new AukletException("JSON URL path is null or empty.");
+        request.header("Content-Type", "application/json; charset=utf-8");
+        try (Response response = this.getAgent().doApiRequest(request, path)) {
             String responseString = response.body().string();
             if (response.isSuccessful()) {
                 return JsonUtil.validateJson(JsonUtil.readJson(responseString), this.getClass().getName());

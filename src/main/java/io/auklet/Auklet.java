@@ -335,15 +335,6 @@ public final class Auklet {
     }
 
     /**
-     * <p>Returns the API base URL for this instance of the agent.</p>
-     *
-     * @return never {@code null}.
-     */
-    @NonNull public String getBaseUrl() {
-        return this.baseUrl;
-    }
-
-    /**
      * <p>Returns the config directory for this instance of the agent.</p>
      *
      * @return never {@code null}.
@@ -416,13 +407,19 @@ public final class Auklet {
     /**
      * <p>Makes an authenticated request to the Auklet API.</p>
      *
-     * @param request never {@code null}.
+     * @param request a partially built OkHttp request object. This method fully assembles
+     * the URL component of the request and also handles authentication.
+     * @param path the URL path - that is, the entire URL minus the protocol and host/domain.
+     * Must not be {@code null} or empty.
      * @return never {@code null}.
      * @throws AukletException if an error occurs with the request.
      */
-    @NonNull public Response doApiRequest(@NonNull Request.Builder request) throws AukletException {
+    @NonNull public Response doApiRequest(@NonNull Request.Builder request, @NonNull String path) throws AukletException {
         if (request == null) throw new AukletException("HTTP request is null.");
-        request.header("Authorization", "JWT " + this.apiKey);
+        if (Util.isNullOrEmpty(path)) throw new AukletException("URL path is null or empty.");
+        request
+                .url(this.baseUrl + Util.addLeadingSlash(path))
+                .header("Authorization", "JWT " + this.apiKey);
         return this.https.doRequest(request);
     }
 

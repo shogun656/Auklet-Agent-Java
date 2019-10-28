@@ -37,6 +37,10 @@ import java.util.List;
  * <p>Due to a technical limitation, all messages logged to {@code io.auklet.http} will always be
  * logged at level {@code INFO} (unless logging is disabled), taking into consideration the behavior
  * of the levels described above.</p>
+ *
+ * <p><b>Per the above, please note that setting the logging level for the logger {@code io.auklet.http}
+ * to any level more verbose than {@code INFO} will result in authorization headers being logged, thus
+ * leaking your Auklet API key. Do not do this in your production environment!</b></p>
  */
 @Immutable
 public final class Https {

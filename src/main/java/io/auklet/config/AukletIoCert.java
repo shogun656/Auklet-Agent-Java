@@ -61,9 +61,8 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
 
     @Override protected String fetchFromApi() throws AukletException {
         try {
-            Request.Builder request = new Request.Builder()
-                    .url(this.getAgent().getBaseUrl() + "/private/devices/certificates/").get();
-            try (Response response = this.getAgent().doApiRequest(request)) {
+            Request.Builder request = new Request.Builder().get();
+            try (Response response = this.getAgent().doApiRequest(request, "/private/devices/certificates/")) {
                 String responseString = response.body().string();
                 if (response.isSuccessful()) {
                     return responseString;
