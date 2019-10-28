@@ -51,8 +51,7 @@ public final class Https {
      *
      * @param sslCertificates the SSL certificates to use. If {@code null} or empty,
      * the truststore provided by the OS/JVM will be used.
-     * @throws AukletException if the API key is {@code null} or empty, or if the root CA is not
-     * {@code null} and an error occurs while initializing the SSL socket factory.
+     * @throws AukletException if an error occurs while initializing the SSL trust object.
      */
     public Https(@Nullable List<InputStream> sslCertificates) throws AukletException {
         X509Trust trust = X509Trust.fromStreams(sslCertificates);
