@@ -144,4 +144,13 @@ public final class Util {
         }
     }
 
+    /**
+     * <p>Returns the current thread's stack trace.</p>
+     *
+     * @return never {@code null}, but may be empty due to JVM vendor implementations.
+     */
+    @NonNull public static StackTraceElement[] getCurrentStackTrace() {
+        return new java.lang.Throwable().getStackTrace(); // NOSONAR
+    }
+
 }
