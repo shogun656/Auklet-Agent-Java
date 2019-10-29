@@ -228,7 +228,7 @@ public final class Auklet {
      * @throws CloneNotSupportedException unconditionally.
      */
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    protected Object clone() throws CloneNotSupportedException { // NOSONAR
         throw new CloneNotSupportedException();
     }
 
