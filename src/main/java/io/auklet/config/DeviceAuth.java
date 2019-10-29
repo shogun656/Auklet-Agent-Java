@@ -129,10 +129,8 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
         requestJson.set("mac_address_hash", this.getAgent().getMacHash());
         requestJson.set("application", this.getAgent().getAppId());
         Request.Builder request = new Request.Builder()
-                .url(this.getAgent().getBaseUrl() + "/private/devices/")
-                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJson.toString()))
-                .header("Content-Type", "application/json; charset=utf-8");
-        return this.makeJsonRequest(request);
+                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJson.toString()));
+        return this.makeJsonRequest(request, "/private/devices/");
     }
 
     @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {

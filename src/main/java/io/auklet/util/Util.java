@@ -65,6 +65,18 @@ public final class Util {
     }
 
     /**
+     * <p>Adds a leading slash to the input string, unless it already has one.</p>
+     *
+     * @param s the input string.
+     * @return {@code null} if and only if the input string is {@code null}.
+     */
+    @CheckForNull public static String addLeadingSlash(@Nullable String s) {
+        if (s == null) return null;
+        if (!s.startsWith("/")) s = "/" + s;
+        return s;
+    }
+
+    /**
      * <p>Removes the trailing slash from the input string, if it has one.</p>
      *
      * @param s the input string.
@@ -130,6 +142,15 @@ public final class Util {
             LOGGER.warn("Error while calculating MAC address hash.", e);
             return "";
         }
+    }
+
+    /**
+     * <p>Returns the current thread's stack trace.</p>
+     *
+     * @return never {@code null}, but may be empty due to JVM vendor implementations.
+     */
+    @NonNull public static StackTraceElement[] getCurrentStackTrace() {
+        return new java.lang.Throwable().getStackTrace(); // NOSONAR
     }
 
 }

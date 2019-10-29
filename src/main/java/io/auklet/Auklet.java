@@ -53,6 +53,7 @@ public final class Auklet {
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
     private static final AukletDaemonExecutor DAEMON = new AukletDaemonExecutor(1, ThreadUtil.createDaemonThreadFactory("Auklet"));
+    private static final String INVALID_INIT_MSG = "Use Auklet.init() to initialize the agent.";
     @GuardedBy("LOCK") private static Auklet agent = null;
 
     private final String appId;
@@ -110,8 +111,28 @@ public final class Auklet {
         synchronized (LOCK) {
             // We check this in the init method to provide a proper message, in case the user accidentally
             // attempted to init twice. We check again here to prevent instantiation via reflection.
-            if (agent != null) throw new IllegalStateException("Use Auklet.init() to initialize the agent.");
+            if (agent != null) throw new IllegalStateException(INVALID_INIT_MSG);
         }
+
+        // We now attempt to verify who is invoking the constructor, to try to prevent instantiation.
+        // The first frame is the Util method and the next two frames are from the constructor, so we
+        // want to inspect the 4th frame.
+        //
+        // According to Oracle Javadocs, JVMs may sometimes return empty stack traces. If this happens,
+        // we have no choice but to skip this check, so warn the end user.
+        boolean verified = true;
+        StackTraceElement[] st = Util.getCurrentStackTrace();
+        if (st.length >= 4) {
+            String caller = st[3].getClassName();
+            // If it's null or empty, we have to assume the call is legitimate, so warn the end user.
+            boolean callerIsValid = !Util.isNullOrEmpty(caller);
+            if (!callerIsValid) verified = false;
+            else if (!caller.startsWith(Auklet.class.getName())) {
+                // Invalid caller, so must be external reflection.
+                throw new IllegalStateException(INVALID_INIT_MSG);
+            }
+        } else verified = false;
+        if (!verified) LOGGER.warn("Insufficient information provided by the JVM to validate Auklet constructor call. If you see this warning more than once per JVM execution, you are likely the target of a reflection attack!");
 
         LOGGER.debug("Parsing configuration.");
         if (config == null) config = new Config();
@@ -198,6 +219,17 @@ public final class Auklet {
                 throw new AukletException("Could not set default uncaught exception handler.", e);
             }
         }
+    }
+
+    /**
+     * <p>The Auklet object cannot be cloned.</p>
+     *
+     * @return nothing.
+     * @throws CloneNotSupportedException unconditionally.
+     */
+    @Override
+    protected Object clone() throws CloneNotSupportedException { // NOSONAR
+        throw new CloneNotSupportedException();
     }
 
     /**
@@ -335,15 +367,6 @@ public final class Auklet {
     }
 
     /**
-     * <p>Returns the API base URL for this instance of the agent.</p>
-     *
-     * @return never {@code null}.
-     */
-    @NonNull public String getBaseUrl() {
-        return this.baseUrl;
-    }
-
-    /**
      * <p>Returns the config directory for this instance of the agent.</p>
      *
      * @return never {@code null}.
@@ -416,13 +439,19 @@ public final class Auklet {
     /**
      * <p>Makes an authenticated request to the Auklet API.</p>
      *
-     * @param request never {@code null}.
+     * @param request a partially built OkHttp request object. This method fully assembles
+     * the URL component of the request and also handles authentication.
+     * @param path the URL path - that is, the entire URL minus the protocol and host/domain.
+     * Must not be {@code null} or empty.
      * @return never {@code null}.
      * @throws AukletException if an error occurs with the request.
      */
-    @NonNull public Response doApiRequest(@NonNull Request.Builder request) throws AukletException {
+    @NonNull public Response doApiRequest(@NonNull Request.Builder request, @NonNull String path) throws AukletException {
         if (request == null) throw new AukletException("HTTP request is null.");
-        request.header("Authorization", "JWT " + this.apiKey);
+        if (Util.isNullOrEmpty(path)) throw new AukletException("URL path is null or empty.");
+        request
+                .url(this.baseUrl + Util.addLeadingSlash(path))
+                .header("Authorization", "JWT " + this.apiKey);
         return this.https.doRequest(request);
     }
 

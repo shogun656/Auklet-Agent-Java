@@ -52,10 +52,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
     }
 
     @Override protected Json fetchFromApi() throws AukletException {
-        Request.Builder request = new Request.Builder()
-                .url(this.getAgent().getBaseUrl() + "/private/devices/config/").get()
-                .header("Content-Type", "application/json; charset=utf-8");
-        return this.makeJsonRequest(request);
+        return this.makeJsonRequest(new Request.Builder().get(), "/private/devices/config/");
     }
 
 }

@@ -65,11 +65,8 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
     }
 
     @Override protected Json fetchFromApi() throws AukletException {
-        String apiSuffix = String.format("/private/devices/%s/app_config/", this.getAgent().getAppId());
-        Request.Builder request = new Request.Builder()
-                .url(this.getAgent().getBaseUrl() + apiSuffix).get()
-                .header("Content-Type", "application/json; charset=utf-8");
-        return this.makeJsonRequest(request);
+        String appConfigRequest = String.format("/private/devices/%s/app_config/", this.getAgent().getAppId());
+        return this.makeJsonRequest(new Request.Builder().get(), appConfigRequest);
     }
 
     /**
