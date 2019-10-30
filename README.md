@@ -119,6 +119,78 @@ try {
 ## Auto-Start (Java only)
 Set the environment variable `AUKLET_AUTO_START` or the JVM system property `auklet.auto.start` to `true` to have the agent start alongside the JVM. In this configuration, the agent will only send to Auklet exceptions that are not caught within a thread or by a thread handler (see the previous section for details). If you want to explicitly catch and report some exceptions to Auklet, do not use this method.
 
+## Security Policies (Java only)
+If you have a security manager/security policy enabled on the JVM where the Auklet agent is running, you will need/want to grant certain permissions, as documented below:
+
+In addition to what is listed below, you may need to grant permissions for whatever SLF4J logging backend you choose to implement.
+
+```
+grant {
+    // *** Required permissions for Auklet config dir ***
+    // You must have these permissions in your security policy or the Auklet agent will not work.
+    // It is STRONGLY RECOMMENDED that you explicitly set the Auklet config dir to "/path/to/your/config/dir/" when using a security policy.
+    permission java.io.FilePermission "/path/to/your/config/dir/.auklet","read,write,delete";
+    permission java.io.FilePermission "/path/to/your/config/dir/.auklet/-","read,write,delete";
+
+    // *** Required permissions for Auklet dependencies ***
+    // You must have these permissions in your security policy or the Auklet agent will not work.
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    permission java.net.NetPermission "getNetworkInformation";
+    permission java.net.NetPermission "getProxySelector";
+    permission java.net.SocketPermission "checkip.amazonaws.com","connect";
+    permission java.net.SocketPermission "auklet-certs.s3.amazonaws.com","connect";
+    permission java.util.PropertyPermission "okhttp.platform","read";
+    permission java.util.PropertyPermission "java.runtime.name","read";
+    permission java.util.PropertyPermission "com.google.appengine.runtime.version","read";
+    permission java.util.PropertyPermission "msgpack.universal-buffer","read";
+    // If explicitly setting the base URL, update these permissions accordingly.
+    permission java.net.SocketPermission "api.auklet.io","connect";
+    permission java.net.SocketPermission "mq.feeds.auklet.io","connect";
+
+    // *** Recommended permissions ***
+    // In typical deployments, you will want to grant these in order to use these features.
+    permission java.lang.RuntimePermission "getenv.AUKLET_APP_ID";
+    permission java.lang.RuntimePermission "getenv.AUKLET_API_KEY";
+    permission java.lang.RuntimePermission "getenv.AUKLET_CONFIG_DIR";
+    permission java.lang.RuntimePermission "getenv.AUKLET_LOUD_SECURITY_EXCEPTIONS";
+    permission java.util.PropertyPermission "auklet.app.id","read";
+    permission java.util.PropertyPermission "auklet.api.key","read";
+    permission java.util.PropertyPermission "auklet.config.dir","read";
+    permission java.util.PropertyPermission "auklet.loud.security.exceptions","read";
+    // Needed to add JVM shutdown hooks and uncaught exception handler, which are enabled by default.
+    permission java.lang.RuntimePermission "shutdownHooks";
+    permission java.lang.RuntimePermission "setDefaultUncaughtExceptionHandler";
+    // If you do not want to grant the above two permissions, you will need to disable those
+    // functionalities, either by using a config object in your code or by adding two of the
+    // four permissions below and setting the corresponding envvar/sysprop.
+    permission java.lang.RuntimePermission "getenv.AUKLET_AUTO_SHUTDOWN";
+    permission java.lang.RuntimePermission "getenv.AUKLET_UNCAUGHT_EXCEPTION_HANDLER";
+    permission java.util.PropertyPermission "auklet.auto.shutdown","read";
+    permission java.util.PropertyPermission "auklet.uncaught.exception.handler","read";
+
+    // *** Optional permissions ***
+    // In typical deployments, you can get by without these permissions.
+    permission java.lang.RuntimePermission "getenv.AUKLET_AUTO_START";
+    permission java.lang.RuntimePermission "getenv.AUKLET_BASE_URL";
+    permission java.lang.RuntimePermission "getenv.AUKLET_SERIAL_PORT";
+    permission java.lang.RuntimePermission "getenv.AUKLET_THREADS_MQTT";
+    permission java.util.PropertyPermission "auklet.auto.start","read";
+    permission java.util.PropertyPermission "auklet.base.url","read";
+    permission java.util.PropertyPermission "auklet.serial.port","read";
+    permission java.util.PropertyPermission "auklet.threads.mqtt","read";
+    permission java.util.PropertyPermission "user.dir","read";
+    permission java.util.PropertyPermission "user.home","read";
+    permission java.util.PropertyPermission "java.io.tmpdir","read";
+    // Most JVMs do not require these permissions. If you are sending performance data
+    // to the Auklet cloud, you will need to enable loud logging of SecurityExceptions
+    // to determine if you need these permissions
+    permission java.util.PropertyPermission "os.name","read";
+    permission java.util.PropertyPermission "os.arch","read";
+    permission java.util.PropertyPermission "os.version","read";
+};
+```
+
 ## HTTPS Certificates
 If you are running the Auklet agent on a platform that does not trust the root CA certificates used to communicate with the Auklet cloud, you will experience exceptions like this:
 
