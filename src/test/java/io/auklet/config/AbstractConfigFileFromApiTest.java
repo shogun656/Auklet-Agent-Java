@@ -3,7 +3,7 @@ package io.auklet.config;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.AukletException;
 import io.auklet.TestingTools;
-import io.auklet.misc.Util;
+import io.auklet.util.FileUtil;
 import mjson.Json;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ class AbstractConfigFileFromApiTest extends TestingTools {
             @Override
             protected void writeToDisk(@NonNull Json contents) throws AukletException {
                 try {
-                    Util.writeUtf8(this.file, contents.toString());
+                    FileUtil.writeUtf8(this.file, contents.toString());
                 } catch (IOException e) {
                     // Purposefully to be empty
                 }

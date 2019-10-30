@@ -1,5 +1,6 @@
 package io.auklet.misc;
 
+import io.auklet.util.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -37,14 +38,14 @@ class UtilTest {
     @Test void testDeleteQuietly() {
         String pathname = "./tmp/io.auklet.misc.UtilTest.testDeleteQuietly";
         File file = new File(pathname);
-        Util.deleteQuietly(file);
+        FileUtil.deleteQuietly(file);
         assertEquals(false, file.isFile());
     }
 
     @Test void testWriteUtf8() throws IOException {
         String pathname = "./tmp/io.auklet.misc.UtilTest.testWriteUtf8";
         File file = new File(pathname);
-        Util.writeUtf8(file, "0");
+        FileUtil.writeUtf8(file, "0");
         assertEquals("0", new String(Files.readAllBytes(Paths.get(pathname))));
     }
 
@@ -53,7 +54,7 @@ class UtilTest {
         String data = "0";
         byte[] bytes = data.getBytes("UTF-8");
         File file = new File(pathname);
-        Util.write(file, bytes);
+        FileUtil.write(file, bytes);
         assertEquals("0", new String(Files.readAllBytes(Paths.get(pathname))));
     }
 
@@ -64,23 +65,23 @@ class UtilTest {
         FileOutputStream writeFile = new FileOutputStream(pathname);
         File readFile = new File(pathname);
         writeFile.write(bytes);
-        assertEquals("0", (new String(Util.read(readFile), "UTF-8")));
+        assertEquals("0", (new String(FileUtil.read(readFile), "UTF-8")));
     }
 
     @Test void testGetValue() {
-        assertEquals("0", Util.getValue("0", "1", "2"));
-        assertEquals(true, Util.getValue(true, "1", "2"));
-        assertNull(Util.getValue((String)null, "1", "2"));
-        assertNull(Util.getValue((Boolean)null, "1", "2"));
-        assertNull(Util.getValue((Integer)null, "1", "2"));
+        assertEquals("0", SysUtil.getValue("0", "1", "2"));
+        assertEquals(true, SysUtil.getValue(true, "1", "2"));
+        assertNull(SysUtil.getValue((String)null, "1", "2"));
+        assertNull(SysUtil.getValue((Boolean)null, "1", "2"));
+        assertNull(SysUtil.getValue((Integer)null, "1", "2"));
     }
 
     @Test void testCreateDaemonThreadFactory() {
-        assertNotNull(Util.createDaemonThreadFactory("0"));
+        assertNotNull(ThreadUtil.createDaemonThreadFactory("0"));
     }
 
     @Test void testReadJson() {
-        assertNotEquals("{}", Util.readJson("{1:1}"));
+        assertNotEquals("{}", JsonUtil.readJson("{1:1}"));
     }
 
     @Test void testGetMacAddressHash() {
@@ -160,7 +161,7 @@ class UtilTest {
 
             }
         };
-        Util.shutdown(es);
+        ThreadUtil.shutdown(es);
         assertEquals(false, es.isShutdown());
     }
 }

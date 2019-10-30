@@ -48,12 +48,12 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void testIsLoggable() {
-        assertEquals(true, pahoLogger.isLoggable(SEVERE));
-        assertEquals(true, pahoLogger.isLoggable(WARNING));
-        assertEquals(true, pahoLogger.isLoggable(INFO));
-        assertEquals(true, pahoLogger.isLoggable(CONFIG));
-        assertEquals(true, pahoLogger.isLoggable(FINEST));
-        assertEquals(false, pahoLogger.isLoggable(0));
+        assertTrue(pahoLogger.isLoggable(SEVERE));
+        assertTrue(pahoLogger.isLoggable(WARNING));
+        assertTrue(pahoLogger.isLoggable(INFO));
+        assertTrue(pahoLogger.isLoggable(CONFIG));
+        assertTrue(pahoLogger.isLoggable(FINEST));
+        assertFalse(pahoLogger.isLoggable(0));
     }
 
     @Test void testSevere() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -96,20 +96,20 @@ import static org.junit.jupiter.api.Assertions.*;
 
         Method testMethod3Args = (pahoLogger.getClass().getDeclaredMethod(level, String.class, String.class, String.class));
         testMethod3Args.invoke(pahoLogger, "SourceClass", "SourceMethod", message);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
+        assertTrue(logger.getLoggingEvents().toString().contains(message));
 
         Method testMethod4Args = (pahoLogger.getClass().getDeclaredMethod(level, String.class, String.class, String.class, Object[].class));
         testMethod4Args.invoke(pahoLogger, "SourceClass", "SourceMethod", message, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
+        assertTrue(logger.getLoggingEvents().toString().contains(message));
 
         Method testMethod5Args = (pahoLogger.getClass().getDeclaredMethod(level, String.class, String.class, String.class, Object[].class, Throwable.class));
         testMethod5Args.invoke(pahoLogger, "SourceClass", "SourceMethod", message, null, null);
-        assertEquals(true, logger.getLoggingEvents().toString().contains(message));
+        assertTrue(logger.getLoggingEvents().toString().contains(message));
     }
 
     private void testPahoLogTrace(String message, String type) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Method testMethod3Args = (pahoLogger.getClass().getDeclaredMethod(type, int.class, String.class, String.class, String.class, Object[].class, Throwable.class));
         testMethod3Args.invoke(pahoLogger, 0, "SourceClass", "SourceMethod", message, null, null);
-        assertEquals(false, logger.getLoggingEvents().asList().toString().contains(message));
+        assertFalse(logger.getLoggingEvents().asList().toString().contains(message));
     }
 }

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.lang.reflect.InvocationTargetException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AukletIoSinkTest extends TestingTools {
@@ -28,7 +28,7 @@ class AukletIoSinkTest extends TestingTools {
         try {
             aukletIoSink.start(auklet);
         } catch (AukletException e) {
-            assertEquals(false, e.toString().contains("Could not initialize MQTT sink."));
+            assertFalse(e.toString().contains("Could not initialize MQTT sink."));
         }
     }
 }

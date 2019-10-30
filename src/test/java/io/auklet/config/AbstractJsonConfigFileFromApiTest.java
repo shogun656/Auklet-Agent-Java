@@ -9,7 +9,7 @@ import org.junit.jupiter.api.TestInstance;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AbstractJsonConfigFileFromApiTest {
-    AbstractJsonConfigFileFromApi abstractJsonConfigFileFromApi;
+    private AbstractJsonConfigFileFromApi abstractJsonConfigFileFromApi;
     @BeforeAll void setup() {
         abstractJsonConfigFileFromApi = new AbstractJsonConfigFileFromApi() {
             @Override

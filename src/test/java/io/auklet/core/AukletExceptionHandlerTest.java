@@ -6,7 +6,7 @@ import org.junit.jupiter.api.TestInstance;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AukletExceptionHandlerTest {
-    AukletExceptionHandler aukletExceptionHandler;
+    private AukletExceptionHandler aukletExceptionHandler;
     @BeforeAll void setup() {
         aukletExceptionHandler = new AukletExceptionHandler();
     }

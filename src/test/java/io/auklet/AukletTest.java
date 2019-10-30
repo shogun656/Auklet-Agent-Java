@@ -1,14 +1,11 @@
 package io.auklet;
 
 import io.auklet.config.DeviceAuth;
-import io.auklet.core.AukletApi;
 import io.auklet.core.DataUsageMonitor;
 import io.auklet.platform.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import uk.org.lidalia.slf4jtest.TestLogger;
-import uk.org.lidalia.slf4jtest.TestLoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -21,10 +18,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AukletTest extends TestingTools {
     private Auklet auklet;
-    private TestLogger logger = TestLoggerFactory.getTestLogger(Auklet.class);
     private Runnable runnable;
 
-    @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
+    @BeforeAll void setup() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+            InstantiationException, RuntimeException {
         auklet = aukletConstructor(null);
 
         Config config = new Config().setAppId("0123456789101112")
@@ -42,10 +39,6 @@ class AukletTest extends TestingTools {
 
     @Test void testGetAppId() {
         assertEquals("0123456789101112", auklet.getAppId());
-    }
-
-    @Test void testGetBaseUrl() {
-        assertEquals("https://api.auklet.io", auklet.getBaseUrl());
     }
 
     @Test void testGetConfigDir() {
@@ -66,10 +59,6 @@ class AukletTest extends TestingTools {
 
     @Test void testGetIpAddress() {
         assertNotNull(auklet.getIpAddress());
-    }
-
-    @Test void testGetApi() {
-        assertThat(auklet.getApi(), instanceOf(AukletApi.class));
     }
 
     @Test void testGetDeviceAuth() {

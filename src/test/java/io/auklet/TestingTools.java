@@ -1,26 +1,11 @@
 package io.auklet;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
-import io.auklet.misc.Util;
 import mjson.Json;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
 
 public class TestingTools {
-    private Cipher aesCipher;
-    private Key aesKey;
-
 
     /*JSON Config testing declaration*/
     protected Json jsonConfig = Json.object()
@@ -58,7 +43,8 @@ public class TestingTools {
             .set("brokers", "0.0.0.0")
             .set("port", "0000");
 
-    protected Auklet aukletConstructor(Config config) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
+    protected Auklet aukletConstructor(Config config) throws NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException, InstantiationException, RuntimeException {
         if (config == null) {
             config = new Config().setAppId("0123456789101112")
                     .setApiKey("123");

@@ -1,8 +1,12 @@
 package io.auklet.core;
 
 import io.auklet.AukletException;
+import io.auklet.net.Https;
 import okhttp3.Request;
 import org.junit.jupiter.api.Test;
+
+import java.io.InputStream;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -10,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AukletApiTest {
     @Test void testAukletApi() throws AukletException {
         try {
-            new AukletApi("");
+            new Https(Collections.<InputStream>emptyList());
         } catch(AukletException e) {
             assertEquals("io.auklet.AukletException: API key is null or empty.", e.toString());
         }
@@ -20,13 +24,13 @@ class AukletApiTest {
 
     @Test void testDoRequest() throws AukletException {
         try {
-            AukletApi aukletApi = new AukletApi("");
+            Https aukletApi = new Https(Collections.<InputStream>emptyList());
             aukletApi.doRequest(null);
         } catch (AukletException e) {
             assertEquals("io.auklet.AukletException: API key is null or empty.", e.toString());
         }
 
-        AukletApi aukletApi = new AukletApi("0");
+        Https aukletApi = new Https(Collections.<InputStream>emptyList());
         assertEquals("Response{protocol=h2, code=200, message=, url=https://www.google.com/}",
                      aukletApi.doRequest(new Request.Builder().url("https://google.com")).toString());
 

@@ -9,8 +9,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.FieldSetter;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DataUsageMonitorTest extends TestingTools {
@@ -42,8 +41,8 @@ class DataUsageMonitorTest extends TestingTools {
 
     @Test void testWillExceedLimit() {
         Mockito.doReturn((long) 100).when(mockedDataUsageTracker).getBytesSent();
-        assertEquals(false, dataUsageMonitor.willExceedLimit(1000));
-        assertEquals(false, dataUsageMonitor.willExceedLimit(0));
-        assertEquals(true, dataUsageMonitor.willExceedLimit(100));
+        assertFalse(dataUsageMonitor.willExceedLimit(1000));
+        assertFalse(dataUsageMonitor.willExceedLimit(0));
+        assertTrue(dataUsageMonitor.willExceedLimit(100));
     }
 }
