@@ -27,36 +27,12 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
     }
 
     @CheckForNull @Override public final File obtainConfigDir(@Nullable String fromConfig) {
-        // If a directory contains the auth file, use that directory.
-        // We don't care if the other files don't exist because we'll create them later if needed.
-        LOGGER.debug("Checking directories for existing config files.");
         List<String> configDirs = getPossibleConfigDirs(fromConfig);
-        for (String dir : configDirs) {
-            File authFile = new File(dir, DeviceAuth.FILENAME);
-            try {
-                if (authFile.exists()) {
-                    LOGGER.debug("Using existing config directory: {}", dir);
-                    return new File(dir);
-                }
-            } catch (SecurityException e) {
-                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
-                else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
-            }
-        }
-
+        LOGGER.debug("Checking directories for existing config files.");
+        File existingConfigDir = chooseExistingConfigDir(configDirs);
+        if (existingConfigDir != null) return existingConfigDir;
         LOGGER.debug("No existing config files found; checking directories for suitability.");
-        // Use the first directory that we can create.
-        for (String dir : configDirs) {
-            try {
-                return tryDir(new File(dir));
-            } catch (SecurityException e) {
-                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
-                else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
-            } catch (IllegalArgumentException | UnsupportedOperationException | IOException e) {
-                LOGGER.warn(DIR_ERROR, dir, e);
-            }
-        }
-        return null;
+        return chooseNewConfigDir(configDirs);
     }
 
     /**
@@ -69,29 +45,69 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
     @NonNull protected abstract List<String> getPossibleConfigDirs(@Nullable String fromConfig);
 
     /**
-     * <p>Checks the directory for write permissions, or attempts to create the directory, or gives up.</p>
+     * <p>Finds and returns the first existing config directory that contains an Auklet config file
+     * that the JVM is able to read.</p>
      *
-     * @param possibleConfigDir the directory that needs to be checked for write permissions.
-     * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
-     * initialization and all data sent to the agent must be silently discarded.
+     * @param possibleConfigDirs the list of possible config directories that need to be tested; the
+     * first (per iteration order) directory in this list that passes the tests will be returned.
+     * @return possibly {@code null}, meaning that no possible config directories were suitable.
      */
-    private static File tryDir(File possibleConfigDir) throws IOException {
-        boolean alreadyExists = possibleConfigDir.exists();
-        // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
-        // exists *as a directory*. However, this result does not imply that the JVM has
-        // write permissions *inside* the directory, which would be the case only if the
-        // directory existed beforehand.
-        //
-        // To alleviate this, we do a test file write inside the directory *only if the
-        // directory existed beforehand*.
-        if (alreadyExists) {
-            File tempFile = File.createTempFile("auklet", null, possibleConfigDir);
-            LOGGER.debug("Using existing config directory: {}", possibleConfigDir.getPath());
-            FileUtil.deleteQuietly(tempFile);
-            return possibleConfigDir;
-        } else if (possibleConfigDir.mkdirs()) {
-            LOGGER.debug("Created new config directory: {}", possibleConfigDir.getPath());
-            return possibleConfigDir;
+    @CheckForNull
+    private static File chooseExistingConfigDir(@Nullable List<String> possibleConfigDirs) {
+        if (possibleConfigDirs == null || possibleConfigDirs.isEmpty()) return null;
+        for (String dir : possibleConfigDirs) {
+            // If a directory contains the auth file, use that directory.
+            // We don't care if the other files don't exist because we'll create them later if needed.
+            File authFile = new File(dir, DeviceAuth.FILENAME);
+            try {
+                if (authFile.exists()) {
+                    LOGGER.debug("Using existing config directory: {}", dir);
+                    return new File(dir);
+                }
+            } catch (SecurityException e) {
+                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
+                else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * <p>Finds and returns the first eligible config directory to which the JVM is able to write files.</p>
+     *
+     * @param possibleConfigDirs the list of possible config directories that need to be tested; the
+     * first (per iteration order) directory in this list that passes the tests will be returned.
+     * @return possibly {@code null}, meaning that no possible config directories were suitable.
+     */
+    @CheckForNull
+    private static File chooseNewConfigDir(@Nullable List<String> possibleConfigDirs) {
+        if (possibleConfigDirs == null || possibleConfigDirs.isEmpty()) return null;
+        for (String dir : possibleConfigDirs) {
+            try {
+                File dirFile = new File(dir);
+                // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
+                // exists *as a directory*. However, this result does not imply that the JVM has
+                // write permissions *inside* the directory, which would be the case only if the
+                // directory existed beforehand.
+                //
+                // To alleviate this, we do a test file write inside the directory *only if the
+                // directory existed beforehand*.
+                boolean alreadyExists = dirFile.exists();
+                if (alreadyExists) {
+                    File tempFile = File.createTempFile("auklet", null, dirFile);
+                    LOGGER.debug("Using existing config directory: {}", dirFile.getPath());
+                    FileUtil.deleteQuietly(tempFile);
+                    return dirFile;
+                } else if (dirFile.mkdirs()) {
+                    LOGGER.debug("Created new config directory: {}", dirFile.getPath());
+                    return dirFile;
+                }
+            } catch (SecurityException e) {
+                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
+                else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
+            } catch (IllegalArgumentException | UnsupportedOperationException | IOException e) {
+                LOGGER.warn(DIR_ERROR, dir, e);
+            }
         }
         return null;
     }
