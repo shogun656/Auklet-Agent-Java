@@ -184,7 +184,7 @@ grant {
     permission java.util.PropertyPermission "java.io.tmpdir","read";
     // Most JVMs do not require these permissions. If you are sending performance data
     // to the Auklet cloud, you will need to enable loud logging of SecurityExceptions
-    // to determine if you need these permissions
+    // to determine if you need these permissions.
     permission java.util.PropertyPermission "os.name","read";
     permission java.util.PropertyPermission "os.arch","read";
     permission java.util.PropertyPermission "os.version","read";
