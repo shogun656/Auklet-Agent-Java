@@ -3,7 +3,7 @@ package io.auklet.config;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
-import io.auklet.misc.Util;
+import io.auklet.util.JsonUtil;
 import mjson.Json;
 import net.jcip.annotations.NotThreadSafe;
 import okhttp3.Request;
@@ -44,7 +44,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
         try {
             String fromDisk = this.getStringFromDisk();
             if (fromDisk.isEmpty()) return null;
-            return Util.validateJson(Util.readJson(fromDisk), this.getClass().getName());
+            return JsonUtil.validateJson(JsonUtil.readJson(fromDisk), this.getClass().getName());
         } catch (AukletException | IOException | IllegalArgumentException e) {
             LOGGER.warn("Could not read broker config from disk, will re-download from API.", e);
             return null;
@@ -52,10 +52,7 @@ public final class AukletIoBrokers extends AbstractJsonConfigFileFromApi {
     }
 
     @Override protected Json fetchFromApi() throws AukletException {
-        Request.Builder request = new Request.Builder()
-                .url(this.getAgent().getBaseUrl() + "/private/devices/config/").get()
-                .header("Content-Type", "application/json; charset=utf-8");
-        return this.makeJsonRequest(request);
+        return this.makeJsonRequest(new Request.Builder().get(), "/private/devices/config/");
     }
 
 }

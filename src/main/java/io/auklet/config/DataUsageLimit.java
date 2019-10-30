@@ -4,7 +4,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.DataUsageConfig;
-import io.auklet.misc.Util;
+import io.auklet.util.JsonUtil;
 import mjson.Json;
 import net.jcip.annotations.NotThreadSafe;
 import okhttp3.Request;
@@ -57,7 +57,7 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
         try {
             String fromDisk = this.getStringFromDisk();
             if (fromDisk.isEmpty()) return null;
-            return Util.validateJson(Util.readJson(fromDisk), this.getClass().getName());
+            return JsonUtil.validateJson(JsonUtil.readJson(fromDisk), this.getClass().getName());
         } catch (AukletException | IOException | IllegalArgumentException e) {
             LOGGER.warn("Could not read data usage limits file from disk, will re-download from API.", e);
             return null;
@@ -65,11 +65,8 @@ public final class DataUsageLimit extends AbstractJsonConfigFileFromApi {
     }
 
     @Override protected Json fetchFromApi() throws AukletException {
-        String apiSuffix = String.format("/private/devices/%s/app_config/", this.getAgent().getAppId());
-        Request.Builder request = new Request.Builder()
-                .url(this.getAgent().getBaseUrl() + apiSuffix).get()
-                .header("Content-Type", "application/json; charset=utf-8");
-        return this.makeJsonRequest(request);
+        String appConfigRequest = String.format("/private/devices/%s/app_config/", this.getAgent().getAppId());
+        return this.makeJsonRequest(new Request.Builder().get(), appConfigRequest);
     }
 
     /**

@@ -3,8 +3,11 @@ package io.auklet;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.auklet.misc.Util;
+import io.auklet.util.Util;
 import net.jcip.annotations.NotThreadSafe;
+
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * <p>Config object for the {@link Auklet} agent. For fluency, all setter methods in this class return
@@ -72,6 +75,14 @@ import net.jcip.annotations.NotThreadSafe;
  *         </ol>
  *       </td>
  *       <td>{@code https://api.auklet.io}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>SSL certificates</td>
+ *       <td>{@link #setSslCertificates(List)}}</td>
+ *       <td>
+ *         Setter method value
+ *       </td>
+ *       <td>{@code null} (OS/JVM truststore will be used)</td>
  *     </tr>
  *     <tr>
  *       <td>Config directory</td>
@@ -154,9 +165,12 @@ import net.jcip.annotations.NotThreadSafe;
 @NotThreadSafe
 public final class Config {
 
+    private static final Set<InputStream> NULL_INPUT_STREAM_SET = Collections.singleton(null);
+
     private String appId = null;
     private String apiKey = null;
     private String baseUrl = null;
+    private List<InputStream> sslCertificates = null;
     private String configDir = null;
     private Boolean autoShutdown = null;
     private Boolean uncaughtExceptionHandler = null;
@@ -197,6 +211,25 @@ public final class Config {
     @NonNull public Config setBaseUrl(@Nullable String baseUrl) {
         if (Util.isNullOrEmpty(baseUrl)) baseUrl = null;
         this.baseUrl = baseUrl;
+        return this;
+    }
+
+    /**
+     * <p>Sets the SSL certificates to be used with the Auklet agent.</p>
+     *
+     * <p>This method makes a shallow copy of the provided list and drops all {@code null}
+     * elements in the list. The streams in this list will <i>eventually</i> be closed
+     * by the Auklet agent; clients should not retain any reference to these streams.</p>
+     *
+     * @param sslCertificates may be {@code null} or empty, in which case the Auklet agent
+     * will look for the SSL certificates in the truststore provided by the OS/JVM.
+     * @return {@code this}.
+     */
+    @NonNull public Config setSslCertificates(@Nullable List<InputStream> sslCertificates) {
+        if (sslCertificates != null) {
+            this.sslCertificates = new ArrayList<>(sslCertificates);
+            this.sslCertificates.removeAll(NULL_INPUT_STREAM_SET);
+        }
         return this;
     }
 
@@ -285,6 +318,11 @@ public final class Config {
     /** <p>Returns the desired API base URL.</p> */
     /*package*/ @CheckForNull String getBaseUrl() {
         return baseUrl;
+    }
+
+    /** <p>Returns the desired SSL certificates.</p> */
+    /*package*/ @CheckForNull List<InputStream> getSslCertificates() {
+        return sslCertificates;
     }
 
     /** <p>Returns the desired config directory.</p> */

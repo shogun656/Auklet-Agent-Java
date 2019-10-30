@@ -1,17 +1,14 @@
-package io.auklet.misc;
+package io.auklet.net;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.auklet.AukletException;
 import net.jcip.annotations.NotThreadSafe;
 
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * <p>A custom SSL socket factory that only supports TLS 1.2. This class adds compatibility for SSL connections
@@ -27,21 +24,14 @@ public final class Tls12SocketFactory extends SSLSocketFactory {
     private final SSLSocketFactory delegateFactory;
 
     /**
-     * <p>Constructor that uses the provided SSL context.</p>
+     * <p>Constructor that uses the provided SSL context. This context must already be initialized.</p>
      *
-     * @param context if {@code null}, a default SSL context will be used.
-     * @throws AukletException if the context cannot be created, or if the socket factory cannot be retrieved.
+     * @param context the SSL context whose socket factory will be wrapped.
+     * @throws IllegalArgumentException if the SSL context is {@code null}.
      */
-    public Tls12SocketFactory(@Nullable SSLContext context) throws AukletException {
-        try {
-            if (context == null) {
-                context = SSLContext.getInstance("TLSv1.2");
-                context.init(null, null, null);
-            }
-            delegateFactory = context.getSocketFactory();
-        } catch (KeyManagementException | NoSuchAlgorithmException | IllegalStateException e) {
-            throw new AukletException("Could not initialize SSL socket factory.", e);
-        }
+    public Tls12SocketFactory(@NonNull SSLContext context) {
+        if (context == null) throw new IllegalArgumentException("SSL context is null.");
+        delegateFactory = context.getSocketFactory();
     }
 
     @Override public String[] getDefaultCipherSuites() {
@@ -78,7 +68,10 @@ public final class Tls12SocketFactory extends SSLSocketFactory {
 
     @CheckForNull private Socket tls12Only(@Nullable Socket socket) {
         if (socket == null) throw new IllegalArgumentException("Socket is null.");
-        if (socket instanceof SSLSocket) ((SSLSocket) socket).setEnabledProtocols(new String[]{"TLSv1.2"});
+        if (socket instanceof SSLSocket) {
+            SSLSocket sslsocket = (SSLSocket) socket;
+            sslsocket.setEnabledProtocols(new String[]{"TLSv1.2"});
+        }
         return socket;
     }
 

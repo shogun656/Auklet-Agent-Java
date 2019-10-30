@@ -3,7 +3,8 @@ package io.auklet.config;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
-import io.auklet.misc.Util;
+import io.auklet.util.FileUtil;
+import io.auklet.util.Util;
 import net.jcip.annotations.NotThreadSafe;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -60,9 +61,8 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
 
     @Override protected String fetchFromApi() throws AukletException {
         try {
-            Request.Builder request = new Request.Builder()
-                    .url(this.getAgent().getBaseUrl() + "/private/devices/certificates/").get();
-            try (Response response = this.getAgent().getApi().doRequest(request)) {
+            Request.Builder request = new Request.Builder().get();
+            try (Response response = this.getAgent().doApiRequest(request, "/private/devices/certificates/")) {
                 String responseString = response.body().string();
                 if (response.isSuccessful()) {
                     return responseString;
@@ -78,7 +78,7 @@ public final class AukletIoCert extends AbstractConfigFileFromApi<String> {
     @Override protected void writeToDisk(@NonNull String contents) throws AukletException {
         if (Util.isNullOrEmpty(contents)) throw new AukletException("Input is null or empty.");
         try {
-            Util.writeUtf8(this.file, contents);
+            FileUtil.writeUtf8(this.file, contents);
         } catch (IOException e) {
             throw new AukletException("Could not save MQTT CA cert to disk.", e);
         }

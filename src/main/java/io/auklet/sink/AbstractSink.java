@@ -5,7 +5,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
 import io.auklet.core.HasAgent;
-import io.auklet.misc.Util;
+import io.auklet.util.Util;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.msgpack.core.MessageBufferPacker;

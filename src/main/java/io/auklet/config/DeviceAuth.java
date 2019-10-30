@@ -3,7 +3,8 @@ package io.auklet.config;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.auklet.Auklet;
 import io.auklet.AukletException;
-import io.auklet.misc.Util;
+import io.auklet.util.FileUtil;
+import io.auklet.util.JsonUtil;
 import mjson.Json;
 import net.jcip.annotations.NotThreadSafe;
 import okhttp3.MediaType;
@@ -111,12 +112,12 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
     @Override protected Json readFromDisk() {
         try {
             // Read and decrypt the device auth file from disk.
-            byte[] authFileBytes = Util.read(this.file);
+            byte[] authFileBytes = FileUtil.read(this.file);
             if (authFileBytes.length == 0) return null;
             this.aesCipher.init(Cipher.DECRYPT_MODE, this.aesKey);
             String authFileDecrypted = new String(this.aesCipher.doFinal(authFileBytes));
             // Parse the JSON and set relevant fields.
-            return Util.validateJson(Util.readJson(authFileDecrypted), this.getClass().getName());
+            return JsonUtil.validateJson(JsonUtil.readJson(authFileDecrypted), this.getClass().getName());
         } catch (AukletException | IOException | SecurityException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException e) {
             LOGGER.warn("Could not read device auth file from disk, will re-register device with API.", e);
             return null;
@@ -128,10 +129,8 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
         requestJson.set("mac_address_hash", this.getAgent().getMacHash());
         requestJson.set("application", this.getAgent().getAppId());
         Request.Builder request = new Request.Builder()
-                .url(this.getAgent().getBaseUrl() + "/private/devices/")
-                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJson.toString()))
-                .header("Content-Type", "application/json; charset=utf-8");
-        return this.makeJsonRequest(request);
+                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJson.toString()));
+        return this.makeJsonRequest(request, "/private/devices/");
     }
 
     @Override protected void writeToDisk(@NonNull Json contents) throws AukletException {
@@ -140,7 +139,7 @@ public final class DeviceAuth extends AbstractJsonConfigFileFromApi {
             // Encrypt and save the JSON string to disk.
             this.aesCipher.init(Cipher.ENCRYPT_MODE, this.aesKey);
             byte[] encrypted = this.aesCipher.doFinal(contents.toString().getBytes("UTF-8"));
-            Util.write(this.file, encrypted);
+            FileUtil.write(this.file, encrypted);
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IOException e) {
             throw new AukletException("Could not encrypt/save device data to disk.", e);
         }
