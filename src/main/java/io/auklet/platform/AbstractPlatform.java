@@ -20,6 +20,7 @@ import java.util.List;
 public abstract class AbstractPlatform extends HasAgent implements Platform {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPlatform.class);
+    private static final String DIR_ERROR = "Skipping directory '{}' due to an error.";
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
         this.setAgent(agent);
@@ -38,7 +39,7 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
                     return new File(dir);
                 }
             } catch (SecurityException e) {
-                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
+                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
                 else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
             }
         }
@@ -49,10 +50,10 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
             try {
                 return tryDir(new File(dir));
             } catch (SecurityException e) {
-                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
+                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
                 else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException e) {
-                LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
+                LOGGER.warn(DIR_ERROR, dir, e);
             }
         }
         return null;
