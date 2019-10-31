@@ -54,19 +54,19 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
      */
     @CheckForNull
     private static File chooseExistingConfigDir(@Nullable List<String> possibleConfigDirs) {
-        if (possibleConfigDirs == null || possibleConfigDirs.isEmpty()) return null;
-        for (String dir : possibleConfigDirs) {
-            // If a directory contains the auth file, use that directory.
-            // We don't care if the other files don't exist because we'll create them later if needed.
-            File authFile = new File(dir, DeviceAuth.FILENAME);
-            try {
-                if (authFile.exists()) {
-                    LOGGER.debug("Using existing config directory: {}", dir);
-                    return new File(dir);
+        if (possibleConfigDirs != null) {
+            for (String dir : possibleConfigDirs) {
+                // If a directory contains the auth file, use that directory.
+                // We don't care if the other files don't exist because we'll create them later if needed.
+                File authFile = new File(dir, DeviceAuth.FILENAME);
+                try {
+                    if (authFile.exists()) {
+                        LOGGER.debug("Using existing config directory: {}", dir);
+                        return new File(dir);
+                    }
+                } catch (SecurityException e) {
+                    handleSecurityException(e, dir);
                 }
-            } catch (SecurityException e) {
-                if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
-                else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
             }
         }
         return null;
@@ -78,20 +78,19 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
      * @param possibleConfigDirs the list of possible config directories that need to be tested; the
      * first (per iteration order) directory in this list that passes the tests will be returned.
      * @return possibly {@code null}, meaning that no possible config directories were suitable.
-     * @throws IllegalArgumentException if the input list is {@code null}.
      */
     @CheckForNull
-    private static File chooseNewConfigDir(@NonNull List<String> possibleConfigDirs) {
-        if (possibleConfigDirs == null) throw new IllegalArgumentException("Config dir list is null");
-        for (String dir : possibleConfigDirs) {
-            try {
-                File dirFile = new File(dir);
-                if (dirWriteTest(dirFile)) return dirFile;
-            } catch (SecurityException e) {
-                if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
-                else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
-            } catch (IllegalArgumentException | UnsupportedOperationException | IOException e) {
-                LOGGER.warn(DIR_ERROR, dir, e);
+    private static File chooseNewConfigDir(@Nullable List<String> possibleConfigDirs) {
+        if (possibleConfigDirs != null) {
+            for (String dir : possibleConfigDirs) {
+                try {
+                    File dirFile = new File(dir);
+                    if (dirWriteTest(dirFile)) return dirFile;
+                } catch (SecurityException e) {
+                    handleSecurityException(e, dir);
+                } catch (IOException e) {
+                    LOGGER.warn(DIR_ERROR, dir, e);
+                }
             }
         }
         return null;
@@ -125,6 +124,18 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
             return true;
         }
         return false;
+    }
+
+    /**
+     * <p>Logs a security exception while testing config dirs.</p>
+     *
+     * @param e the exception.
+     * @param dir the directory being tested.
+     */
+    private static void handleSecurityException(@NonNull SecurityException e, @NonNull String dir) {
+        if (e == null || dir == null) return;
+        if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
+        else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
     }
 
 }
