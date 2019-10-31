@@ -85,11 +85,9 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
             for (String dir : possibleConfigDirs) {
                 try {
                     File dirFile = new File(dir);
-                    if (dirWriteTest(dirFile)) return dirFile;
+                    if (dirTest(dirFile)) return dirFile;
                 } catch (SecurityException e) {
                     handleSecurityException(e, dir);
-                } catch (IOException e) {
-                    LOGGER.warn(DIR_ERROR, dir, e);
                 }
             }
         }
@@ -102,9 +100,9 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
      * @param dir the directory to test.
      * @return {@code true} if creatable or writable, in which case the directory is
      * guaranteed to exist upon return.
-     * @throws IOException if an error occurs during testing.
+     * @throws IllegalArgumentException if the dir is {@code null}.
      */
-    private static boolean dirWriteTest(@NonNull File dir) throws IOException {
+    private static boolean dirTest(@NonNull File dir) {
         if (dir == null) throw new IllegalArgumentException("Dir is null");
         // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
         // exists *as a directory*. However, this result does not imply that the JVM has
@@ -114,16 +112,36 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
         // To alleviate this, we do a test file write inside the directory *only if the
         // directory existed beforehand*.
         boolean alreadyExists = dir.exists();
-        if (alreadyExists) {
-            File tempFile = File.createTempFile("auklet", null, dir);
+        if (alreadyExists && dirTestWrite(dir)) {
             LOGGER.debug("Using existing config directory: {}", dir.getPath());
-            FileUtil.deleteQuietly(tempFile);
             return true;
-        } else if (dir.mkdirs()) {
+        }
+        if (!alreadyExists && dir.mkdirs()) {
             LOGGER.debug("Created new config directory: {}", dir.getPath());
             return true;
         }
         return false;
+    }
+
+    /**
+     * <p>Tests whether a given directory is writable.</p>
+     *
+     * @param dir the directory to test.
+     * @return {@code true} if it is writable.
+     * @throws IllegalArgumentException if the dir is {@code null}.
+     */
+    private static boolean dirTestWrite(@NonNull File dir) {
+        if (dir == null) throw new IllegalArgumentException("Dir is null");
+        File tempFile = null;
+        boolean success = true;
+        try {
+            tempFile = File.createTempFile("auklet", null, dir);
+        } catch (IOException e) {
+            LOGGER.warn(DIR_ERROR, dir, e);
+            success = false;
+        }
+        FileUtil.deleteQuietly(tempFile);
+        return success;
     }
 
     /**
