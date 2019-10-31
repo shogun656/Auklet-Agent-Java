@@ -58,8 +58,8 @@ public final class ThreadUtil {
             LOGGER.warn("Interrupted while awaiting ExecutorService shutdown.", ie);
             es.shutdownNow();
             Thread.currentThread().interrupt();
-        } catch (SecurityException se) {
-            LOGGER.warn("Could not shut down ExecutorService.", se);
+        } catch (SecurityException e) {
+            LOGGER.warn("Could not shut down ExecutorService.", e);
         }
     }
 

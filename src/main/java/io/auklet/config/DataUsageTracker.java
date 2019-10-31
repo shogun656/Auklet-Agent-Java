@@ -43,7 +43,7 @@ public final class DataUsageTracker extends AbstractConfigFile {
             // Parse the JSON and set relevant fields.
             Json usageJson = JsonUtil.validateJson(JsonUtil.readJson(usageString), this.getClass().getName());
             this.bytesSent = usageJson.at(USAGE_KEY, 0L).asLong();
-        } catch (IOException | SecurityException | IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e) {
             LOGGER.warn("Could not read data usage tracker file from disk, assuming zero usage.", e);
         }
     }
@@ -101,7 +101,10 @@ public final class DataUsageTracker extends AbstractConfigFile {
                     }
                     try {
                         writeUsageToDisk(givenUsage);
-                    } catch (IOException | SecurityException e) {
+                    } catch (SecurityException e) {
+                        if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn("Could not save data usage to disk.", e);
+                        else LOGGER.warn("Could not save data usage to disk: " + e.getMessage());
+                    } catch (IOException e) {
                         LOGGER.warn("Could not save data usage to disk.", e);
                     }
                 }

@@ -41,6 +41,17 @@ import java.util.*;
  *       <td>{@code false} (auto-start is disabled)</td>
  *     </tr>
  *     <tr>
+ *       <td>Detailed logging of SecurityExceptions</td>
+ *       <td><i>N/A</i></td>
+ *       <td>
+ *         <ol>
+ *           <li>Environment variable {@code AUKLET_LOUD_SECURITY_EXCEPTIONS}</li>
+ *           <li>JVM system property {@code auklet.loud.security.exceptions}</li>
+ *         </ol>
+ *       </td>
+ *       <td>{@code false} (SecurityExceptions will be logged normally)</td>
+ *     </tr>
+ *     <tr>
  *       <td>Application ID</td>
  *       <td>{@link #setAppId(String)}</td>
  *       <td>

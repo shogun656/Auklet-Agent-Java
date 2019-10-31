@@ -74,6 +74,8 @@ public final class FileUtil {
         byte[] bytes = new byte[(int) file.length()];
         try (DataInputStream stream = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
             stream.readFully(bytes);
+        } catch (SecurityException e) {
+            throw new IOException(e);
         }
         return bytes;
     }

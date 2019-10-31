@@ -2,7 +2,9 @@ package io.auklet.platform;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.auklet.Auklet;
 import io.auklet.AukletException;
+import io.auklet.util.SysUtil;
 import io.auklet.util.Util;
 import io.auklet.misc.OSMX;
 import net.jcip.annotations.Immutable;
@@ -27,9 +29,9 @@ public final class JavaPlatform extends AbstractPlatform {
         // Consider config dir settings in this order.
         List<String> possibleConfigDirs = Arrays.asList(
                 fromConfig,
-                System.getProperty("user.dir"),
-                System.getProperty("user.home"),
-                System.getProperty("java.io.tmpdir")
+                SysUtil.getSysProp("user.dir", Auklet.LOUD_SECURITY_EXCEPTIONS),
+                SysUtil.getSysProp("user.home", Auklet.LOUD_SECURITY_EXCEPTIONS),
+                SysUtil.getSysProp("java.io.tmpdir", Auklet.LOUD_SECURITY_EXCEPTIONS)
         );
 
         // Drop any env vars/sysprops whose value is null, and append the auklet subdir to each remaining value.

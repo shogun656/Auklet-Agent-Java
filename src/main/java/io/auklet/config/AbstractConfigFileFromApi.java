@@ -64,12 +64,8 @@ public abstract class AbstractConfigFileFromApi<T> extends AbstractConfigFile {
      * @throws IOException if the file cannot be read.
      */
     @NonNull protected final String getStringFromDisk() throws IOException {
-        try {
-            byte[] bytes = FileUtil.read(this.file);
-            return new String(bytes, "UTF-8");
-        } catch (SecurityException e) {
-            throw new IOException(e);
-        }
+        byte[] bytes = FileUtil.read(this.file);
+        return new String(bytes, "UTF-8");
     }
 
 }

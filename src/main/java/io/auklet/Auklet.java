@@ -48,8 +48,10 @@ import java.util.concurrent.*;
 @ThreadSafe
 public final class Auklet {
 
-    /** <p>The version of the Auklet agent JAR.</p> */
+    /** <p>The version of the Auklet agent JAR; never {@code null} or empty.</p> */
     public static final String VERSION;
+    /** <p>If {@code false} (default), some SecurityExceptions will be silenced and others will have their stack traces suppressed.</p> */
+    public static final boolean LOUD_SECURITY_EXCEPTIONS;
     private static final Logger LOGGER = LoggerFactory.getLogger(Auklet.class);
     private static final Object LOCK = new Object();
     private static final AukletDaemonExecutor DAEMON = new AukletDaemonExecutor(1, ThreadUtil.createDaemonThreadFactory("Auklet"));
@@ -81,20 +83,42 @@ public final class Auklet {
         }
         LOGGER.info("Auklet Agent version {}", version);
         VERSION = version;
+        // Determine if logging SecurityExceptions loudly is allowed (false by default).
+        //
+        // If this results in its own SecurityExceptions, this means that the end user has a security
+        // policy in place that will not allow the end user to turn this feature on. This would make
+        // it harder for the end user to debug what the security policy is missing in order for the
+        // agent to work per the end user's requirements, so as a courtesy we will always log these
+        // failures, but we will never log any other failures.
+        //
+        // Given the uniqueness of this check, we need to log a custom warning here, so we do not
+        // use SysUtil.getValue().
+        String fromEnv = null;
+        boolean blockedEnv = false;
+        try {
+            fromEnv = System.getenv("AUKLET_LOUD_SECURITY_EXCEPTIONS");
+        } catch (SecurityException e) {
+            blockedEnv = true;
+        }
+        String fromProp = null;
+        boolean blockedProp = false;
+        try {
+            fromProp = System.getProperty("auklet.loud.security.exceptions");
+        } catch (SecurityException e) {
+            blockedProp = true;
+        }
+        LOUD_SECURITY_EXCEPTIONS = Boolean.valueOf(fromEnv) || Boolean.valueOf(fromProp);
+        if (LOUD_SECURITY_EXCEPTIONS) {
+            LOGGER.info("SecurityException loud logging is enabled.");
+        } else if (blockedEnv || blockedProp) {
+            // We only log the error if the end result is not true. This implies that exactly
+            // one of the two calls resulted in a SecurityException and that the other call
+            // was successful and returned true, so there would be no reason to log anything.
+            LOGGER.warn("JVM security manager prevented checking for 'loud security exceptions' flag!");
+        }
         // Initialize the Auklet agent if requested via env var or JVM sysprop.
-        String fromEnv = "false";
-        String fromProp = "false";
-        try {
-            fromEnv = System.getenv("AUKLET_AUTO_START");
-        } catch (SecurityException e) {
-            LOGGER.warn("Cannot check env var AUKLET_AUTO_START", e);
-        }
-        try {
-            fromProp = System.getProperty("auklet.auto.start");
-        } catch (SecurityException e) {
-            LOGGER.warn("Cannot check JVM sysprop auklet.auto.start", e);
-        }
-        if (Boolean.valueOf(fromEnv) || Boolean.valueOf(fromProp)) {
+        boolean autoStart = Boolean.valueOf(SysUtil.getValue((String) null, "AUKLET_AUTO_START", "auklet.auto.start", LOUD_SECURITY_EXCEPTIONS));
+        if (autoStart) {
             LOGGER.info("Auto-start requested.");
             init(null);
         }
@@ -137,25 +161,25 @@ public final class Auklet {
         LOGGER.debug("Parsing configuration.");
         if (config == null) config = new Config();
 
-        this.appId = SysUtil.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id");
+        this.appId = SysUtil.getValue(config.getAppId(), "AUKLET_APP_ID", "auklet.app.id", LOUD_SECURITY_EXCEPTIONS);
         if (Util.isNullOrEmpty(this.appId)) throw new AukletException("App ID is null or empty.");
-        this.apiKey = SysUtil.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key");
+        this.apiKey = SysUtil.getValue(config.getApiKey(), "AUKLET_API_KEY", "auklet.api.key", LOUD_SECURITY_EXCEPTIONS);
         if (Util.isNullOrEmpty(this.apiKey)) throw new AukletException("API key is null or empty.");
 
-        String baseUrlMaybeNull = SysUtil.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url");
+        String baseUrlMaybeNull = SysUtil.getValue(config.getBaseUrl(), "AUKLET_BASE_URL", "auklet.base.url", LOUD_SECURITY_EXCEPTIONS);
         this.baseUrl = Util.orElse(Util.removeTrailingSlash(baseUrlMaybeNull), "https://api.auklet.io");
         LOGGER.info("Base URL: {}", this.baseUrl);
 
-        Boolean autoShutdownMaybeNull = SysUtil.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown");
-        Boolean uncaughtExceptionHandlerMaybeNull = SysUtil.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler");
+        Boolean autoShutdownMaybeNull = SysUtil.getValue(config.getAutoShutdown(), "AUKLET_AUTO_SHUTDOWN", "auklet.auto.shutdown", LOUD_SECURITY_EXCEPTIONS);
+        Boolean uncaughtExceptionHandlerMaybeNull = SysUtil.getValue(config.getUncaughtExceptionHandler(), "AUKLET_UNCAUGHT_EXCEPTION_HANDLER", "auklet.uncaught.exception.handler", LOUD_SECURITY_EXCEPTIONS);
         boolean autoShutdown = autoShutdownMaybeNull == null ? true : autoShutdownMaybeNull;
         boolean uncaughtExceptionHandler = uncaughtExceptionHandlerMaybeNull == null ? true : uncaughtExceptionHandlerMaybeNull;
 
-        this.serialPort = SysUtil.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port");
+        this.serialPort = SysUtil.getValue(config.getSerialPort(), "AUKLET_SERIAL_PORT", "auklet.serial.port", LOUD_SECURITY_EXCEPTIONS);
         Object androidContext = config.getAndroidContext();
         if (androidContext != null && serialPort != null) throw new AukletException("Auklet can not use serial port when on an Android platform.");
 
-        Integer mqttThreadsFromConfigMaybeNull = SysUtil.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt");
+        Integer mqttThreadsFromConfigMaybeNull = SysUtil.getValue(config.getMqttThreads(), "AUKLET_THREADS_MQTT", "auklet.threads.mqtt", LOUD_SECURITY_EXCEPTIONS);
         int mqttThreadsFromConfig = mqttThreadsFromConfigMaybeNull == null ? 3 : mqttThreadsFromConfigMaybeNull;
         if (mqttThreadsFromConfig < 1) mqttThreadsFromConfig = 3;
         this.mqttThreads = mqttThreadsFromConfig;
@@ -169,7 +193,7 @@ public final class Auklet {
         } else {
             this.platform = new AndroidPlatform(androidContext);
         }
-        this.configDir = platform.obtainConfigDir(SysUtil.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir"));
+        this.configDir = platform.obtainConfigDir(SysUtil.getValue(config.getConfigDir(), "AUKLET_CONFIG_DIR", "auklet.config.dir", LOUD_SECURITY_EXCEPTIONS));
         if (configDir == null) throw new AukletException("Could not find or create any config directory; see previous logged errors for details.");
 
         LOGGER.debug("Configuring agent resources.");
@@ -205,7 +229,10 @@ public final class Auklet {
             this.shutdownHook = hook;
             try {
                 Runtime.getRuntime().addShutdownHook(hook);
-            } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+            } catch (SecurityException e) {
+                if (LOUD_SECURITY_EXCEPTIONS) throw new AukletException("Could not add JVM shutdown hook.", e);
+                else throw new AukletException("Could not add JVM shutdown hook: " + e.getMessage());
+            } catch (IllegalArgumentException | IllegalStateException e) {
                 throw new AukletException("Could not add JVM shutdown hook.", e);
             }
         } else {
@@ -216,7 +243,8 @@ public final class Auklet {
             try {
                 Thread.setDefaultUncaughtExceptionHandler(new AukletExceptionHandler());
             } catch (SecurityException e) {
-                throw new AukletException("Could not set default uncaught exception handler.", e);
+                if (LOUD_SECURITY_EXCEPTIONS) throw new AukletException("Could not set default uncaught exception handler.", e);
+                else throw new AukletException("Could not set default uncaught exception handler: " + e.getMessage());
             }
         }
     }
