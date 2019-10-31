@@ -65,7 +65,7 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
                     return new File(dir);
                 }
             } catch (SecurityException e) {
-                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
+                if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
                 else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
             }
         }
@@ -88,7 +88,7 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
                 File dirFile = new File(dir);
                 if (dirWriteTest(dirFile)) return dirFile;
             } catch (SecurityException e) {
-                if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
+                if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
                 else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
             } catch (IllegalArgumentException | UnsupportedOperationException | IOException e) {
                 LOGGER.warn(DIR_ERROR, dir, e);

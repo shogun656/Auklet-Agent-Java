@@ -75,7 +75,7 @@ public enum OSMX {
         try {
             return get().getName();
         } catch (SecurityException e) {
-            if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn("Cannot get OS name", e);
+            if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn("Cannot get OS name", e);
             return "";
         }
     }
@@ -84,7 +84,7 @@ public enum OSMX {
         try {
             return get().getArch();
         } catch (SecurityException e) {
-            if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn("Cannot get OS arch", e);
+            if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn("Cannot get OS arch", e);
             return "";
         }
     }
@@ -93,7 +93,7 @@ public enum OSMX {
         try {
             return get().getVersion();
         } catch (SecurityException e) {
-            if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn("Cannot get OS version", e);
+            if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn("Cannot get OS version", e);
             return "";
         }
     }
