@@ -78,30 +78,15 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
      * @param possibleConfigDirs the list of possible config directories that need to be tested; the
      * first (per iteration order) directory in this list that passes the tests will be returned.
      * @return possibly {@code null}, meaning that no possible config directories were suitable.
+     * @throws IllegalArgumentException if the input list is {@code null}.
      */
     @CheckForNull
-    private static File chooseNewConfigDir(@Nullable List<String> possibleConfigDirs) {
-        if (possibleConfigDirs == null || possibleConfigDirs.isEmpty()) return null;
+    private static File chooseNewConfigDir(@NonNull List<String> possibleConfigDirs) {
+        if (possibleConfigDirs == null) throw new IllegalArgumentException("Config dir list is null");
         for (String dir : possibleConfigDirs) {
             try {
                 File dirFile = new File(dir);
-                // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
-                // exists *as a directory*. However, this result does not imply that the JVM has
-                // write permissions *inside* the directory, which would be the case only if the
-                // directory existed beforehand.
-                //
-                // To alleviate this, we do a test file write inside the directory *only if the
-                // directory existed beforehand*.
-                boolean alreadyExists = dirFile.exists();
-                if (alreadyExists) {
-                    File tempFile = File.createTempFile("auklet", null, dirFile);
-                    LOGGER.debug("Using existing config directory: {}", dirFile.getPath());
-                    FileUtil.deleteQuietly(tempFile);
-                    return dirFile;
-                } else if (dirFile.mkdirs()) {
-                    LOGGER.debug("Created new config directory: {}", dirFile.getPath());
-                    return dirFile;
-                }
+                if (dirWriteTest(dirFile)) return dirFile;
             } catch (SecurityException e) {
                 if ( Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
                 else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
@@ -110,6 +95,36 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
             }
         }
         return null;
+    }
+
+    /**
+     * <p>Tests the given directory to see if it is creatable or writable.</p>
+     *
+     * @param dir the directory to test.
+     * @return {@code true} if creatable or writable, in which case the directory is
+     * guaranteed to exist upon return.
+     * @throws IOException if an error occurs during testing.
+     */
+    private static boolean dirWriteTest(@NonNull File dir) throws IOException {
+        if (dir == null) throw new IllegalArgumentException("Dir is null");
+        // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
+        // exists *as a directory*. However, this result does not imply that the JVM has
+        // write permissions *inside* the directory, which would be the case only if the
+        // directory existed beforehand.
+        //
+        // To alleviate this, we do a test file write inside the directory *only if the
+        // directory existed beforehand*.
+        boolean alreadyExists = dir.exists();
+        if (alreadyExists) {
+            File tempFile = File.createTempFile("auklet", null, dir);
+            LOGGER.debug("Using existing config directory: {}", dir.getPath());
+            FileUtil.deleteQuietly(tempFile);
+            return true;
+        } else if (dir.mkdirs()) {
+            LOGGER.debug("Created new config directory: {}", dir.getPath());
+            return true;
+        }
+        return false;
     }
 
 }
