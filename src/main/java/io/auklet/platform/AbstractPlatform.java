@@ -20,38 +20,19 @@ import java.util.List;
 public abstract class AbstractPlatform extends HasAgent implements Platform {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPlatform.class);
+    private static final String DIR_ERROR = "Skipping directory '{}' due to an error.";
 
     @Override public void start(@NonNull Auklet agent) throws AukletException {
         this.setAgent(agent);
     }
 
     @CheckForNull @Override public final File obtainConfigDir(@Nullable String fromConfig) {
-        // If a directory contains the auth file, use that directory.
-        // We don't care if the other files don't exist because we'll create them later if needed.
-        LOGGER.debug("Checking directories for existing config files.");
         List<String> configDirs = getPossibleConfigDirs(fromConfig);
-        for (String dir : configDirs) {
-            File authFile = new File(dir, DeviceAuth.FILENAME);
-            try {
-                if (authFile.exists()) {
-                    LOGGER.debug("Using existing config directory: {}", dir);
-                    return new File(dir);
-                }
-            } catch (SecurityException e) {
-                LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
-            }
-        }
-
+        LOGGER.debug("Checking directories for existing config files.");
+        File existingConfigDir = chooseExistingConfigDir(configDirs);
+        if (existingConfigDir != null) return existingConfigDir;
         LOGGER.debug("No existing config files found; checking directories for suitability.");
-        // Use the first directory that we can create.
-        for (String dir : configDirs) {
-            try {
-                return tryDir(new File(dir));
-            } catch (IllegalArgumentException | UnsupportedOperationException | IOException | SecurityException e) {
-                LOGGER.warn("Skipping directory '{}' due to an error.", dir, e);
-            }
-        }
-        return null;
+        return chooseNewConfigDir(configDirs);
     }
 
     /**
@@ -64,14 +45,65 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
     @NonNull protected abstract List<String> getPossibleConfigDirs(@Nullable String fromConfig);
 
     /**
-     * <p>Checks the directory for write permissions, or attempts to create the directory, or gives up.</p>
+     * <p>Finds and returns the first existing config directory that contains an Auklet config file
+     * that the JVM is able to read.</p>
      *
-     * @param possibleConfigDir the directory that needs to be checked for write permissions.
-     * @return possibly {@code null}, in which case the Auklet agent must throw an exception during
-     * initialization and all data sent to the agent must be silently discarded.
+     * @param possibleConfigDirs the list of possible config directories that need to be tested; the
+     * first (per iteration order) directory in this list that passes the tests will be returned.
+     * @return possibly {@code null}, meaning that no possible config directories were suitable.
      */
-    private static File tryDir(File possibleConfigDir) throws IOException {
-        boolean alreadyExists = possibleConfigDir.exists();
+    @CheckForNull
+    private static File chooseExistingConfigDir(@Nullable List<String> possibleConfigDirs) {
+        if (possibleConfigDirs != null) {
+            for (String dir : possibleConfigDirs) {
+                // If a directory contains the auth file, use that directory.
+                // We don't care if the other files don't exist because we'll create them later if needed.
+                File authFile = new File(dir, DeviceAuth.FILENAME);
+                try {
+                    if (authFile.exists()) {
+                        LOGGER.debug("Using existing config directory: {}", dir);
+                        return new File(dir);
+                    }
+                } catch (SecurityException e) {
+                    handleSecurityException(e, dir);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * <p>Finds and returns the first eligible config directory to which the JVM is able to write files.</p>
+     *
+     * @param possibleConfigDirs the list of possible config directories that need to be tested; the
+     * first (per iteration order) directory in this list that passes the tests will be returned.
+     * @return possibly {@code null}, meaning that no possible config directories were suitable.
+     */
+    @CheckForNull
+    private static File chooseNewConfigDir(@Nullable List<String> possibleConfigDirs) {
+        if (possibleConfigDirs != null) {
+            for (String dir : possibleConfigDirs) {
+                try {
+                    File dirFile = new File(dir);
+                    if (dirTest(dirFile)) return dirFile;
+                } catch (SecurityException e) {
+                    handleSecurityException(e, dir);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * <p>Tests the given directory to see if it is creatable or writable.</p>
+     *
+     * @param dir the directory to test.
+     * @return {@code true} if creatable or writable, in which case the directory is
+     * guaranteed to exist upon return.
+     * @throws IllegalArgumentException if the dir is {@code null}.
+     */
+    private static boolean dirTest(@NonNull File dir) {
+        if (dir == null) throw new IllegalArgumentException("Dir is null");
         // Per Javadocs, File.mkdirs() no-ops with no exception if the given path already
         // exists *as a directory*. However, this result does not imply that the JVM has
         // write permissions *inside* the directory, which would be the case only if the
@@ -79,16 +111,49 @@ public abstract class AbstractPlatform extends HasAgent implements Platform {
         //
         // To alleviate this, we do a test file write inside the directory *only if the
         // directory existed beforehand*.
-        if (alreadyExists) {
-            File tempFile = File.createTempFile("auklet", null, possibleConfigDir);
-            LOGGER.debug("Using existing config directory: {}", possibleConfigDir.getPath());
-            FileUtil.deleteQuietly(tempFile);
-            return possibleConfigDir;
-        } else if (possibleConfigDir.mkdirs()) {
-            LOGGER.debug("Created new config directory: {}", possibleConfigDir.getPath());
-            return possibleConfigDir;
+        boolean alreadyExists = dir.exists();
+        if (alreadyExists && dirTestWrite(dir)) {
+            LOGGER.debug("Using existing config directory: {}", dir.getPath());
+            return true;
         }
-        return null;
+        if (!alreadyExists && dir.mkdirs()) {
+            LOGGER.debug("Created new config directory: {}", dir.getPath());
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * <p>Tests whether a given directory is writable.</p>
+     *
+     * @param dir the directory to test.
+     * @return {@code true} if it is writable.
+     * @throws IllegalArgumentException if the dir is {@code null}.
+     */
+    private static boolean dirTestWrite(@NonNull File dir) {
+        if (dir == null) throw new IllegalArgumentException("Dir is null");
+        File tempFile = null;
+        boolean success = true;
+        try {
+            tempFile = File.createTempFile("auklet", null, dir);
+        } catch (IOException e) {
+            LOGGER.warn(DIR_ERROR, dir, e);
+            success = false;
+        }
+        FileUtil.deleteQuietly(tempFile);
+        return success;
+    }
+
+    /**
+     * <p>Logs a security exception while testing config dirs.</p>
+     *
+     * @param e the exception.
+     * @param dir the directory being tested.
+     */
+    private static void handleSecurityException(@NonNull SecurityException e, @NonNull String dir) {
+        if (e == null || dir == null) return;
+        if (Auklet.LOUD_SECURITY_EXCEPTIONS) LOGGER.warn(DIR_ERROR, dir, e);
+        else LOGGER.warn("Skipping directory '{}' due to an error: {}", dir, e.getMessage());
     }
 
 }
