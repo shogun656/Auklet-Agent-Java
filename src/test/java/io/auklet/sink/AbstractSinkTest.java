@@ -15,8 +15,8 @@ import static junit.framework.TestCase.assertNotNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AbstractSinkTest extends TestingTools {
     private AbstractSink abstractSink;
-    @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        final Auklet auklet = aukletConstructor(null);
+    @BeforeAll void setup() throws AukletException {
+        final Auklet auklet = aukletConstructor();
         abstractSink = new AbstractSink() {
             @Override
             protected void write(@NonNull byte[] bytes) throws AukletException {

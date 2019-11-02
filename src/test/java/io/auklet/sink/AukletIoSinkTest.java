@@ -7,8 +7,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import java.lang.reflect.InvocationTargetException;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -16,8 +14,8 @@ class AukletIoSinkTest extends TestingTools {
     private AukletIoSink aukletIoSink;
     private Auklet auklet;
 
-    @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
-        auklet = aukletConstructor(null);
+    @BeforeAll void setup() throws AukletException, RuntimeException {
+        auklet = aukletConstructor();
         aukletIoSink = new AukletIoSink();
 
         auklet.getDeviceAuth().start(auklet);

@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -16,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DataUsageTrackerTest extends TestingTools {
     private DataUsageTracker dataUsageTracker;
 
-    @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Auklet auklet = aukletConstructor(null);
+    @BeforeAll void setup() throws AukletException {
+        Auklet auklet = aukletConstructor();
         dataUsageTracker = new DataUsageTracker();
 
         dataUsageTracker.start(auklet);

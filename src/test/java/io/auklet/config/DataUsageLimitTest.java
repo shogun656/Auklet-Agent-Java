@@ -8,7 +8,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -17,10 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class DataUsageLimitTest extends TestingTools {
     private DataUsageLimit dataUsageLimit;
 
-    @BeforeAll void setup() throws AukletException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, RuntimeException {
+    @BeforeAll void setup() throws AukletException {
         dataUsageLimit = Mockito.spy(DataUsageLimit.class);
         Mockito.doReturn(jsonDataLimits).when(dataUsageLimit).loadConfig();
-        dataUsageLimit.start(aukletConstructor(null));
+        dataUsageLimit.start(aukletConstructor());
     }
 
     @Test void testGetName() {

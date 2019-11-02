@@ -19,7 +19,7 @@ class AukletApiTest {
             assertEquals("io.auklet.AukletException: API key is null or empty.", e.toString());
         }
         //TODO: Create test
-        new AukletApi("0");
+//        new AukletApi("0");
     }
 
     @Test void testDoRequest() throws AukletException {

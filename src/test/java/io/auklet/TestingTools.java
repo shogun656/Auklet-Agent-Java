@@ -1,9 +1,19 @@
 package io.auklet;
 
+import io.auklet.config.DeviceAuth;
+import io.auklet.core.AukletDaemonExecutor;
+import io.auklet.core.DataUsageMonitor;
+import io.auklet.platform.JavaPlatform;
+import io.auklet.util.ThreadUtil;
 import mjson.Json;
+import okhttp3.Request;
+import okhttp3.Response;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 public class TestingTools {
 
@@ -43,15 +53,16 @@ public class TestingTools {
             .set("brokers", "0.0.0.0")
             .set("port", "0000");
 
-    protected Auklet aukletConstructor(Config config) throws NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, InstantiationException, RuntimeException {
-        if (config == null) {
-            config = new Config().setAppId("0123456789101112")
-                    .setApiKey("123");
-        }
-
-        Constructor<Auklet> aukletConstructor = Auklet.class.getDeclaredConstructor(config.getClass());
-        aukletConstructor.setAccessible(true);
-        return aukletConstructor.newInstance(config);
+    protected Auklet aukletConstructor() throws AukletException {
+        Auklet mocked = mock(Auklet.class);
+        given(mocked.getAppId()).willReturn("0123456789101112");
+        given(mocked.getDeviceAuth()).willReturn(new DeviceAuth());
+        given(mocked.getUsageMonitor()).willReturn(new DataUsageMonitor());
+        given(mocked.getIpAddress()).willReturn("");
+        given(mocked.getPlatform()).willReturn(new JavaPlatform());
+        given(mocked.getConfigDir()).willReturn(new File(".auklet").getAbsoluteFile());
+        given(mocked.getMqttThreads()).willReturn(2);
+        given(mocked.getMacHash()).willReturn("");
+        return mocked;
     }
 }

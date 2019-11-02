@@ -115,10 +115,49 @@ if (JavaVersion.current().isJava9Compatible()) {
     }
 }
 
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 // Test configuration
 test {
-    testLogging.showStandardStreams = true
     useJUnitPlatform()
+
+    // set options for log level LIFECYCLE
+    testLogging.events(
+            TestLogEvent.FAILED,
+            TestLogEvent.PASSED,
+            TestLogEvent.SKIPPED,
+            TestLogEvent.STANDARD_OUT
+    )
+    testLogging.exceptionFormat(TestExceptionFormat.FULL)
+    testLogging.showExceptions(true)
+    testLogging.showCauses(true)
+    testLogging.showStackTraces(true)
+    testLogging.showStandardStreams = true
+
+    // set options for log level DEBUG and INFO
+    testLogging.debug.events(
+            TestLogEvent.STARTED,
+            TestLogEvent.FAILED,
+            TestLogEvent.PASSED,
+            TestLogEvent.SKIPPED,
+            TestLogEvent.STANDARD_ERROR,
+            TestLogEvent.STANDARD_OUT
+    )
+    testLogging.exceptionFormat(TestExceptionFormat.FULL)
+    testLogging.info.events = testLogging.debug.events
+    testLogging.info.exceptionFormat = testLogging.debug.exceptionFormat
+
+    afterSuite { desc, result ->
+        if (!desc.parent) { // will match the outermost suite
+            def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)"
+            def startItem = '|  ', endItem = '  |'
+            def repeatLength = startItem.length() + output.length() + endItem.length()
+            println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+        }
+    }
+
+    filter.includeTestsMatching("*.AukletExceptionTest")
 }
 
 jacocoTestReport {

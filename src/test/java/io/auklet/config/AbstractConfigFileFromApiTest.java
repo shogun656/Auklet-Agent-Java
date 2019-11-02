@@ -27,13 +27,13 @@ class AbstractConfigFileFromApiTest extends TestingTools {
 
             @NonNull
             @Override
-            protected Json fetchFromApi() throws AukletException {
+            protected Json fetchFromApi()  {
                 return Json.object().set("Data", "test");
             }
 
             @NonNull
             @Override
-            protected void writeToDisk(@NonNull Json contents) throws AukletException {
+            protected void writeToDisk(@NonNull Json contents) {
                 try {
                     FileUtil.writeUtf8(this.file, contents.toString());
                 } catch (IOException e) {

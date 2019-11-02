@@ -3,11 +3,15 @@ package io.auklet;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.DataUsageMonitor;
 import io.auklet.platform.Platform;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.function.Executable;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.TimeUnit;
 
@@ -18,13 +22,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AukletTest extends TestingTools {
     private Auklet auklet;
+    private Config config;
     private Runnable runnable;
 
-    @BeforeAll void setup() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
-            InstantiationException, RuntimeException {
-        auklet = aukletConstructor(null);
+    @BeforeAll void setup() throws AukletException {
+        auklet = aukletConstructor();
 
-        Config config = new Config().setAppId("0123456789101112")
+        config = new Config().setAppId("0123456789101112")
                 .setApiKey("123");
 
         runnable = new Runnable() {
@@ -34,9 +38,29 @@ class AukletTest extends TestingTools {
             }
         };
 
-        auklet.init(config);
+        Auklet.init(config);
     }
 
+    @Test void testReflectionNotSupported() throws NoSuchMethodException {
+        final Constructor<Auklet> constructor = Auklet.class.getDeclaredConstructor(config.getClass());
+        constructor.setAccessible(true);
+        InvocationTargetException e = assertThrows(
+                InvocationTargetException.class, new Executable() {
+                    @Override
+                    public void execute() throws InstantiationException, IllegalAccessException, InvocationTargetException {
+                        constructor.newInstance(config);
+                    }
+                });
+
+        assertTrue(IllegalStateException.class.isInstance(e.getCause()));
+        assertEquals(e.getCause().getMessage(), "Use Auklet.init() to initialize the agent.");
+    }
+
+    @Test void testSend() {
+//        Auklet.send();
+    }
+
+    // Unable to test public methods in class since we removed reflection
     @Test void testGetAppId() {
         assertEquals("0123456789101112", auklet.getAppId());
     }
@@ -50,7 +74,7 @@ class AukletTest extends TestingTools {
     }
 
     @Test void testGetMqttThreads() {
-        assertEquals(true, auklet.getMqttThreads() > 1);
+        assertTrue(auklet.getMqttThreads() > 1);
     }
 
     @Test void testGetMacHash() {
@@ -71,13 +95,5 @@ class AukletTest extends TestingTools {
 
     @Test void testGetPlatform() {
         assertThat(auklet.getPlatform(), instanceOf(Platform.class));
-    }
-
-    @Test void testScheduleOneShotTask() throws AukletException {
-        assertNotNull(auklet.scheduleOneShotTask(runnable, 1, TimeUnit.SECONDS));
-    }
-
-    @Test void testScheduleRepeatingTask() throws AukletException {
-        assertNotNull(auklet.scheduleRepeatingTask(runnable, 1,1, TimeUnit.SECONDS));
     }
 }
