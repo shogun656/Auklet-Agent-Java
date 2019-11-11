@@ -27,11 +27,11 @@ class AukletApiTest {
             Https aukletApi = new Https(Collections.<InputStream>emptyList());
             aukletApi.doRequest(null);
         } catch (AukletException e) {
-            assertEquals("io.auklet.AukletException: API key is null or empty.", e.toString());
+            assertEquals("io.auklet.AukletException: HTTP request is null.", e.toString());
         }
 
         Https aukletApi = new Https(Collections.<InputStream>emptyList());
-        assertEquals("Response{protocol=h2, code=200, message=, url=https://www.google.com/}",
+        assertEquals("Response{protocol=http/1.1, code=200, message=OK, url=https://www.google.com/}",
                      aukletApi.doRequest(new Request.Builder().url("https://google.com")).toString());
 
         try {

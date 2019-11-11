@@ -11,8 +11,10 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.function.Executable;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -25,7 +27,7 @@ class AukletTest extends TestingTools {
     private Config config;
     private Runnable runnable;
 
-    @BeforeAll void setup() throws AukletException {
+    @BeforeAll void setup() throws AukletException, IOException, URISyntaxException {
         auklet = aukletConstructor();
 
         config = new Config().setAppId("0123456789101112")

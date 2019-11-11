@@ -9,6 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -17,7 +20,7 @@ class DeviceAuthTest extends TestingTools {
     private Json jsonConfig;
     private DeviceAuth deviceAuth;
 
-    @BeforeAll void setup() throws AukletException {
+    @BeforeAll void setup() throws AukletException, IOException, URISyntaxException {
         jsonConfig = Json.object().set("organization", "organization_value")
                                   .set("client_id", "client_id_value")
                                   .set("id", "id_value")
@@ -62,6 +65,6 @@ class DeviceAuthTest extends TestingTools {
     }
 
     @Test void testFetchFromApi() throws AukletException {
-        assertEquals(jsonConfig, deviceAuth.fetchFromApi());
+        assertEquals(jsonConfig, deviceAuth.fetchFromApi().delAt("data").delAt("type"));
     }
 }

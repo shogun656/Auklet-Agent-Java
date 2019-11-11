@@ -157,7 +157,7 @@ test {
         }
     }
 
-    filter.includeTestsMatching("*.AukletExceptionTest")
+//    filter.includeTestsMatching("*.AbstractSinkTest")
 }
 
 jacocoTestReport {

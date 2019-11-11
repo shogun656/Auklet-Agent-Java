@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -15,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DataUsageTrackerTest extends TestingTools {
     private DataUsageTracker dataUsageTracker;
 
-    @BeforeAll void setup() throws AukletException {
+    @BeforeAll void setup() throws AukletException, IOException, URISyntaxException {
         Auklet auklet = aukletConstructor();
         dataUsageTracker = new DataUsageTracker();
 
