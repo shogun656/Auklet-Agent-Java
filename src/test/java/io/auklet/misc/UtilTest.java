@@ -2,6 +2,15 @@ package io.auklet.misc;
 
 import io.auklet.util.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,6 +18,12 @@ class UtilTest {
     @Test void testIsNullOrEmpty() {
         assertTrue(Util.isNullOrEmpty(""));
         assertFalse(Util.isNullOrEmpty("1"));
+
+        List<Integer> intList = new ArrayList<>();
+        assertTrue(Util.isNullOrEmpty(intList));
+
+        intList.add(1);
+        assertFalse(Util.isNullOrEmpty(intList));
     }
 
     @Test void testOrElse() {
@@ -24,6 +39,29 @@ class UtilTest {
     @Test void testRemoveTrailingSlash() {
         assertNull(Util.removeTrailingSlash(null));
         assertEquals("1", Util.removeTrailingSlash("1/"));
+    }
+
+    @Test void testAddLeadingSlash() {
+        assertNull(Util.addLeadingSlash(null));
+        assertEquals("/1", Util.addLeadingSlash("1"));
+    }
+
+    @Test void testGetCurrentStackTrace() {
+        System.out.println(Util.getCurrentStackTrace().length);
+    }
+
+    @Test void testCloseQuietly() {
+        final InputStream inputstream = getClass().getClassLoader().getResourceAsStream("response.json");
+        Util.closeQuietly(inputstream);
+        IOException e = assertThrows(
+                IOException.class, new Executable() {
+                    @Override
+                    public void execute() throws IOException {
+                        inputstream.available();
+                    }
+                });
+
+        assertEquals(e.getMessage(), "Stream closed");
     }
 
     @Test void testGetMacAddressHash() {
