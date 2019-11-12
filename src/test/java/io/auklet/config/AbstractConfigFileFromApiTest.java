@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AbstractConfigFileFromApiTest extends TestingTools {
@@ -35,6 +36,11 @@ class AbstractConfigFileFromApiTest extends TestingTools {
             @Override
             protected void writeToDisk(@NonNull Json contents) {
                 try {
+                    System.out.println(contents.toString());
+                    System.out.println("does this file exist: " + this.file.exists());
+                    System.out.println(this.file.getPath());
+                    System.out.println(this.file.canRead());
+                    System.out.println(this.file.canWrite());
                     FileUtil.writeUtf8(this.file, contents.toString());
                 } catch (IOException e) {
                     // Purposefully to be empty
@@ -52,7 +58,7 @@ class AbstractConfigFileFromApiTest extends TestingTools {
 
     @Test void testLoadConfig() throws AukletException {
         abstractConfigFileFromApi.loadConfig();
-        assertEquals(true, abstractConfigFileFromApi.file.length() > 0);
+        assertTrue(abstractConfigFileFromApi.file.length() > 0);
         abstractConfigFileFromApi.file.delete();
     }
 
