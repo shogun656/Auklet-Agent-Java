@@ -36,11 +36,6 @@ class AbstractConfigFileFromApiTest extends TestingTools {
             @Override
             protected void writeToDisk(@NonNull Json contents) {
                 try {
-                    System.out.println(contents.toString());
-                    System.out.println("does this file exist: " + this.file.exists());
-                    System.out.println(this.file.getPath());
-                    System.out.println(this.file.canRead());
-                    System.out.println(this.file.canWrite());
                     FileUtil.writeUtf8(this.file, contents.toString());
                 } catch (IOException e) {
                     // Purposefully to be empty
