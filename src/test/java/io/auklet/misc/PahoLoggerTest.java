@@ -1,5 +1,6 @@
 package io.auklet.misc;
 
+import io.auklet.misc.PahoLogger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

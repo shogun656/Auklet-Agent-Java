@@ -1,5 +1,6 @@
 package io.auklet.misc;
 
+import io.auklet.misc.OSMX;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;

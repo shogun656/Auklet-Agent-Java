@@ -1,6 +1,5 @@
-package io.auklet.misc;
+package io.auklet.util;
 
-import io.auklet.util.FileUtil;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -12,23 +11,22 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FileUtilTest {
-    @Test
-    void testDeleteQuietly() {
-        String pathname = "./tmp/io.auklet.misc.UtilTest.testDeleteQuietly";
+    @Test void testDeleteQuietly() {
+        String pathname = "./tmp/UtilTest.testDeleteQuietly";
         File file = new File(pathname);
         FileUtil.deleteQuietly(file);
         assertFalse(file.isFile());
     }
 
     @Test void testWriteUtf8() throws IOException {
-        String pathname = "./tmp/io.auklet.misc.UtilTest.testWriteUtf8";
+        String pathname = "./tmp/UtilTest.testWriteUtf8";
         File file = new File(pathname);
         FileUtil.writeUtf8(file, "0");
         assertEquals("0", new String(Files.readAllBytes(Paths.get(pathname))));
     }
 
     @Test void testWrite() throws IOException {
-        String pathname = "./tmp/io.auklet.misc.UtilTest.testWrite";
+        String pathname = "./tmp/UtilTest.testWrite";
         String data = "0";
         byte[] bytes = data.getBytes("UTF-8");
         File file = new File(pathname);
@@ -37,7 +35,7 @@ class FileUtilTest {
     }
 
     @Test void testRead() throws IOException {
-        String pathname = "./tmp/io.auklet.misc.UtilTest.testRead";
+        String pathname = "./tmp/UtilTest.testRead";
         String data = "0";
         byte[] bytes = data.getBytes("UTF-8");
         FileOutputStream writeFile = new FileOutputStream(pathname);

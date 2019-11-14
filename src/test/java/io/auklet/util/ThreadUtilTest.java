@@ -1,6 +1,5 @@
-package io.auklet.misc;
+package io.auklet.util;
 
-import io.auklet.util.ThreadUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
@@ -10,8 +9,7 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ThreadUtilTest {
-    @Test
-    void testCreateDaemonThreadFactory() {
+    @Test void testCreateDaemonThreadFactory() {
         assertNotNull(ThreadUtil.createDaemonThreadFactory("0"));
     }
 
