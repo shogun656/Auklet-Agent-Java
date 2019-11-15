@@ -9,6 +9,7 @@ if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
 fi
 
 bash .devops/tests.sh
+echo $?
 
 if [[ "$CIRCLE_LOCAL_BUILD" == 'false' ]]; then
   # The test reporter will throw a HTTP 409 error if we rebuild in circle because
