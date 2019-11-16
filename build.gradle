@@ -155,9 +155,6 @@ test {
             def repeatLength = startItem.length() + output.length() + endItem.length()
             println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
         }
-        if (result.resultType == TestResult.ResultType.FAILURE) {
-            throw new GradleException("$td failed")
-        }
     }
 
 //    filter.includeTestsMatching("*.AbstractSinkTest")
