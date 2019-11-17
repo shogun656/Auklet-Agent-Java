@@ -43,7 +43,7 @@ class UtilTest {
     }
 
     @Test void testGetCurrentStackTrace() {
-        System.out.println(Util.getCurrentStackTrace().length);
+        assertEquals(Util.getCurrentStackTrace()[0].toString(), "io.auklet.util.Util.getCurrentStackTrace(Util.java:153)");
     }
 
     @Test void testCloseQuietly() {
