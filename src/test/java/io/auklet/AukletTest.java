@@ -3,8 +3,6 @@ package io.auklet;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.DataUsageMonitor;
 import io.auklet.platform.Platform;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -15,7 +13,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,20 +22,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class AukletTest extends TestingTools {
     private Auklet auklet;
     private Config config;
-    private Runnable runnable;
 
     @BeforeAll void setup() throws AukletException, IOException, URISyntaxException {
         auklet = aukletConstructor();
 
         config = new Config().setAppId("0123456789101112")
                 .setApiKey("123");
-
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        };
 
         Auklet.init(config);
     }
