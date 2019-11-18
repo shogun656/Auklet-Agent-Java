@@ -1,5 +1,7 @@
 package io.auklet;
 
+import android.content.Context;
+import android.test.ServiceTestCase;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.DataUsageMonitor;
 import io.auklet.platform.JavaPlatform;
@@ -8,6 +10,7 @@ import okhttp3.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -77,5 +80,16 @@ public class TestingTools {
                         .message("This worked")
                         .build());
         return mocked;
+    }
+
+    protected Context getTestContext() {
+        try {
+            Method getTestContext = ServiceTestCase.class.getMethod("getTestContext");
+            return (Context) getTestContext.invoke(this);
+        }
+        catch(final Exception exception) {
+            exception.printStackTrace();
+            return null;
+        }
     }
 }
