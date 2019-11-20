@@ -1,7 +1,6 @@
 package io.auklet;
 
 import android.content.Context;
-import android.test.ServiceTestCase;
 import io.auklet.config.DeviceAuth;
 import io.auklet.core.DataUsageMonitor;
 import io.auklet.platform.JavaPlatform;
@@ -10,7 +9,8 @@ import okhttp3.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -83,13 +83,18 @@ public class TestingTools {
     }
 
     protected Context getTestContext() {
-        try {
-            Method getTestContext = ServiceTestCase.class.getMethod("getTestContext");
-            return (Context) getTestContext.invoke(this);
-        }
-        catch(final Exception exception) {
-            exception.printStackTrace();
-            return null;
-        }
+        Context mcontext = mock(Context.class);
+        given(mcontext.getFilesDir()).willReturn(new File("dir/"));
+        return mcontext;
+    }
+
+    protected void setFinalStatic(Field field, Object newValue) throws Exception {
+        field.setAccessible(true);
+
+        Field modifiersField = Field.class.getDeclaredField("modifiers");
+        modifiersField.setAccessible(true);
+        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+        field.set(null, newValue);
     }
 }
