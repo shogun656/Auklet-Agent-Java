@@ -47,7 +47,7 @@ class AndroidMetricsTest extends TestingTools {
         Runnable cpuUsage = androidMetrics.calculateCpuUsage();
         AukletDaemonExecutor DAEMON = new AukletDaemonExecutor(1, ThreadUtil.createDaemonThreadFactory("Auklet"));
         ScheduledFuture sc = DAEMON.scheduleAtFixedRate(cpuUsage, 0L, 1L, TimeUnit.MILLISECONDS);
-        assertNotEquals(androidMetrics.getCpuUsage(), 0f);
+        assertEquals(androidMetrics.getCpuUsage(), 0f);
         sc.cancel(true);
     }
 }
