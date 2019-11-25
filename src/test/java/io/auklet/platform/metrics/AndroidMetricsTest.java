@@ -9,10 +9,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.function.Executable;
-import org.junit.runner.RunWith;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -42,8 +39,6 @@ class AndroidMetricsTest extends TestingTools {
     }
 
     @Test void testGetCPUUsage() {
-        assertEquals(androidMetrics.getCpuUsage(), 0f);
-
         Runnable cpuUsage = androidMetrics.calculateCpuUsage();
         AukletDaemonExecutor DAEMON = new AukletDaemonExecutor(1, ThreadUtil.createDaemonThreadFactory("Auklet"));
         ScheduledFuture sc = DAEMON.scheduleAtFixedRate(cpuUsage, 0L, 1L, TimeUnit.MILLISECONDS);
